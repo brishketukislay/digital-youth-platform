@@ -5,9 +5,17 @@ from typing import Iterable
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from ..db.models.models import (
+    Player,
+    YouthGroup,
+    XPTransaction,
+)
+
 
 from ..models import (
-    Group,
     Player,
     XPTransaction,
 )
@@ -215,19 +223,19 @@ def group_xp(
             == XPTransaction.player_id,
         )
         .join(
-            Group,
-            Group.id
+            YouthGroup,
+            YouthGroup.id
             == Player.group_id,
         )
     )
 
     if group_id is not None:
         query = query.filter(
-            Group.id == group_id
+            YouthGroup.id == group_id
         )
     elif programme_id is not None:
         query = query.filter(
-            Group.programme_id
+            YouthGroup.programme_id
             == programme_id
         )
 
@@ -263,12 +271,14 @@ def get_transaction_by_reference(
 def award_xp(
     db: Session,
     *,
-    player_id: int,
+    programme_id: int,
+    player_id: int | None,
     amount: int,
     group_amount: int = 0,
     transaction_type: str,
-    reason: str,
-    reference: str | None = None,
+    reason: str | None = None,
+    reference_type: str | None = None,
+    reference_id: int | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
     """
@@ -340,15 +350,18 @@ def award_xp(
             return existing
 
     transaction = XPTransaction(
-        player_id=player.id,
-        group_id=player.group_id,
-        amount=amount,
-        group_amount=group_amount,
-        type=transaction_type,
-        reason=reason,
-        reference=reference,
-        created_by=created_by,
-    )
+    programme_id=programme_id,
+    player_id=player_id,
+    group_id=player.group_id if player else None,
+    amount=amount,
+    group_amount=group_amount,
+    transaction_type=transaction_type,
+    reason=reason,
+    reference_type=reference_type,
+    reference_id=reference_id,
+    created_by=created_by,
+)
+
 
 
     db.add(transaction)
@@ -473,11 +486,11 @@ def group_xp(
         query = (
             query
             .join(
-                Group,
-                Group.id == XPTransaction.group_id,
+                YouthGroup,
+                YouthGroup.id == XPTransaction.group_id,
             )
             .filter(
-                Group.programme_id == programme_id
+                YouthGroup.programme_id == programme_id
             )
         )
 

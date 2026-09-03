@@ -1,33 +1,36 @@
 from __future__ import annotations
 
-from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
-from ..models import Attendance, Player, Session as YouthSession
+from ..db.models.models import (
+    Attendance,
+    AttendanceSession,
+    Player,
+)
 from .xp import award_xp
-
-
-ATTENDANCE_XP = 500
 
 
 def check_in(
     db: Session,
     *,
-    player_id: int,
-    session_id: int,
+    player: Player,
+    attendance_session: AttendanceSession,
     created_by: int | None = None,
 ) -> Attendance:
     """
-    Register one player for one youth-work session.
+    Record one player attendance.
 
-    Attendance is idempotent at the database level.
+    The database unique constraint on
+    (session_id, player_id) is the final duplicate safeguard.
     """
 
     existing = (
         db.query(Attendance)
         .filter(
-            Attendance.player_id == player_id,
-            Attendance.session_id == session_id,
+            Attendance.session_id == attendance_session.id,
+            Attendance.player_id == player.id,
         )
         .first()
     )
@@ -35,65 +38,50 @@ def check_in(
     if existing:
         return existing
 
-    player = (
-        db.query(Player)
-        .filter(Player.id == player_id)
-        .first()
-    )
+    if not attendance_session.active:
+        raise ValueError("Attendance session is no longer active.")
 
-    if player is None:
-        raise ValueError("Player not found.")
+    if attendance_session.expires_at <= datetime.utcnow():
+        raise ValueError("Attendance session has expired.")
 
-    session = (
-        db.query(YouthSession)
-        .filter(YouthSession.id == session_id)
-        .first()
-    )
+    if player.suspended or not player.active:
+        raise ValueError("Player is not active.")
 
-    if session is None:
-        raise ValueError("Session not found.")
+    if player.group_id is None:
+        raise ValueError("Player is not assigned to a group.")
+
+    if (
+        attendance_session.group_id is not None
+        and attendance_session.group_id != player.group_id
+    ):
+        raise ValueError(
+            "Player is not eligible for this attendance session."
+        )
 
     attendance = Attendance(
-        player_id=player_id,
-        session_id=session_id,
+        session_id=attendance_session.id,
+        player_id=player.id,
+        xp_awarded=0,
     )
 
     db.add(attendance)
+    db.flush()
 
-    try:
-        db.flush()
+    transaction = award_xp(
+        db,
+        programme_id=attendance_session.programme_id,
+        player_id=player.id,
+        amount=500,
+        group_amount=500,
+        transaction_type="attendance",
+        reason="Session attendance",
+        reference_type="attendance",
+        reference_id=attendance.id,
+        created_by=created_by,
+    )
 
-        transaction = award_xp(
-            db,
-            player=player,
-            amount=ATTENDANCE_XP,
-            group_amount=ATTENDANCE_XP,
-            transaction_type="attendance",
-            reason="Session attendance",
-            reference=f"attendance:{attendance.id}",
-            created_by=created_by,
-        )
+    attendance.xp_awarded = transaction.amount
 
-        attendance.xp_awarded = True
-        attendance.xp_transaction_id = transaction.id
+    db.flush()
 
-        db.flush()
-
-        return attendance
-
-    except IntegrityError:
-        db.rollback()
-
-        existing = (
-            db.query(Attendance)
-            .filter(
-                Attendance.player_id == player_id,
-                Attendance.session_id == session_id,
-            )
-            .first()
-        )
-
-        if existing:
-            return existing
-
-        raise
+    return attendance
