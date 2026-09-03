@@ -3,50 +3,73 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    JSON,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
 
-class XPAccountScope(str, enum.Enum):
-    PLAYER = "player"
-    GROUP = "group"
-    COHORT = "cohort"
-
-
-class XPSourceType(str, enum.Enum):
+class XPTransactionType(str, enum.Enum):
     ATTENDANCE = "attendance"
     BEHAVIOUR = "behaviour"
     REFLECTION = "reflection"
     ACTIVITY = "activity"
     CHALLENGE = "challenge"
     CIVIC_ACTION = "civic_action"
-    KUDOS = "kudos"
+    COMMUNITY_AWARD = "community_award"
+
     SKILL_MILESTONE = "skill_milestone"
     BADGE = "badge"
-    REWARD = "reward"
-    STAFF_AWARD = "staff_award"
+    BONUS = "bonus"
+    MULTIPLIER = "multiplier"
+
     PENALTY = "penalty"
     GROUP_PENALTY = "group_penalty"
-    MULTIPLIER = "multiplier"
+
+    ADMIN_ADJUSTMENT = "admin_adjustment"
     SYSTEM = "system"
 
 
 class XPTransaction(Base):
+    """
+    Immutable XP ledger entry.
+
+    Balances are projections derived from these transactions.
+    This table is the authoritative audit history.
+    """
+
     __tablename__ = "xp_transactions"
+
+    __table_args__ = (
+        CheckConstraint(
+            "amount <> 0",
+            name="ck_xp_transaction_non_zero",
+        ),
+        CheckConstraint(
+            """
+            player_id IS NOT NULL
+            OR cohort_id IS NOT NULL
+            """,
+            name="ck_xp_transaction_has_target",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
     )
 
-    scope: Mapped[XPAccountScope] = mapped_column(
-        Enum(
-            XPAccountScope,
-            name="xp_account_scope",
-            native_enum=False,
-        ),
+    programme_id: Mapped[int] = mapped_column(
+        ForeignKey("programmes.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -57,56 +80,54 @@ class XPTransaction(Base):
         index=True,
     )
 
-    group_id: Mapped[int | None] = mapped_column(
-        ForeignKey("groups.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
-
     cohort_id: Mapped[int | None] = mapped_column(
         ForeignKey("cohorts.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
 
-    source_type: Mapped[XPSourceType] = mapped_column(
+    transaction_type: Mapped[XPTransactionType] = mapped_column(
         Enum(
-            XPSourceType,
-            name="xp_source_type",
+            XPTransactionType,
+            name="xp_transaction_type",
             native_enum=False,
         ),
         nullable=False,
         index=True,
     )
 
-    # ID of the domain object that caused this transaction.
-    source_id: Mapped[int | None] = mapped_column(
-        Integer,
-        nullable=True,
-        index=True,
-    )
-
-    # Positive = award.
-    # Negative = deduction.
     amount: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
     )
 
-    # Stable idempotency key.
-    #
-    # Services should provide this for externally-triggered or
-    # automatically generated awards so retries cannot double-award XP.
-    idempotency_key: Mapped[str | None] = mapped_column(
-        String(200),
+    source_type: Mapped[str | None] = mapped_column(
+        String(100),
         nullable=True,
+        index=True,
+    )
+
+    source_id: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    idempotency_key: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
         unique=True,
         index=True,
     )
 
     reason: Mapped[str | None] = mapped_column(
-        String(500),
+        Text,
         nullable=True,
+    )
+
+    metadata_json: Mapped[dict] = mapped_column(
+        JSON,
+        nullable=False,
+        default=dict,
     )
 
     created_by_user_id: Mapped[int | None] = mapped_column(
@@ -122,12 +143,12 @@ class XPTransaction(Base):
         index=True,
     )
 
-    player: Mapped["Player | None"] = relationship(
-        "Player",
+    programme: Mapped["Programme"] = relationship(
+        "Programme",
     )
 
-    group: Mapped["Group | None"] = relationship(
-        "Group",
+    player: Mapped["Player | None"] = relationship(
+        "Player",
     )
 
     cohort: Mapped["Cohort | None"] = relationship(
