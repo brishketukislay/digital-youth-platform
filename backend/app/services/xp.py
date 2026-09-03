@@ -341,6 +341,7 @@ def award_xp(
 
     transaction = XPTransaction(
         player_id=player.id,
+        group_id=player.group_id,
         amount=amount,
         group_amount=group_amount,
         type=transaction_type,
@@ -348,6 +349,7 @@ def award_xp(
         reference=reference,
         created_by=created_by,
     )
+
 
     db.add(transaction)
     db.flush()
@@ -444,73 +446,44 @@ def award_penalty_xp(
     )
 
 
-def award_group_xp(
+def group_xp(
     db: Session,
-    *,
-    player_id: int,
-    group_amount: int,
-    reason: str,
-    reference: str | None = None,
-    created_by: int | None = None,
-    transaction_type: str = "group",
-) -> XPTransaction:
+    group_id: int | None = None,
+    programme_id: int | None = None,
+) -> int:
     """
-    Award XP exclusively to the collective pool.
+    Calculate collective XP using the group recorded on the transaction.
 
-    `amount=0` is not permitted by award_xp, so group-only rewards use
-    a zero individual amount directly through this helper's internal
-    transaction construction.
+    Historical XP must not move when a player changes groups.
     """
 
-    group_amount = _validate_amount(
-        group_amount,
-        field_name="group_amount",
+    query = db.query(
+        func.coalesce(
+            func.sum(XPTransaction.group_amount),
+            0,
+        )
     )
 
-    if group_amount < 0:
-        raise InvalidXPAmountError(
-            "Use award_group_penalty_xp for negative group XP."
+    if group_id is not None:
+        query = query.filter(
+            XPTransaction.group_id == group_id
         )
 
-    player = _get_player(
-        db,
-        player_id,
-    )
-
-    if reference:
-        existing = _find_reference(
-            db,
-            reference,
+    elif programme_id is not None:
+        query = (
+            query
+            .join(
+                Group,
+                Group.id == XPTransaction.group_id,
+            )
+            .filter(
+                Group.programme_id == programme_id
+            )
         )
 
-        if existing is not None:
-            if (
-                existing.player_id != player.id
-                or existing.amount != 0
-                or existing.group_amount
-                != group_amount
-            ):
-                raise DuplicateXPTransactionError(
-                    "An XP transaction already exists "
-                    "for this reference with different values."
-                )
+    result = query.scalar()
 
-            return existing
-
-    transaction = XPTransaction(
-        player_id=player.id,
-        amount=0,
-        group_amount=group_amount,
-        type=transaction_type,
-        reason=reason,
-        reference=reference,
-        created_by=created_by,
-    )
-
-    db.add(transaction)
-    db.flush()
-
-    return transaction
+    return int(result or 0)
 
 
 def award_group_penalty_xp(

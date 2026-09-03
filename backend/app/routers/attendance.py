@@ -1,121 +1,62 @@
-from datetime import datetime, timedelta
-import secrets
-
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..db.database import get_db
-from ..db.models.models import (
-    AttendanceSession,
-    Attendance,
-    Player,
-    PointRule,
+from ..db import get_db
+from ..schemas.attendance import (
+    AttendanceCheckInRequest,
+    AttendanceResponse,
 )
-from ..auth import require_roles, get_current_user
-from ..services.xp import award_xp
-
-router = APIRouter(prefix="/api/attendance", tags=["attendance"])
+from ..services.attendance import check_in
 
 
-def make_code():
-    return f"{secrets.randbelow(1000000):06d}"
+router = APIRouter(
+    prefix="/attendance",
+    tags=["attendance"],
+)
 
 
-@router.post("/start")
-def start_session(
-    user=Depends(require_roles("admin", "youth_worker")),
+@router.post(
+    "/check-in",
+    response_model=AttendanceResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def check_in_player(
+    payload: AttendanceCheckInRequest,
     db: Session = Depends(get_db),
 ):
-    rule = db.query(PointRule).filter(
-        PointRule.code == "ATTENDANCE"
-    ).first()
+    """
+    Register the authenticated player for a session.
 
-    xp = rule.individual_xp if rule else 500
+    Authentication/player resolution will be connected to the
+    final auth system rather than trusting player_id from the client.
+    """
 
-    session = AttendanceSession(
-        code=make_code(),
-        expires_at=datetime.utcnow() + timedelta(minutes=10),
-        active=True,
-        created_by=user.id,
-    )
+    # Temporary compatibility with the current pilot API.
+    # Replace with authenticated-player resolution when auth is wired.
+    player_id = None
 
-    db.add(session)
-    db.commit()
-    db.refresh(session)
+    if player_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Authenticated player context is not configured yet.",
+        )
 
-    return {
-        "id": session.id,
-        "code": session.code,
-        "expires_at": session.expires_at,
-        "xp": xp,
-    }
+    try:
+        attendance = check_in(
+            db,
+            player_id=player_id,
+            session_id=payload.session_id,
+        )
 
+        db.commit()
+        db.refresh(attendance)
 
-class CheckInRequest(BaseModel):
-    code: str
+        return attendance
 
+    except ValueError as exc:
+        db.rollback()
 
-@router.post("/check-in")
-def check_in(
-    data: CheckInRequest,
-    user=Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if user.role != "player":
-        raise HTTPException(status_code=403, detail="Players only")
-
-    session = db.query(AttendanceSession).filter(
-        AttendanceSession.code == data.code,
-        AttendanceSession.active == True,
-        AttendanceSession.expires_at > datetime.utcnow(),
-    ).first()
-
-    if not session:
-        raise HTTPException(status_code=400, detail="Invalid or expired code")
-
-    player = db.query(Player).filter(
-        Player.user_id == user.id
-    ).first()
-
-    if not player:
-        raise HTTPException(status_code=404, detail="Player profile not found")
-
-    existing = db.query(Attendance).filter(
-        Attendance.session_id == session.id,
-        Attendance.player_id == player.id,
-    ).first()
-
-    if existing:
-        raise HTTPException(status_code=409, detail="Already checked in")
-
-    rule = db.query(PointRule).filter(
-        PointRule.code == "ATTENDANCE"
-    ).first()
-
-    xp = rule.individual_xp if rule else 500
-    group_xp = rule.group_xp if rule else 500
-
-    attendance = Attendance(
-        session_id=session.id,
-        player_id=player.id,
-        xp_awarded=xp,
-    )
-
-    db.add(attendance)
-
-    award_xp(
-        db,
-        player.id,
-        xp,
-        group_xp,
-        "attendance",
-        "Session attendance",
-    )
-
-    db.commit()
-
-    return {
-        "success": True,
-        "xp": xp,
-    }
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc

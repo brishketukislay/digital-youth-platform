@@ -584,6 +584,15 @@ class XPTransaction(Base):
         nullable=True,
         index=True,
     )
+    group_id: Mapped[int | None] = mapped_column(
+        ForeignKey("groups.id"),
+        nullable=True,
+        index=True,
+    )
+    group: Mapped["Group | None"] = relationship(
+        "Group",
+    )
+
 
     amount: Mapped[int] = mapped_column(
         Integer,
