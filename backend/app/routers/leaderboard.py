@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from ..database import get_db
-from ..models import Player, XPTransaction
+from ..db.database import get_db
+from ..db.models.models import Player, XPTransaction
 
 router = APIRouter(prefix="/api/leaderboard", tags=["leaderboard"])
 

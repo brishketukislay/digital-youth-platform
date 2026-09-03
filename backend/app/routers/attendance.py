@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models import (
+from ..db.database import get_db
+from ..db.models.models import (
     AttendanceSession,
     Attendance,
     Player,

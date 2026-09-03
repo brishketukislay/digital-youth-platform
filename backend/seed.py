@@ -1,7 +1,7 @@
 from datetime import date
 
-from app.database import Base, engine, SessionLocal
-from app.models import (
+from backend.app.db.database import Base, engine, SessionLocal
+from backend.app.db.models.models import (
     User,
     Programme,
     Theme,

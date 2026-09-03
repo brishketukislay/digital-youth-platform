@@ -1,591 +1,629 @@
-from datetime import datetime, date
+from __future__ import annotations
+
+from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
     Boolean,
     DateTime,
-    Date,
     Float,
     ForeignKey,
+    Integer,
+    JSON,
+    String,
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from .database import Base
+
+# ============================================================
+# BASE
+# ============================================================
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+# ============================================================
+# ENUMS
+# ============================================================
+
+
+class ChallengeAttemptStatus(str, Enum):
+    CREATED = "created"
+    SUBMITTED = "submitted"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+
+
+class ChallengeEvidenceType(str, Enum):
+    NONE = "none"
+    GAME_RESULT = "game_result"
+    STAFF_VERIFICATION = "staff_verification"
+    PHOTO = "photo"
+    VIDEO = "video"
+    QR = "qr"
+
+
+# ============================================================
+# USER
+# ============================================================
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String(100), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
-    role = Column(String(30), nullable=False)
-    active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_login_at = Column(DateTime)
-
-
-class Programme(Base):
-    __tablename__ = "programmes"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(200), nullable=False)
-    description = Column(Text)
-
-    start_date = Column(Date)
-    end_date = Column(Date)
-
-    target_xp = Column(Integer, default=1500000)
-
-    active = Column(Boolean, default=True)
-
-    theme_id = Column(Integer, ForeignKey("themes.id"))
-    map_id = Column(Integer, ForeignKey("maps.id"))
-
-
-class Theme(Base):
-    __tablename__ = "themes"
-
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String(100), nullable=False)
-
-    primary = Column(String(20), default="#18775B")
-    secondary = Column(String(20), default="#0F513C")
-    accent = Column(String(20), default="#43B98B")
-
-    background = Column(String(20), default="#F3F7F5")
-    surface = Column(String(20), default="#FFFFFF")
-    text = Column(String(20), default="#17221E")
-
-
-class Map(Base):
-    __tablename__ = "maps"
-
-    id = Column(Integer, primary_key=True)
-
-    name = Column(String(200), nullable=False)
-
-    description = Column(Text)
-
-    background_image = Column(String(500))
-
-    active = Column(Boolean, default=True)
-
-
-class MapLocation(Base):
-    __tablename__ = "map_locations"
-
-    id = Column(Integer, primary_key=True)
-
-    map_id = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("maps.id"),
+        primary_key=True,
+        index=True,
+    )
+
+    username: Mapped[str] = mapped_column(
+        String(100),
+        unique=True,
+        index=True,
         nullable=False,
     )
 
-    name = Column(String(200), nullable=False)
-
-    description = Column(Text)
-
-    # Coordinates are percentages from 0-1.
-    # This keeps the map responsive on phones,
-    # tablets and the large youth-work-room display.
-    x = Column(Float, default=0.5)
-    y = Column(Float, default=0.5)
-
-    icon = Column(String(50), default="pin")
-
-    active = Column(Boolean, default=True)
-
-
-class Phase(Base):
-    __tablename__ = "phases"
-
-    id = Column(Integer, primary_key=True)
-
-    programme_id = Column(
-        Integer,
-        ForeignKey("programmes.id"),
+    password_hash: Mapped[str] = mapped_column(
+        String(255),
         nullable=False,
     )
 
-    name = Column(String(200), nullable=False)
-
-    description = Column(Text)
-
-    icon = Column(String(50), default="star")
-
-    colour = Column(String(20), default="#18775B")
-
-    start_date = Column(Date)
-    end_date = Column(Date)
-
-    sort_order = Column(Integer, default=0)
-
-    active = Column(Boolean, default=True)
-
-
-class PhaseLocation(Base):
-    __tablename__ = "phase_locations"
-
-    id = Column(Integer, primary_key=True)
-
-    phase_id = Column(
-        Integer,
-        ForeignKey("phases.id"),
+    role: Mapped[str] = mapped_column(
+        String(50),
         nullable=False,
+        default="player",
     )
 
-    location_id = Column(
-        Integer,
-        ForeignKey("map_locations.id"),
+    active: Mapped[bool] = mapped_column(
+        Boolean,
         nullable=False,
+        default=True,
     )
 
-    is_primary = Column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    player: Mapped["Player | None"] = relationship(
+        back_populates="user",
+        uselist=False,
+    )
+
+
+# ============================================================
+# GROUP
+# ============================================================
 
 
 class Group(Base):
     __tablename__ = "groups"
 
-    id = Column(Integer, primary_key=True)
-
-    programme_id = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("programmes.id"),
+        primary_key=True,
     )
 
-    name = Column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
 
-    active = Column(Boolean, default=True)
+    active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    players: Mapped[list["Player"]] = relationship(
+        back_populates="group",
+    )
+
+
+# ============================================================
+# PLAYER
+# ============================================================
 
 
 class Player(Base):
     __tablename__ = "players"
 
-    id = Column(Integer, primary_key=True)
-
-    user_id = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
         unique=True,
-        nullable=False,
-    )
-
-    group_id = Column(
-        Integer,
-        ForeignKey("groups.id"),
-    )
-
-    gamertag = Column(
-        String(100),
-        unique=True,
-        nullable=False,
-    )
-
-    # Fixed avatar ID, e.g. avatar-01.
-    avatar = Column(
-        String(100),
-        default="avatar-01",
-    )
-
-    active = Column(Boolean, default=True)
-
-
-class XPTransaction(Base):
-    __tablename__ = "xp_transactions"
-
-    id = Column(Integer, primary_key=True)
-
-    player_id = Column(
-        Integer,
-        ForeignKey("players.id"),
-    )
-
-    amount = Column(Integer, nullable=False)
-
-    group_amount = Column(Integer, default=0)
-
-    type = Column(String(100), nullable=False)
-
-    reason = Column(String(500))
-
-    created_by = Column(
-        Integer,
-        ForeignKey("users.id"),
-    )
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-    )
-
-
-class PointRule(Base):
-    __tablename__ = "point_rules"
-
-    id = Column(Integer, primary_key=True)
-
-    name = Column(
-        String(100),
-        nullable=False,
-    )
-
-    code = Column(
-        String(100),
-        unique=True,
-        nullable=False,
-    )
-
-    individual_xp = Column(
-        Integer,
-        default=0,
-    )
-
-    group_xp = Column(
-        Integer,
-        default=0,
-    )
-
-    enabled = Column(
-        Boolean,
-        default=True,
-    )
-
-
-class AttendanceSession(Base):
-    __tablename__ = "attendance_sessions"
-
-    id = Column(Integer, primary_key=True)
-
-    group_id = Column(
-        Integer,
-        ForeignKey("groups.id"),
-    )
-
-    code = Column(
-        String(6),
         nullable=False,
         index=True,
     )
 
-    expires_at = Column(
-        DateTime,
-        nullable=False,
+    group_id: Mapped[int | None] = mapped_column(
+        ForeignKey("groups.id"),
+        nullable=True,
+        index=True,
     )
 
-    active = Column(
-        Boolean,
-        default=True,
-    )
-
-    created_by = Column(
-        Integer,
-        ForeignKey("users.id"),
-    )
-
-
-class Attendance(Base):
-    __tablename__ = "attendance"
-
-    id = Column(Integer, primary_key=True)
-
-    session_id = Column(
-        Integer,
-        ForeignKey("attendance_sessions.id"),
-    )
-
-    player_id = Column(
-        Integer,
-        ForeignKey("players.id"),
-    )
-
-    checked_in_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-    )
-
-    xp_awarded = Column(
-        Integer,
-        default=500,
-    )
-
-    __table_args__ = (
-        UniqueConstraint(
-            "session_id",
-            "player_id",
-        ),
-    )
-
-
-class SkillTree(Base):
-    __tablename__ = "skill_trees"
-
-    id = Column(Integer, primary_key=True)
-
-    player_id = Column(
-        Integer,
-        ForeignKey("players.id"),
-    )
-
-    name = Column(
-        String(200),
-        nullable=False,
-    )
-
-    description = Column(Text)
-
-    active = Column(
-        Boolean,
-        default=True,
-    )
-
-    current_xp = Column(
-        Integer,
-        default=0,
-    )
-
-
-class SkillMilestone(Base):
-    __tablename__ = "skill_milestones"
-
-    id = Column(Integer, primary_key=True)
-
-    skill_tree_id = Column(
-        Integer,
-        ForeignKey("skill_trees.id"),
-    )
-
-    name = Column(
-        String(200),
-        nullable=False,
-    )
-
-    required_xp = Column(
-        Integer,
-        nullable=False,
-    )
-
-    reward_description = Column(
-        String(500),
-    )
-
-    completed = Column(
-        Boolean,
-        default=False,
-    )
-
-
-class Badge(Base):
-    __tablename__ = "badges"
-
-    id = Column(Integer, primary_key=True)
-
-    player_id = Column(
-        Integer,
-        ForeignKey("players.id"),
-    )
-
-    name = Column(
+    gamertag: Mapped[str] = mapped_column(
         String(100),
+        unique=True,
         nullable=False,
+        index=True,
     )
 
-    description = Column(Text)
-
-    colour = Column(
-        String(20),
-        default="#CD7F32",
+    avatar: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
     )
 
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-    )
-
-
-class Reward(Base):
-    __tablename__ = "rewards"
-
-    id = Column(Integer, primary_key=True)
-
-    name = Column(
-        String(200),
+    active: Mapped[bool] = mapped_column(
+        Boolean,
         nullable=False,
+        default=True,
     )
 
-    description = Column(Text)
-
-    xp_threshold = Column(Integer)
-
-    reward_type = Column(
-        String(50),
-        default="individual",
-    )
-
-    value = Column(
-        Float,
+    lifetime_xp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
         default=0,
     )
 
-    active = Column(
+    current_xp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    user: Mapped["User"] = relationship(
+        back_populates="player",
+    )
+
+    group: Mapped["Group | None"] = relationship(
+        back_populates="players",
+    )
+
+    challenge_attempts: Mapped[list["ChallengeAttempt"]] = relationship(
+        back_populates="player",
+    )
+
+    xp_transactions: Mapped[list["XPTransaction"]] = relationship(
+        back_populates="player",
+    )
+
+
+# ============================================================
+# PHASE
+# ============================================================
+
+
+class Phase(Base):
+    __tablename__ = "phases"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    active: Mapped[bool] = mapped_column(
         Boolean,
+        nullable=False,
         default=True,
     )
+
+    theme_key: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    map_config: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    challenges: Mapped[list["Challenge"]] = relationship(
+        back_populates="phase",
+    )
+
+
+# ============================================================
+# CHALLENGE
+# ============================================================
 
 
 class Challenge(Base):
     __tablename__ = "challenges"
 
-    id = Column(Integer, primary_key=True)
-
-    phase_id = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("phases.id"),
+        primary_key=True,
+        index=True,
     )
 
-    title = Column(
+    phase_id: Mapped[int | None] = mapped_column(
+        ForeignKey("phases.id"),
+        nullable=True,
+        index=True,
+    )
+
+    title: Mapped[str] = mapped_column(
         String(200),
         nullable=False,
     )
 
-    description = Column(Text)
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
 
-    start_at = Column(DateTime)
+    game_type: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        default="generic",
+    )
 
-    end_at = Column(DateTime)
+    scoring_direction: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="higher",
+    )
 
-    participation_xp = Column(
+    start_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
+    end_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
+    participation_xp: Mapped[int] = mapped_column(
         Integer,
+        nullable=False,
         default=300,
     )
 
-    elite_xp = Column(
+    elite_xp: Mapped[int] = mapped_column(
         Integer,
+        nullable=False,
         default=1500,
     )
 
-    winner_xp = Column(
+    winner_xp: Mapped[int] = mapped_column(
         Integer,
+        nullable=False,
         default=3000,
     )
 
-    group_xp = Column(
+    group_xp: Mapped[int] = mapped_column(
         Integer,
+        nullable=False,
         default=5000,
     )
 
-    active = Column(
+    max_attempts_per_player: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=5,
+    )
+
+    elite_percentile: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=90.0,
+    )
+
+    requires_verification: Mapped[bool] = mapped_column(
         Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
         default=True,
     )
 
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
 
-class CommunityAward(Base):
-    __tablename__ = "community_awards"
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
 
-    id = Column(Integer, primary_key=True)
+    phase: Mapped["Phase | None"] = relationship(
+        back_populates="challenges",
+    )
 
-    player_id = Column(
+    attempts: Mapped[list["ChallengeAttempt"]] = relationship(
+        back_populates="challenge",
+    )
+
+
+# ============================================================
+# CHALLENGE ATTEMPT
+# ============================================================
+
+
+class ChallengeAttempt(Base):
+    """
+    Immutable-ish record of a player's participation in a challenge.
+
+    This is the authoritative record for:
+
+    - what challenge was played
+    - who played it
+    - when they played
+    - what score was submitted
+    - whether evidence exists
+    - whether staff verification is required
+    - what XP was ultimately awarded
+    """
+
+    __tablename__ = "challenge_attempts"
+
+    id: Mapped[int] = mapped_column(
         Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    challenge_id: Mapped[int] = mapped_column(
+        ForeignKey("challenges.id"),
+        nullable=False,
+        index=True,
+    )
+
+    player_id: Mapped[int] = mapped_column(
         ForeignKey("players.id"),
+        nullable=False,
+        index=True,
     )
 
-    group_id = Column(
-        Integer,
-        ForeignKey("groups.id"),
+    attempt_reference: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+        unique=True,
+        index=True,
     )
 
-    category = Column(
-        String(100),
-    )
-
-    description = Column(Text)
-
-    # These fields are staff-only.
-    submitted_by_name = Column(
-        String(200),
-    )
-
-    submitted_by_contact = Column(
-        String(300),
-    )
-
-    status = Column(
+    status: Mapped[str] = mapped_column(
         String(30),
-        default="pending",
-    )
-
-    xp = Column(
-        Integer,
-        default=5000,
-    )
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-    )
-
-    reviewed_by = Column(
-        Integer,
-        ForeignKey("users.id"),
-    )
-
-
-class Resource(Base):
-    __tablename__ = "resources"
-
-    id = Column(Integer, primary_key=True)
-
-    phase_id = Column(
-        Integer,
-        ForeignKey("phases.id"),
-    )
-
-    title = Column(
-        String(200),
         nullable=False,
+        default=ChallengeAttemptStatus.CREATED.value,
+        index=True,
     )
 
-    description = Column(Text)
-
-    resource_type = Column(
-        String(50),
-        default="link",
+    score: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
     )
 
-    url = Column(
-        String(1000),
+    percentile: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
     )
 
-    active = Column(
+    elite: Mapped[bool] = mapped_column(
         Boolean,
-        default=True,
+        nullable=False,
+        default=False,
     )
 
+    winner: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
 
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-
-    id = Column(Integer, primary_key=True)
-
-    user_id = Column(
+    participation_xp: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.id"),
+        nullable=False,
+        default=0,
     )
 
-    action = Column(
-        String(200),
+    elite_xp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    winner_xp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    individual_xp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    group_xp: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    evidence_type: Mapped[str] = mapped_column(
+        String(40),
+        nullable=False,
+        default=ChallengeEvidenceType.NONE.value,
+    )
+
+    evidence_payload: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    client_metadata: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
+    submitted_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
+    verified_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+
+    rejection_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+
+    challenge: Mapped["Challenge"] = relationship(
+        back_populates="attempts",
+    )
+
+    player: Mapped["Player"] = relationship(
+        back_populates="challenge_attempts",
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "challenge_id",
+            "player_id",
+            "attempt_reference",
+            name="uq_challenge_player_attempt_reference",
+        ),
+    )
+
+
+# ============================================================
+# XP TRANSACTION
+# ============================================================
+
+
+class XPTransaction(Base):
+    """
+    Append-only XP ledger.
+
+    Player balances should be derived/maintained from this ledger,
+    rather than individual routers modifying XP arbitrarily.
+    """
+
+    __tablename__ = "xp_transactions"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    player_id: Mapped[int | None] = mapped_column(
+        ForeignKey("players.id"),
+        nullable=True,
+        index=True,
+    )
+
+    amount: Mapped[int] = mapped_column(
+        Integer,
         nullable=False,
     )
 
-    details = Column(Text)
+    group_amount: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
 
-    created_at = Column(
+    type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        index=True,
+    )
+
+    reason: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False,
+    )
+
+    reference: Mapped[str | None] = mapped_column(
+        String(150),
+        nullable=True,
+        index=True,
+    )
+
+    created_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
         DateTime,
+        nullable=False,
         default=datetime.utcnow,
+    )
+
+    player: Mapped["Player | None"] = relationship(
+        back_populates="xp_transactions",
     )

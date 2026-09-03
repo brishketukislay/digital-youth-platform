@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from .database import Base, engine
+from .db.database import Base, engine
 from .routers import auth, player, leaderboard, attendance, admin, public
 
 Base.metadata.create_all(bind=engine)
