@@ -1,4 +1,4 @@
-import type { PlayerDashboard } from "../../api/client";
+import type { PlayerDashboard } from "../../../api/client";
 
 type Props = {
   data: PlayerDashboard;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { PointRuleCalculation } from "../../../lib/admin/programmeMath";
+import type { PointRuleCalculation } from "./programmeMath";
 
 type PointRuleEditorProps = {
   rule: PointRuleCalculation | null;

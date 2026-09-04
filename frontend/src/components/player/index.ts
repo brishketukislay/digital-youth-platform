@@ -1,9 +1,9 @@
-export { PlayerHero } from "./PlayerHero";
-export { GroupProgress } from "./GroupProgress";
-export { CurrentPhase } from "./CurrentPhase";
-export { SkillTree } from "./SkillTree";
-export { BadgeCabinet } from "./BadgeCabinet";
-export { MysteryProgress } from "./MysteryProgress";
+export { PlayerHero } from "./dashboard/PlayerHero";
+export { GroupProgress } from "./dashboard/GroupProgress";
+export { CurrentPhase } from "./dashboard/CurrentPhase";
+export { SkillTree } from "./dashboard/SkillTree";
+export { BadgeCabinet } from "./dashboard/BadgeCabinet";
+export { MysteryProgress } from "./dashboard/MysteryProgress";
 export { Challenges } from "./Challenges";
 export { GameMap } from "./GameMap";
-export { PrivacyNotice } from "./PrivacyNotice";
+export { PrivacyNotice } from "./dashboard/PrivacyNotice";

@@ -1,5 +1,5 @@
-import type { PointRuleCalculation } from "../../../lib/admin/programmeMath";
-import { formatXp } from "../../../lib/admin/programmeMath";
+import type { PointRuleCalculation } from "./programmeMath";
+import { formatXp } from "./programmeMath";
 
 type PointRuleTableProps = {
   rules: PointRuleCalculation[];

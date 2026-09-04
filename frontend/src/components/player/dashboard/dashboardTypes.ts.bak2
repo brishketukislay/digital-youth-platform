@@ -82,7 +82,7 @@ export type SkillMilestoneState =
  * Shared dashboard section props.
  */
 export type DashboardSectionProps = {
-  data: PlayerDashboardViewData;
+  data: PlayerDashboard;
 };
 
 /**
@@ -325,40 +325,6 @@ export type DashboardGroupProgress = {
 export type PlayerDashboardData =
   PlayerDashboard;
 
-export type DashboardCheckIn = {
-  available?: boolean;
-  is_available?: boolean;
-  checked_in?: boolean;
-  is_checked_in?: boolean;
-  xp?: number;
-  xp_awarded?: number;
-  message?: string | null;
-};
-
-export type DashboardAttendance = {
-  weekly_percentage?: number;
-};
-
-export type DashboardMysteryRewardSource = {
-  id?: string | number;
-  name?: string | null;
-  thresholdXP?: number;
-  threshold_xp?: number;
-  unlocked?: boolean;
-  claimed?: boolean;
-  icon?: string | null;
-  colour?: string | null;
-  rewardLabel?: string | null;
-  reward_label?: string | null;
-};
-
-export type DashboardSkillTree = PlayerSkillTree & {
-  current_xp?: number;
-  title?: string;
-  goal?: string;
-  goal_description?: string;
-};
-
 export type PlayerDashboardViewData =
   PlayerDashboard & {
     /**
@@ -375,11 +341,11 @@ export type PlayerDashboardViewData =
     /**
      * Current individual skill tree.
      */
-    current_skill_tree?: DashboardSkillTree;
-    currentSkillTree?: DashboardSkillTree;
+    current_skill_tree?: DashboardSkillTreeProgress;
+    currentSkillTree?: DashboardSkillTreeProgress;
 
-    skill_tree?: DashboardSkillTree;
-    skillTree?: DashboardSkillTree;
+    skill_tree?: DashboardSkillTreeProgress;
+    skillTree?: DashboardSkillTreeProgress;
 
     /**
      * Player's anonymous public identity.
@@ -421,24 +387,13 @@ export type PlayerDashboardViewData =
     activity?: DashboardActivity[];
 
     /**
-     * Session check-in state.
-     */
-    check_in?: DashboardCheckIn;
-    session_check_in?: DashboardCheckIn;
-
-    /**
-     * Weekly attendance information.
-     */
-    attendance?: DashboardAttendance;
-
-    /**
      * Mystery reward milestones.
      */
-    mystery_rewards?: DashboardMysteryRewardSource[];
-    mysteryRewards?: DashboardMysteryRewardSource[];
+    mystery_rewards?: DashboardMysteryReward[];
+    mysteryRewards?: DashboardMysteryReward[];
 
-    mystery_prizes?: DashboardMysteryRewardSource[];
-    mysteryPrizes?: DashboardMysteryRewardSource[];
+    mystery_prizes?: DashboardMysteryReward[];
+    mysteryPrizes?: DashboardMysteryReward[];
 
     /**
      * Phase-aware resource library.

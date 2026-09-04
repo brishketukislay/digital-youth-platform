@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   formatCountdown,
   getRemainingSeconds,
-} from "./challengeRuntime";
+} from "./challengeRuntimeUtils";
 
 import type { PlayerChallenge } from "./challengeRuntimeTypes";
 

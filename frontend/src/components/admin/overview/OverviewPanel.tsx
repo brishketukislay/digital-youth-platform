@@ -8,7 +8,6 @@ import {
 
 import { ProgrammeProgress } from "./ProgrammeProgress";
 import { OverviewStats } from "./OverviewStats";
-import { LiveActivity } from "./LiveActivity";
 
 export function OverviewPanel() {
   const [overview, setOverview] =
@@ -124,7 +123,6 @@ export function OverviewPanel() {
         targetXp={overview.target_xp}
       />
 
-      <LiveActivity />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type {
   PlayerDashboard,
   SkillMilestone,
-} from "../../api/client";
+} from "../../../api/client";
 
 type Props = {
   data: PlayerDashboard;

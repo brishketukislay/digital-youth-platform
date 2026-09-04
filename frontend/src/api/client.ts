@@ -686,6 +686,52 @@ export type PlayerDashboard = {
   skill_tree: PlayerSkillTree | null;
 
   challenges: PlayerChallenge[];
+
+  /*
+   * Optional dashboard extensions.
+   *
+   * These fields allow the player UI to consume the richer
+   * dashboard representation without requiring every backend
+   * deployment to expose every field immediately.
+   */
+  lifetime_xp?: number;
+  lifetimeXP?: number;
+  total_xp?: number;
+  totalXP?: number;
+  xp?: number;
+
+  current_skill_tree?: PlayerSkillTree | null;
+  currentSkillTree?: PlayerSkillTree | null;
+
+  current_phase?: unknown;
+  currentPhase?: unknown;
+
+  recent_activity?: unknown[];
+  recentActivity?: unknown[];
+  activities?: unknown[];
+  activity?: unknown[];
+
+  mystery_rewards?: unknown[];
+  mysteryRewards?: unknown[];
+  mystery_prizes?: unknown[];
+  mysteryPrizes?: unknown[];
+
+  resources?: unknown[];
+  resource_library?: unknown[];
+  resourceLibrary?: unknown[];
+
+  active_challenges?: PlayerChallenge[];
+  activeChallenges?: PlayerChallenge[];
+
+  check_in?: unknown;
+  session_check_in?: unknown;
+  attendance?: unknown;
+
+  checked_in?: boolean;
+  checkedIn?: boolean;
+
+  attendance_streak?: number;
+  attendanceStreak?: number;
 };
 
 export async function playerDashboard() {

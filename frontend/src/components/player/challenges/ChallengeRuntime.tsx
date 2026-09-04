@@ -8,7 +8,8 @@ import {
 import {
   canStartChallenge,
   getChallengeState,
-} from "./challengeRuntime";
+} from "./challengeRuntimeUtils";
+
 
 import {
   ChallengeCountdown,

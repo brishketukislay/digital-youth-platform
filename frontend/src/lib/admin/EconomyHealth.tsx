@@ -1,7 +1,7 @@
 import {
   formatXp,
   type EconomyProjection,
-} from "../../../lib/admin/programmeMath";
+} from "./programmeMath";
 
 type EconomyHealthProps = {
   projection: EconomyProjection;

@@ -74,7 +74,7 @@ export function SessionCheckIn({
 }: SessionCheckInProps) {
   const initialState =
     useMemo(
-      () => getCheckInState({ data }),
+      () => getCheckInState(data),
       [data],
     );
 

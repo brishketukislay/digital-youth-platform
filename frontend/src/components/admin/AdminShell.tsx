@@ -2,7 +2,7 @@ import type {
   ReactNode,
 } from "react";
 
-import type { AdminSection } from "../../pages/admin/AdminDashboard";
+import type { AdminSection } from "./adminTypes";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 

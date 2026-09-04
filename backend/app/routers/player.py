@@ -6,6 +6,7 @@ from fastapi import (
 
 from sqlalchemy.orm import Session
 
+
 from ..db.database import get_db
 
 from ..db.models import (
@@ -16,6 +17,7 @@ from ..db.models import (
     MapLocation,
     Phase,
     Badge,
+    PlayerBadge,
     SkillTree,
     SkillMilestone,
     Challenge,
@@ -194,13 +196,14 @@ def dashboard(
         )
 
     badges = (
-        db.query(Badge)
-        .filter(
-            Badge.player_id
-            == player.id
-        )
-        .all()
+    db.query(PlayerBadge)
+    .filter(
+        PlayerBadge.player_id
+        == player.id
     )
+    .all()
+)
+
 
     skill = (
         db.query(SkillTree)

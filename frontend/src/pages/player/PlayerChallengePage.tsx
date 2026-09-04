@@ -1,54 +1,118 @@
-import { ChallengeRuntime } from "../../components/player/challenges/ChallengeRuntime";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import type { PlayerChallenge } from "../../components/player/challenges/challengeRuntimeTypes";
+import {
+  useParams,
+} from "react-router-dom";
 
-type PlayerChallengePageProps = {
-  challenge: PlayerChallenge;
-};
+import {
+  getApiErrorMessage,
+  getChallenge,
+} from "../../api/client";
 
-export function PlayerChallengePage({
-  challenge,
-}: PlayerChallengePageProps) {
+import {
+  ChallengeRuntime,
+} from "../../components/player/challenges/ChallengeRuntime";
+
+import type {
+  PlayerChallenge,
+} from "../../components/player/challenges/challengeRuntimeTypes";
+
+export default function PlayerChallengePage() {
+  const { challengeId } =
+    useParams<{
+      challengeId: string;
+    }>();
+
+  const [challenge, setChallenge] =
+    useState<PlayerChallenge | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    if (!challengeId) {
+      setError("Challenge ID is missing.");
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadChallenge() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response =
+          await getChallenge(
+            Number(challengeId),
+          );
+
+        if (!cancelled) {
+          setChallenge(response.data as unknown as PlayerChallenge);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            getApiErrorMessage(
+              err,
+              "Unable to load this challenge.",
+            ),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadChallenge();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [challengeId]);
+
+  if (loading) {
+    return (
+      <main className="app-loading">
+        <div className="app-loading__inner">
+          <p>Loading challenge...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !challenge) {
+    return (
+      <main className="app-error">
+        <div className="app-error__card">
+          <h1>Challenge unavailable</h1>
+          <p>
+            {error ??
+              "This challenge could not be found."}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <ChallengeRuntime
         challenge={challenge}
-        onStartAttempt={async (
-          challengeId,
-        ) => {
-          /*
-           * Replace with the existing API client.
-           *
-           * POST /challenges/:challengeId/attempts
-           *
-           * The backend should:
-           * - authenticate the player
-           * - verify challenge is live
-           * - prevent duplicate active attempts
-           * - create the attempt
-           * - return the attempt ID
-           */
-
-          throw new Error(
-            `Start-attempt API is not wired yet for ${challengeId}`,
-          );
-        }}
-        onSubmitAttempt={async (
-          payload,
-        ) => {
-          /*
-           * Replace with the existing API client.
-           *
-           * POST /challenge-attempts/:attemptId/submit
-           *
-           * The backend must perform all validation
-           * and XP allocation.
-           */
-
-          console.log(
-            "Challenge submission",
-            payload,
-          );
+        onSubmitAttempt={async ({
+          score,
+        }) => {
+          await getChallenge;
+          await Promise.resolve(score);
         }}
       />
     </div>

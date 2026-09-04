@@ -1,4 +1,4 @@
-import type { AdminSection } from "../../pages/admin/AdminDashboard";
+import type { AdminSection } from "./adminTypes";
 
 type AdminHeaderProps = {
   activeSection: AdminSection;

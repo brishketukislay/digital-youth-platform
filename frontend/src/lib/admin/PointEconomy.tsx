@@ -4,7 +4,7 @@ import {
   calculateProjection,
   calculateWeeklyYield,
   type PointRuleCalculation,
-} from "../../../lib/admin/programmeMath";
+} from "./programmeMath";
 
 import { PointRuleTable } from "./PointRuleTable";
 import { PointRuleEditor } from "./PointRuleEditor";

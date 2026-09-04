@@ -1797,33 +1797,28 @@ export default function AdminProgramme() {
                   </code>
                 </div>
               </label>
+              </div>
 
-              <label>
-                Text
+<label>
+  Text
+  <div className="colour-input">
+    <input
+      type="color"
+      value={themeForm.text}
+      onChange={event =>
+        setThemeForm({
+          ...themeForm,
+          text: event.target.value,
+        })
+      }
+    />
 
-                <div className="colour-input">
-                  <input
-                    type="color"
-                    value={
-                      themeForm.text
-                    }
-                    onChange={event =>
-                      setThemeForm({
-                        ...themeForm,
-                        text:
-                          event.target.value,
-                      })
-                    }
-                  />
+    <code>
+      {themeForm.text}
+    </code>
+  </div>
+</label>
 
-                  <code>
-                    {
-                      themeForm.text
-                    }
-                  </div>
-                </div>
-              </label>
-            </div>
 
             <div
               className="theme-live-preview"

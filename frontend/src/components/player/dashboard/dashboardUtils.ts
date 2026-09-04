@@ -2,6 +2,7 @@ import type {
   DashboardActivity,
   DashboardGroupProgress,
   DashboardMysteryReward,
+  DashboardMysteryRewardSource,
   DashboardPhase,
   DashboardResource,
   DashboardSkillTreeProgress,
@@ -617,7 +618,10 @@ export function getMysteryRewards(
     return MYSTERY_REWARD_DEFAULTS;
   }
 
-  return source.map(
+  const rewards =
+    source as DashboardMysteryRewardSource[];
+
+  return rewards.map(
     (
       reward,
       index,
