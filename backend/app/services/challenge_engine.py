@@ -6,11 +6,11 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..models import (
+from backend.app import db
+
+from ..db.models.core import (
     Challenge,
     ChallengeAttempt,
-    ChallengeAttemptStatus,
-    ChallengeEvidenceType,
     Player,
 )
 from .xp import award_xp
@@ -659,6 +659,7 @@ def finalise_attempt(
 
     award_xp(
         db=db,
+        programme_id=challenge.programme_id,
         player_id=player.id,
         amount=result.individual_xp,
         group_amount=result.group_xp,
@@ -667,7 +668,8 @@ def finalise_attempt(
             f"Challenge '{challenge.title}' "
             f"attempt {attempt.attempt_reference}"
         ),
-        reference=attempt.attempt_reference,
+        reference_type="challenge_attempt",
+        reference_id=attempt.id,
         created_by=created_by,
     )
 

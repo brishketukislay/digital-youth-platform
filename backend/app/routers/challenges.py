@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import require_roles
 from ..database import get_db
-from ..models import Challenge, Group, Player
+from ..db.models.core import Challenge, YouthGroup, Player
 from ..services.challenge_engine import (
     ChallengeError,
     ChallengeEndedError,
@@ -352,7 +352,7 @@ def submit_challenge_attempt(
     # Determine cohort
     # --------------------------------------------------------
     #
-    # The current schema associates players with Groups. A future
+    # The current schema associates players with YouthGroups. A future
     # ChallengeAttempt table will store the actual submitted score.
     #
     # For now we use existing challenge transactions as the source

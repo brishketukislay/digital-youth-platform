@@ -921,6 +921,11 @@ class XPTransaction(Base):
             "amount != 0 OR group_amount != 0",
             name="ck_xp_transaction_non_zero",
         ),
+        UniqueConstraint(
+            "reference_type",
+            "reference_id",
+            name="uq_xp_transaction_reference",
+        ),
     )
 
 
