@@ -5,880 +5,738 @@ import axios, {
 } from "axios";
 
 /* ============================================================
-   CONFIG
-============================================================ */
+   API CLIENT
+   ============================================================ */
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   "http://localhost:8000/api";
 
-/* ============================================================
-   AXIOS INSTANCE
-============================================================ */
-
-export const api: AxiosInstance =
-  axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    timeout: 15_000,
-  });
+export const api: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 /* ============================================================
-   TYPES
-============================================================ */
+   SHARED TYPES
+   ============================================================ */
 
-export type ID = number | string;
-
-export type UserRole =
+export type Role =
   | "admin"
   | "youth_worker"
   | "player";
 
-export interface User {
-  id: ID;
-  username?: string;
-  role?: UserRole | string;
-  is_active?: boolean;
-}
+export type Id = number;
 
-export interface AuthResponse {
-  user?: User;
-  access_token?: string;
-  token_type?: string;
+export type ApiError = {
+  detail?: string;
   message?: string;
-}
+};
 
-/* ------------------------------------------------------------
-   Programme
------------------------------------------------------------- */
+export type AuthUser = {
+  id: Id;
+  username: string;
+  role: Role;
+};
 
-export interface Programme {
-  id: ID;
-  name?: string;
-  title?: string;
-  description?: string;
+/* ============================================================
+   PROGRAMME
+   ============================================================ */
 
-  status?: string;
-
-  start_date?: string;
-  end_date?: string;
-
-  current_phase_id?: ID;
-  current_phase?: string;
-
-  target_xp?: number;
-  jackpot_target?: number;
-
-  collective_xp?: number;
-  total_xp?: number;
-  group_xp?: number;
-}
-
-/* ------------------------------------------------------------
-   Players
------------------------------------------------------------- */
-
-export interface Player {
-  id: ID;
-
-  username?: string;
-  gamertag?: string;
-
-  avatar?: string;
-  avatar_id?: ID;
-
-  role?: string;
-
-  status?: string;
-  is_active?: boolean;
-
-  xp?: number;
-  points?: number;
-
-  total_xp?: number;
-  lifetime_xp?: number;
-  individual_xp?: number;
-
-  engagement_score?: number;
-
-  last_activity?: string;
-  last_seen?: string;
-
-  level?: number;
-  badge_count?: number;
-}
-
-/* ------------------------------------------------------------
-   Challenges
------------------------------------------------------------- */
-
-export interface Challenge {
-  id: ID;
-
-  name?: string;
-  title?: string;
-  description?: string;
-
-  status?: string;
-
-  starts_at?: string;
-  ends_at?: string;
-
-  xp_reward?: number;
-  points?: number;
-
-  participant_count?: number;
-  participants?: number;
-
-  max_attempts?: number;
-}
-
-/* ------------------------------------------------------------
-   Themes
------------------------------------------------------------- */
-
-export interface Theme {
-  id: ID;
-
+export type Programme = {
+  id: Id;
   name: string;
+  description?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  target_xp: number;
+  theme_id?: Id | null;
+  map_id?: Id | null;
+  phase_id?: Id | null;
+};
 
+export type ProgrammeUpdate = {
+  name: string;
+  description?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  target_xp: number;
+};
+
+/* ============================================================
+   THEMES
+   ============================================================ */
+
+export type Theme = {
+  id: Id;
+  name: string;
   primary: string;
   secondary: string;
   accent: string;
-
   background: string;
   surface: string;
   text: string;
+};
 
-  active?: boolean;
-  is_active?: boolean;
-}
+export type ThemeCreate = Omit<Theme, "id">;
 
-/* ------------------------------------------------------------
-   Phases
------------------------------------------------------------- */
+/* ============================================================
+   MAPS
+   ============================================================ */
 
-export interface Phase {
-  id: ID;
-
+export type MapLocation = {
+  id: Id;
   name: string;
+  description?: string | null;
+  x: number;
+  y: number;
+  icon: string;
+  active?: boolean;
+};
 
-  description?: string;
+export type GameMap = {
+  id: Id;
+  name: string;
+  description?: string | null;
+  background_image?: string | null;
+  active?: boolean;
+};
 
+export type GameMapCreate = {
+  name: string;
+  description?: string | null;
+  background_image?: string | null;
+};
+
+export type MapLocationCreate = {
+  name: string;
+  description?: string | null;
+  x: number;
+  y: number;
+  icon?: string;
+};
+
+/* ============================================================
+   PHASES
+   ============================================================ */
+
+export type Phase = {
+  id: Id;
+  name: string;
+  description?: string | null;
+  colour: string;
+  icon: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  active: boolean;
+};
+
+export type PhaseCreate = {
+  name: string;
+  description?: string | null;
   colour?: string;
-  color?: string;
-
   icon?: string;
-
+  start_date?: string | null;
+  end_date?: string | null;
   active?: boolean;
-  is_active?: boolean;
+};
 
-  start_date?: string;
-  end_date?: string;
-}
+/* ============================================================
+   POINT RULES
+   ============================================================ */
 
-/* ------------------------------------------------------------
-   Maps
------------------------------------------------------------- */
-
-export interface MapDefinition {
-  id: ID;
-
+export type PointRule = {
+  id: Id;
   name: string;
+  code: string;
+  individual_xp: number;
+  group_xp: number;
+  enabled: boolean;
+};
 
-  description?: string;
-
-  image_url?: string;
-  background_url?: string;
-
-  active?: boolean;
-  is_active?: boolean;
-}
-
-export interface MapLocation {
-  id: ID;
-
-  map_id?: ID;
-
+export type PointRuleCreate = {
   name: string;
+  code: string;
+  individual_xp: number;
+  group_xp: number;
+  enabled?: boolean;
+};
 
-  description?: string;
+/* ============================================================
+   REWARDS
+   ============================================================ */
 
-  x?: number;
-  y?: number;
+export type RewardType =
+  | "individual"
+  | "group";
 
-  latitude?: number;
-  longitude?: number;
-
-  icon?: string;
-
-  active?: boolean;
-}
-
-/* ------------------------------------------------------------
-   Point rules
------------------------------------------------------------- */
-
-export interface PointRule {
-  id: ID;
-
+export type Reward = {
+  id: Id;
   name: string;
-  description?: string;
+  description?: string | null;
+  xp_threshold?: number | null;
+  reward_type: RewardType | string;
+  value: number;
+  active: boolean;
+};
 
-  amount: number;
-
-  category?: string;
-
-  active?: boolean;
-  is_active?: boolean;
-
-  applies_to?: string;
-}
-
-/* ------------------------------------------------------------
-   Rewards
------------------------------------------------------------- */
-
-export interface Reward {
-  id: ID;
-
+export type RewardCreate = {
   name: string;
-  description?: string;
-
-  type?: string;
-
+  description?: string | null;
+  xp_threshold?: number | null;
+  reward_type?: RewardType | string;
   value?: number;
-  xp_cost?: number;
+  active?: boolean;
+};
 
-  available?: boolean;
-  is_active?: boolean;
-}
+/* ============================================================
+   PLAYERS
+   ============================================================ */
 
-/* ------------------------------------------------------------
-   Community awards
------------------------------------------------------------- */
+export type Player = {
+  id: Id;
+  gamertag: string;
+  avatar: string;
+  xp: number;
+  group_id?: Id | null;
+};
+
+/* ============================================================
+   ADMIN OVERVIEW
+   ============================================================ */
+
+export type AdminOverview = {
+  players: number;
+  staff: number;
+  group_xp: number;
+  target_xp: number;
+  programme: string;
+};
+
+/* ============================================================
+   ATTENDANCE
+   ============================================================ */
+
+export type AttendanceSession = {
+  code: string;
+  expires_at?: string;
+  expires_in_seconds?: number;
+};
+
+export type CheckInResponse = {
+  success?: boolean;
+  xp: number;
+  message?: string;
+};
+
+/* ============================================================
+   COMMUNITY AWARDS
+   ============================================================ */
 
 export type CommunityAwardStatus =
   | "pending"
   | "approved"
   | "rejected";
 
-export interface CommunityAward {
-  id: ID;
-
-  player_id?: ID;
-  group_id?: ID;
-
-  player?: Player;
-
+export type CommunityAward = {
+  id: Id;
+  player_id?: Id | null;
+  group_id?: Id | null;
   category: string;
   description: string;
-
-  submitted_by_name?: string;
-  submitted_by_contact?: string;
-
-  status?: CommunityAwardStatus;
-
-  created_at?: string;
-  reviewed_at?: string;
-}
-
-/* ------------------------------------------------------------
-   Activity
------------------------------------------------------------- */
-
-export interface Activity {
-  id?: ID;
-
-  type?: string;
-  action?: string;
-
-  message?: string;
-  description?: string;
-
-  username?: string;
-  gamertag?: string;
-
-  player_id?: ID;
-
-  xp?: number;
-  points?: number;
-
-  created_at?: string;
-  timestamp?: string;
-}
-
-/* ------------------------------------------------------------
-   Resources
------------------------------------------------------------- */
-
-export interface Resource {
-  id: ID;
-
-  title: string;
-
-  description?: string;
-
-  type?: string;
-
-  url?: string;
-
-  phase_id?: ID;
-
-  active?: boolean;
-  is_active?: boolean;
-}
-
-/* ------------------------------------------------------------
-   Leaderboard
------------------------------------------------------------- */
-
-export interface LeaderboardEntry {
-  rank?: number;
-
-  player_id?: ID;
-
-  gamertag?: string;
-  username?: string;
-
-  avatar?: string;
-
-  xp?: number;
-  points?: number;
-  total_xp?: number;
-}
-
-/* ------------------------------------------------------------
-   Dashboard responses
------------------------------------------------------------- */
-
-export interface AdminOverview {
-  programme?: Programme;
-
-  programs?: Programme[];
-
-  players?: Player[];
-
-  stats?: {
-    total_xp?: number;
-    collective_xp?: number;
-
-    active_players?: number;
-    total_players?: number;
-
-    weekly_xp?: number;
-
-    pending_awards?: number;
-
-    active_challenges?: number;
-  };
-
-  activities?: Activity[];
-  recent_activity?: Activity[];
-
-  challenges?: Challenge[];
-}
-
-export interface PlayerDashboard {
-  player?: Player;
-
-  profile?: Player;
-
-  xp?: number;
-  total_xp?: number;
-  lifetime_xp?: number;
-
-  level?: number;
-
-  badges?: unknown[];
-  skill_trees?: unknown[];
-  rewards?: unknown[];
-  activities?: Activity[];
-
-  challenges?: Challenge[];
-}
-
-/* ============================================================
-   REQUEST TYPES
-============================================================ */
-
-export interface LoginPayload {
-  username: string;
-  password: string;
-}
-
-export interface AwardXPPayload {
-  player_id: number;
-  amount: number;
-  reason: string;
-}
-
-export interface CommunityAwardPayload {
-  player_id?: number;
-  group_id?: number;
-
-  category: string;
-  description: string;
-
   submitted_by_name: string;
   submitted_by_contact: string;
-}
+  status: CommunityAwardStatus | string;
+  xp: number;
+  created_at: string;
+};
 
-export interface ThemePayload {
-  name: string;
-
-  primary: string;
-  secondary: string;
-  accent: string;
-
-  background: string;
-  surface: string;
-  text: string;
-}
-
-export interface PhasePayload {
-  name: string;
-
-  description?: string;
-
-  colour?: string;
-  icon?: string;
-}
-
-export interface MapPayload {
-  name: string;
-
-  description?: string;
-
-  image_url?: string;
-}
-
-export interface MapLocationPayload {
-  name: string;
-
-  description?: string;
-
-  x?: number;
-  y?: number;
-
-  latitude?: number;
-  longitude?: number;
-
-  icon?: string;
-}
-
-export interface PointRulePayload {
-  name: string;
-
-  description?: string;
-
-  amount: number;
-
-  category?: string;
-
-  active?: boolean;
-}
-
-export interface RewardPayload {
-  name: string;
-
-  description?: string;
-
-  type?: string;
-
-  value?: number;
-
-  xp_cost?: number;
-
-  available?: boolean;
-}
+export type CommunityAwardCreate = {
+  player_id?: Id;
+  group_id?: Id;
+  category: string;
+  description: string;
+  submitted_by_name: string;
+  submitted_by_contact: string;
+};
 
 /* ============================================================
-   ERROR HANDLING
-============================================================ */
+   CHALLENGES
+   ============================================================ */
 
-export interface ApiErrorResponse {
-  detail?: string;
-  message?: string;
-  error?: string;
-  errors?: string[];
-}
+export type Challenge = {
+  id: Id;
+  title: string;
+  description?: string | null;
+
+  participation_xp: number;
+  elite_xp: number;
+  winner_xp: number;
+
+  starts_at?: string | null;
+  ends_at?: string | null;
+
+  active?: boolean;
+};
+
+/* ============================================================
+   PLAYER DASHBOARD
+   ============================================================ */
+
+export type DashboardLocation = {
+  id: Id;
+  name: string;
+  x: number;
+  y: number;
+  icon?: string;
+};
+
+export type PlayerBadge = {
+  name: string;
+  description?: string | null;
+  colour: string;
+};
+
+export type SkillMilestone = {
+  name: string;
+  required_xp: number;
+  completed: boolean;
+  reward?: string | null;
+};
+
+export type SkillTree = {
+  name: string;
+  description?: string | null;
+  xp: number;
+  milestones: SkillMilestone[];
+};
+
+export type PlayerDashboardData = {
+  player: {
+    id: Id;
+    gamertag: string;
+    avatar: string;
+    xp: number;
+  };
+
+  group_xp: number;
+  target_xp: number;
+
+  programme?: {
+    name: string;
+  };
+
+  theme?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    text: string;
+  };
+
+  map?: {
+    name: string;
+    background_image?: string | null;
+    locations: DashboardLocation[];
+  };
+
+  phase?: {
+    id: Id;
+    name: string;
+    description?: string | null;
+    colour: string;
+    icon: string;
+  };
+
+  badges: PlayerBadge[];
+
+  skill_tree?: SkillTree | null;
+
+  challenges?: Challenge[];
+};
+
+/* ============================================================
+   PUBLIC DASHBOARD
+   ============================================================ */
+
+export type PublicDashboardData = {
+  programme?: {
+    name: string;
+    description?: string | null;
+  };
+
+  group_xp: number;
+  target_xp: number;
+
+  map?: {
+    name?: string;
+    background_image?: string | null;
+  };
+
+  phase?: {
+    name: string;
+    description?: string | null;
+    colour?: string;
+    icon?: string;
+  };
+
+  theme?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    text: string;
+  };
+};
+
+export type LeaderboardRow = {
+  rank: number;
+  gamertag: string;
+  avatar: string;
+  xp: number;
+};
+
+/* ============================================================
+   HTTP HELPERS
+   ============================================================ */
 
 export function getApiErrorMessage(
   error: unknown,
-  fallback =
-    "Something went wrong. Please try again.",
+  fallback = "Something went wrong."
 ): string {
-  if (
-    error instanceof AxiosError
-  ) {
-    const data =
-      error.response?.data as
-        | ApiErrorResponse
-        | undefined;
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<ApiError>;
 
-    if (
-      Array.isArray(data?.errors) &&
-      data.errors.length > 0
-    ) {
-      return data.errors.join(", ");
+    const detail =
+      axiosError.response?.data?.detail;
+
+    if (typeof detail === "string") {
+      return detail;
     }
 
-    if (
-      typeof data?.detail ===
-      "string"
-    ) {
-      return data.detail;
+    const message =
+      axiosError.response?.data?.message;
+
+    if (typeof message === "string") {
+      return message;
     }
 
-    if (
-      typeof data?.message ===
-      "string"
-    ) {
-      return data.message;
-    }
-
-    if (
-      typeof data?.error ===
-      "string"
-    ) {
-      return data.error;
-    }
-
-    if (
-      error.response?.status === 401
-    ) {
-      return "Your session has expired. Please sign in again.";
-    }
-
-    if (
-      error.response?.status === 403
-    ) {
-      return "You do not have permission to perform this action.";
-    }
-
-    if (
-      error.response?.status === 404
-    ) {
-      return "The requested item could not be found.";
-    }
-
-    if (
-      error.response?.status === 422
-    ) {
-      return "Some of the submitted information is invalid.";
-    }
-
-    if (
-      error.response?.status &&
-      error.response.status >= 500
-    ) {
-      return "The server encountered a problem. Please try again.";
-    }
-
-    if (error.code === "ECONNABORTED") {
-      return "The request timed out. Please try again.";
-    }
-
-    if (
-      error.message ===
-      "Network Error"
-    ) {
-      return "Unable to connect to the platform. Check your connection and try again.";
+    if (axiosError.message) {
+      return axiosError.message;
     }
   }
 
-  if (error instanceof Error) {
+  if (error instanceof Error && error.message) {
     return error.message;
   }
 
   return fallback;
 }
 
-/* ============================================================
-   OPTIONAL RESPONSE HELPERS
-============================================================ */
-
-function unwrap<T>(
-  response: {
-    data: T;
-  },
-): T {
+/**
+ * Small wrapper used by pages where we want a consistent
+ * error boundary without duplicating axios handling.
+ */
+export async function request<T>(
+  config: AxiosRequestConfig
+): Promise<T> {
+  const response = await api.request<T>(config);
   return response.data;
 }
 
 /* ============================================================
    AUTH
-============================================================ */
+   ============================================================ */
 
-export async function login(
+export function login(
   username: string,
-  password: string,
+  password: string
 ) {
-  return api.post<AuthResponse>(
-    "/auth/login",
-    {
-      username,
-      password,
-    } satisfies LoginPayload,
-  );
+  return api.post<AuthUser>("/auth/login", {
+    username,
+    password,
+  });
 }
 
-export async function logout() {
+export function logout() {
   return api.post("/auth/logout");
 }
 
-export async function me() {
-  return api.get<User>("/auth/me");
+export function me() {
+  return api.get<AuthUser>("/auth/me");
 }
 
 /* ============================================================
    PLAYER
-============================================================ */
+   ============================================================ */
 
-export async function playerDashboard() {
-  return api.get<PlayerDashboard>(
-    "/player/dashboard",
+export function playerDashboard() {
+  return api.get<PlayerDashboardData>(
+    "/player/dashboard"
   );
 }
 
-export async function playerAvatars() {
-  return api.get(
-    "/player/avatars",
-  );
+export function playerAvatars() {
+  return api.get("/player/avatars");
 }
 
 /* ============================================================
    PUBLIC
-============================================================ */
+   ============================================================ */
 
-export async function publicDashboard() {
-  return api.get(
-    "/public/dashboard",
+export function publicDashboard() {
+  return api.get<PublicDashboardData>(
+    "/public/dashboard"
   );
 }
 
-export async function leaderboard() {
-  return api.get<LeaderboardEntry[]>(
-    "/leaderboard",
+export function leaderboard() {
+  return api.get<LeaderboardRow[]>(
+    "/leaderboard"
   );
 }
 
 /* ============================================================
    ADMIN — OVERVIEW
-============================================================ */
+   ============================================================ */
 
-export async function adminOverview() {
+export function adminOverview() {
   return api.get<AdminOverview>(
-    "/admin/overview",
+    "/admin/overview"
   );
 }
 
-export async function adminPlayers() {
+export function adminPlayers() {
   return api.get<Player[]>(
-    "/admin/players",
+    "/admin/players"
   );
 }
 
 /* ============================================================
    ADMIN — PROGRAMME
-============================================================ */
+   ============================================================ */
 
-export async function getProgramme() {
+export function getProgramme() {
   return api.get<Programme>(
-    "/admin/programme",
+    "/admin/programme"
   );
 }
 
-export async function updateProgramme(
-  payload: Partial<Programme>,
+export function updateProgramme(
+  payload: ProgrammeUpdate
 ) {
-  return api.put<Programme>(
+  return api.put(
     "/admin/programme",
-    payload,
+    payload
   );
 }
 
 /* ============================================================
    ADMIN — THEMES
-============================================================ */
+   ============================================================ */
 
-export async function getThemes() {
+export function getThemes() {
   return api.get<Theme[]>(
-    "/admin/themes",
+    "/admin/themes"
   );
 }
 
-export async function createTheme(
-  payload: ThemePayload,
+export function createTheme(
+  payload: ThemeCreate
 ) {
-  return api.post<Theme>(
+  return api.post<{ id: Id }>(
     "/admin/themes",
-    payload,
+    payload
   );
 }
 
-export async function updateTheme(
-  id: ID,
-  payload: Partial<ThemePayload>,
+export function updateTheme(
+  id: Id,
+  payload: ThemeCreate
 ) {
-  return api.put<Theme>(
+  return api.put(
     `/admin/themes/${id}`,
-    payload,
+    payload
   );
 }
 
-export async function activateTheme(
-  id: ID,
-) {
+export function activateTheme(id: Id) {
   return api.post(
-    `/admin/themes/${id}/activate`,
+    `/admin/themes/${id}/activate`
   );
 }
 
 /* ============================================================
    ADMIN — MAPS
-============================================================ */
+   ============================================================ */
 
-export async function getMaps() {
-  return api.get<MapDefinition[]>(
-    "/admin/maps",
+export function getMaps() {
+  return api.get<GameMap[]>(
+    "/admin/maps"
   );
 }
 
-export async function createMap(
-  payload: MapPayload,
+export function createMap(
+  payload: GameMapCreate
 ) {
-  return api.post<MapDefinition>(
+  return api.post<{ id: Id }>(
     "/admin/maps",
-    payload,
+    payload
   );
 }
 
-export async function updateMap(
-  id: ID,
-  payload: Partial<MapPayload>,
+export function updateMap(
+  id: Id,
+  payload: GameMapCreate
 ) {
-  return api.put<MapDefinition>(
+  return api.put(
     `/admin/maps/${id}`,
-    payload,
+    payload
   );
 }
 
-export async function activateMap(
-  id: ID,
-) {
+export function activateMap(id: Id) {
   return api.post(
-    `/admin/maps/${id}/activate`,
+    `/admin/maps/${id}/activate`
   );
 }
 
-export async function getMapLocations(
-  mapId: ID,
+export function getMapLocations(
+  mapId: Id
 ) {
   return api.get<MapLocation[]>(
-    `/admin/maps/${mapId}/locations`,
+    `/admin/maps/${mapId}/locations`
   );
 }
 
-export async function createMapLocation(
-  mapId: ID,
-  payload: MapLocationPayload,
+export function createMapLocation(
+  mapId: Id,
+  payload: MapLocationCreate
 ) {
-  return api.post<MapLocation>(
+  return api.post<{ id: Id }>(
     `/admin/maps/${mapId}/locations`,
-    payload,
+    payload
   );
 }
 
-export async function updateMapLocation(
-  id: ID,
-  payload: Partial<MapLocationPayload>,
+export function updateMapLocation(
+  id: Id,
+  payload: MapLocationCreate
 ) {
-  return api.put<MapLocation>(
+  return api.put(
     `/admin/maps/locations/${id}`,
-    payload,
-  );
-}
-
-/* ============================================================
-   ADMIN — PHASES
-============================================================ */
-
-export async function getPhases() {
-  return api.get<Phase[]>(
-    "/admin/phases",
-  );
-}
-
-export async function createPhase(
-  payload: PhasePayload,
-) {
-  return api.post<Phase>(
-    "/admin/phases",
-    payload,
+    payload
   );
 }
 
 /* ============================================================
    ADMIN — POINT RULES
-============================================================ */
+   ============================================================ */
 
-export async function getPointRules() {
+export function getPointRules() {
   return api.get<PointRule[]>(
-    "/admin/point-rules",
+    "/admin/point-rules"
   );
 }
 
-export async function createPointRule(
-  payload: PointRulePayload,
+export function createPointRule(
+  payload: PointRuleCreate
 ) {
-  return api.post<PointRule>(
+  return api.post<{ id: Id }>(
     "/admin/point-rules",
-    payload,
+    payload
   );
 }
 
-export async function updatePointRule(
-  id: ID,
-  payload: Partial<PointRulePayload>,
+export function updatePointRule(
+  id: Id,
+  payload: PointRuleCreate
 ) {
-  return api.put<PointRule>(
+  return api.put(
     `/admin/point-rules/${id}`,
-    payload,
+    payload
   );
 }
 
 /* ============================================================
    ADMIN — REWARDS
-============================================================ */
+   ============================================================ */
 
-export async function getRewards() {
+export function getRewards() {
   return api.get<Reward[]>(
-    "/admin/rewards",
+    "/admin/rewards"
   );
 }
 
-export async function createReward(
-  payload: RewardPayload,
+export function createReward(
+  payload: RewardCreate
 ) {
-  return api.post<Reward>(
+  return api.post<{ id: Id }>(
     "/admin/rewards",
-    payload,
+    payload
+  );
+}
+
+/* ============================================================
+   ADMIN — PHASES
+   ============================================================ */
+
+export function getPhases() {
+  return api.get<Phase[]>(
+    "/admin/phases"
+  );
+}
+
+export function createPhase(
+  payload: PhaseCreate
+) {
+  return api.post<{ id: Id }>(
+    "/admin/phases",
+    payload
+  );
+}
+
+/* ============================================================
+   ADMIN — USERS
+   ============================================================ */
+
+export type CreateUserPayload = {
+  username: string;
+  password: string;
+  role: Role;
+  gamertag?: string;
+  avatar?: string;
+  group_id?: Id;
+};
+
+export function createUser(
+  payload: CreateUserPayload
+) {
+  return api.post(
+    "/admin/users",
+    payload
   );
 }
 
 /* ============================================================
    ADMIN — XP
-============================================================ */
+   ============================================================ */
 
-export async function awardXP(
-  playerId: number,
+export type AwardXPPayload = {
+  player_id: Id;
+  amount: number;
+  reason: string;
+};
+
+export function awardXP(
+  playerId: Id,
   amount: number,
-  reason: string,
+  reason: string
 ) {
   return api.post(
     "/admin/xp/award",
@@ -886,124 +744,86 @@ export async function awardXP(
       player_id: playerId,
       amount,
       reason,
-    } satisfies AwardXPPayload,
+    } satisfies AwardXPPayload
   );
 }
 
 /* ============================================================
    ATTENDANCE
-============================================================ */
+   ============================================================ */
 
-export async function startAttendance() {
-  return api.post(
-    "/attendance/start",
+export function startAttendance() {
+  return api.post<AttendanceSession>(
+    "/attendance/start"
   );
 }
 
-export async function checkIn(
-  code: string,
-) {
-  return api.post(
+export function checkIn(code: string) {
+  return api.post<CheckInResponse>(
     "/attendance/check-in",
     {
       code,
-    },
+    }
   );
 }
 
 /* ============================================================
    COMMUNITY AWARDS
-============================================================ */
+   ============================================================ */
 
-export async function createCommunityAward(
-  payload: CommunityAwardPayload,
+export function createCommunityAward(
+  payload: CommunityAwardCreate
 ) {
-  return api.post<CommunityAward>(
+  return api.post(
     "/community/awards",
-    payload,
+    payload
   );
 }
 
-export async function adminCommunityAwards() {
+export function adminCommunityAwards() {
   return api.get<CommunityAward[]>(
-    "/admin/community-awards",
+    "/admin/community-awards"
   );
 }
 
-export async function reviewCommunityAward(
-  id: ID,
-  status:
-    | "approved"
-    | "rejected",
+export function reviewCommunityAward(
+  id: Id,
+  status: "approved" | "rejected"
 ) {
   return api.post(
     `/admin/community-awards/${id}/review`,
     {
       status,
-    },
+    }
   );
 }
 
 /* ============================================================
    RESOURCES
-============================================================ */
+   ============================================================ */
 
-export async function getResources() {
+export type Resource = {
+  id: Id;
+  title: string;
+  description?: string | null;
+  url?: string | null;
+  type?: string | null;
+  phase_id?: Id | null;
+  active?: boolean;
+};
+
+export function getResources() {
   return api.get<Resource[]>(
-    "/resources",
+    "/resources"
   );
 }
 
 /* ============================================================
    CHALLENGES
-============================================================ */
+   ============================================================ */
 
-export async function getChallenges() {
+export function getChallenges() {
   return api.get<Challenge[]>(
-    "/challenges",
+    "/challenges"
   );
 }
-
-/* ============================================================
-   GENERIC REQUEST HELPERS
-============================================================ */
-
-/**
- * Use this only for genuinely new endpoints which have not
- * yet earned a dedicated typed API function.
- *
- * Keeping this escape hatch here prevents components from
- * importing axios directly.
- */
-export async function apiRequest<
-  T = unknown,
->(
-  config: AxiosRequestConfig,
-) {
-  return api.request<T>(config);
-}
-
-/**
- * Convenience wrapper when a component only needs the
- * response payload.
- */
-export async function getData<
-  T = unknown,
->(
-  url: string,
-  config?: AxiosRequestConfig,
-): Promise<T> {
-  const response =
-    await api.get<T>(
-      url,
-      config,
-    );
-
-  return unwrap(response);
-}
-
-/* ============================================================
-   DEFAULT EXPORT
-============================================================ */
-
-export default api;
