@@ -6,7 +6,10 @@ import {
   useEffect,
   useMemo,
   useState,
+  createContext,
+  useContext,
 } from "react";
+
 import {
   BrowserRouter,
   Navigate,
@@ -14,27 +17,66 @@ import {
   Route,
   Routes,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 
-import { createContext, useContext } from "react";
-import { AuthUser, me } from "./api/client";
+import {
+  AuthUser,
+  getApiErrorMessage,
+  me,
+} from "./api/client";
 
-const Login = lazy(() => import("./pages/Login"));
+/* ============================================================
+   LAZY ROUTES
+============================================================ */
+
+const Login = lazy(
+  () => import("./pages/Login"),
+);
+
 const PlayerDashboard = lazy(
   () => import("./pages/PlayerDashboard"),
 );
+
+const PlayerChallengePage = lazy(
+  () => import("./pages/player/PlayerChallengePage"),
+);
+
+const YouthWorkerDashboard = lazy(
+  () =>
+    import(
+      "./pages/youth-worker/YouthWorkerDashboard"
+    ),
+);
+
+const AdminDashboard = lazy(
+  () =>
+    import(
+      "./pages/admin/AdminDashboard"
+    ),
+);
+
+const AdminProgramme = lazy(
+  () =>
+    import(
+      "./pages/admin/AdminProgramme"
+    ),
+);
+
+const PublicDashboard = lazy(
+  () =>
+    import(
+      "./pages/PublicDashboard"
+    ),
+);
+
 const Leaderboard = lazy(
   () => import("./pages/Leaderboard"),
 );
-const PublicDashboard = lazy(
-  () => import("./pages/PublicDashboard"),
-);
-const YouthWorkerDashboard = lazy(
-  () => import("./pages/youth-worker/YouthWorkerDashboard"),
-);
-const AdminDashboard = lazy(
-  () => import("./pages/admin/AdminDashboard"),
-);
+
+/* ============================================================
+   TYPES
+============================================================ */
 
 type AuthStatus =
   | "loading"
@@ -48,11 +90,18 @@ interface AuthContextValue {
   clear: () => void;
 }
 
+/* ============================================================
+   AUTH CONTEXT
+============================================================ */
+
 const AuthContext =
-  createContext<AuthContextValue | null>(null);
+  createContext<AuthContextValue | null>(
+    null,
+  );
 
 export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
 
   if (!context) {
     throw new Error(
@@ -74,23 +123,27 @@ function AuthProvider({
   const [status, setStatus] =
     useState<AuthStatus>("loading");
 
-  const refresh = useCallback(async () => {
-    setStatus("loading");
+  const refresh = useCallback(
+    async () => {
+      setStatus("loading");
 
-    try {
-      const response = await me();
+      try {
+        const response =
+          await me();
 
-      setUser(response.data);
-      setStatus("authenticated");
+        setUser(response.data);
+        setStatus("authenticated");
 
-      return response.data;
-    } catch {
-      setUser(null);
-      setStatus("unauthenticated");
+        return response.data;
+      } catch {
+        setUser(null);
+        setStatus("unauthenticated");
 
-      return null;
-    }
-  }, []);
+        return null;
+      }
+    },
+    [],
+  );
 
   const clear = useCallback(() => {
     setUser(null);
@@ -102,9 +155,10 @@ function AuthProvider({
   }, [refresh]);
 
   useEffect(() => {
-    const handleAuthExpired = () => {
-      clear();
-    };
+    const handleAuthExpired =
+      () => {
+        clear();
+      };
 
     window.addEventListener(
       "dyp:auth-expired",
@@ -119,22 +173,34 @@ function AuthProvider({
     };
   }, [clear]);
 
-  const value = useMemo(
-    () => ({
-      user,
-      status,
-      refresh,
-      clear,
-    }),
-    [user, status, refresh, clear],
-  );
+  const value =
+    useMemo<AuthContextValue>(
+      () => ({
+        user,
+        status,
+        refresh,
+        clear,
+      }),
+      [
+        user,
+        status,
+        refresh,
+        clear,
+      ],
+    );
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={value}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
+
+/* ============================================================
+   LOADING
+============================================================ */
 
 function AppLoading({
   message = "Loading your game...",
@@ -142,7 +208,10 @@ function AppLoading({
   message?: string;
 }) {
   return (
-    <main className="app-loading" aria-live="polite">
+    <main
+      className="app-loading"
+      aria-live="polite"
+    >
       <div className="app-loading__inner">
         <div className="app-loading__mark">
           <span />
@@ -156,6 +225,10 @@ function AppLoading({
   );
 }
 
+/* ============================================================
+   ERROR
+============================================================ */
+
 function AppError({
   message,
   onRetry,
@@ -166,9 +239,13 @@ function AppError({
   return (
     <main className="app-error">
       <div className="app-error__card">
-        <div className="app-error__icon">!</div>
+        <div className="app-error__icon">
+          !
+        </div>
 
-        <h1>Something went wrong</h1>
+        <h1>
+          Something went wrong
+        </h1>
 
         <p>{message}</p>
 
@@ -186,27 +263,45 @@ function AppError({
   );
 }
 
+/* ============================================================
+   PAGE LOADER
+============================================================ */
+
 function PageLoader() {
-  return <AppLoading message="Loading..." />;
+  return (
+    <AppLoading message="Loading..." />
+  );
 }
 
-/**
- * Public pages never require authentication.
- */
-function PublicRoute() {
-  return <Outlet />;
+/* ============================================================
+   ROLE HOME
+============================================================ */
+
+function roleHome(
+  role: AuthUser["role"],
+) {
+  switch (role) {
+    case "player":
+      return "/player";
+
+    case "youth_worker":
+      return "/youth-worker";
+
+    case "admin":
+      return "/admin";
+
+    default:
+      return "/login";
+  }
 }
 
-/**
- * Authenticated route guard.
- */
-function RequireAuth({
-  allowedRoles,
-}: {
-  allowedRoles?: string[];
-}) {
-  const { user, status } = useAuth();
-  const location = useLocation();
+/* ============================================================
+   ROOT REDIRECT
+============================================================ */
+
+function RootRedirect() {
+  const { user, status } =
+    useAuth();
 
   if (status === "loading") {
     return <AppLoading />;
@@ -217,8 +312,51 @@ function RequireAuth({
       <Navigate
         to="/login"
         replace
+      />
+    );
+  }
+
+  return (
+    <Navigate
+      to={roleHome(user.role)}
+      replace
+    />
+  );
+}
+
+/* ============================================================
+   AUTH GUARD
+============================================================ */
+
+function RequireAuth({
+  allowedRoles,
+}: {
+  allowedRoles?: AuthUser["role"][];
+}) {
+  const {
+    user,
+    status,
+  } = useAuth();
+
+  const location =
+    useLocation();
+
+  if (status === "loading") {
+    return <AppLoading />;
+  }
+
+  if (
+    status ===
+      "unauthenticated" ||
+    !user
+  ) {
+    return (
+      <Navigate
+        to="/login"
+        replace
         state={{
-          from: location.pathname,
+          from:
+            location.pathname,
         }}
       />
     );
@@ -226,7 +364,9 @@ function RequireAuth({
 
   if (
     allowedRoles &&
-    !allowedRoles.includes(user.role)
+    !allowedRoles.includes(
+      user.role,
+    )
   ) {
     return <RoleRedirect />;
   }
@@ -234,39 +374,40 @@ function RequireAuth({
   return <Outlet />;
 }
 
+/* ============================================================
+   ROLE REDIRECT
+============================================================ */
+
 function RoleRedirect() {
-  const { user } = useAuth();
+  const { user } =
+    useAuth();
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
-  switch (user.role) {
-    case "player":
-      return <Navigate to="/player" replace />;
-
-    case "youth_worker":
-      return (
-        <Navigate
-          to="/youth-worker"
-          replace
-        />
-      );
-
-    case "admin":
-      return <Navigate to="/admin" replace />;
-
-    default:
-      return <Navigate to="/login" replace />;
-  }
+  return (
+    <Navigate
+      to={roleHome(user.role)}
+      replace
+    />
+  );
 }
 
-function RootRoute() {
-  return <PublicDashboard />;
-}
+/* ============================================================
+   LOGIN GUARD
+============================================================ */
 
 function LoginRoute() {
-  const { user, status } = useAuth();
+  const {
+    user,
+    status,
+  } = useAuth();
 
   if (status === "loading") {
     return <AppLoading />;
@@ -279,74 +420,154 @@ function LoginRoute() {
   return <Login />;
 }
 
-function AppRoutes() {
-  const [routeError, setRouteError] =
-    useState<string | null>(null);
+/* ============================================================
+   NOT FOUND
+============================================================ */
 
-  const retry = useCallback(() => {
-    setRouteError(null);
-    window.location.reload();
-  }, []);
+function NotFound() {
+  const navigate =
+    useNavigate();
+
+  return (
+    <main className="app-error">
+      <div className="app-error__card">
+        <div className="app-error__code">
+          404
+        </div>
+
+        <h1>
+          Page not found
+        </h1>
+
+        <p>
+          That part of the
+          platform does not
+          exist.
+        </p>
+
+        <button
+          type="button"
+          className="button button--primary"
+          onClick={() =>
+            navigate("/")
+          }
+        >
+          Back to platform
+        </button>
+      </div>
+    </main>
+  );
+}
+
+/* ============================================================
+   ROUTES
+============================================================ */
+
+function AppRoutes() {
+  const [
+    routeError,
+    setRouteError,
+  ] = useState<string | null>(
+    null,
+  );
+
+  const handleRetry =
+    useCallback(() => {
+      setRouteError(null);
+      window.location.reload();
+    }, []);
 
   if (routeError) {
     return (
       <AppError
         message={routeError}
-        onRetry={retry}
+        onRetry={handleRetry}
       />
     );
   }
 
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense
+      fallback={
+        <PageLoader />
+      }
+    >
       <Routes>
-        {/* PUBLIC */}
 
-        <Route element={<PublicRoute />}>
-          <Route
-            path="/"
-            element={<RootRoute />}
-          />
+        {/* ====================================================
+            ENTRY
+        ==================================================== */}
 
-          <Route
-            path="/leaderboard"
-            element={<Leaderboard />}
-          />
-
-          <Route
-            path="/public"
-            element={<PublicDashboard />}
-          />
-        </Route>
-
-        {/* AUTH */}
+        <Route
+          path="/"
+          element={
+            <RootRedirect />
+          }
+        />
 
         <Route
           path="/login"
-          element={<LoginRoute />}
+          element={
+            <LoginRoute />
+          }
         />
 
-        {/* PLAYER */}
+        {/* ====================================================
+            PUBLIC
+        ==================================================== */}
+
+        <Route
+          path="/public"
+          element={
+            <PublicDashboard />
+          }
+        />
+
+        <Route
+          path="/leaderboard"
+          element={
+            <Leaderboard />
+          }
+        />
+
+        {/* ====================================================
+            PLAYER
+        ==================================================== */}
 
         <Route
           element={
             <RequireAuth
-              allowedRoles={["player"]}
+              allowedRoles={[
+                "player",
+              ]}
             />
           }
         >
           <Route
             path="/player"
-            element={<PlayerDashboard />}
+            element={
+              <PlayerDashboard />
+            }
+          />
+
+          <Route
+            path="/player/challenges/:challengeId"
+            element={
+              <PlayerChallengePage />
+            }
           />
         </Route>
 
-        {/* YOUTH WORKER */}
+        {/* ====================================================
+            YOUTH WORKER
+        ==================================================== */}
 
         <Route
           element={
             <RequireAuth
-              allowedRoles={["youth_worker"]}
+              allowedRoles={[
+                "youth_worker",
+              ]}
             />
           }
         >
@@ -358,20 +579,37 @@ function AppRoutes() {
           />
         </Route>
 
-        {/* ADMIN */}
+        {/* ====================================================
+            ADMIN
+        ==================================================== */}
 
         <Route
           element={
             <RequireAuth
-              allowedRoles={["admin"]}
+              allowedRoles={[
+                "admin",
+              ]}
             />
           }
         >
           <Route
             path="/admin"
-            element={<AdminDashboard />}
+            element={
+              <AdminDashboard />
+            }
+          />
+
+          <Route
+            path="/admin/programme"
+            element={
+              <AdminProgramme />
+            }
           />
         </Route>
+
+        {/* ====================================================
+            FALLBACK
+        ==================================================== */}
 
         <Route
           path="*"
@@ -379,36 +617,15 @@ function AppRoutes() {
             <NotFound />
           }
         />
+
       </Routes>
     </Suspense>
   );
 }
 
-function NotFound() {
-  return (
-    <main className="app-error">
-      <div className="app-error__card">
-        <div className="app-error__code">
-          404
-        </div>
-
-        <h1>Page not found</h1>
-
-        <p>
-          That part of the platform does not
-          exist yet.
-        </p>
-
-        <a
-          className="button button--primary"
-          href="/"
-        >
-          Back to platform
-        </a>
-      </div>
-    </main>
-  );
-}
+/* ============================================================
+   APPLICATION
+============================================================ */
 
 export default function App() {
   return (
