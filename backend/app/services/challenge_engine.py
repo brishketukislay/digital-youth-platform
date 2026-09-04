@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
-
-from backend.app import db
 
 from ..db.models.core import (
     Challenge,
@@ -17,6 +16,13 @@ from .xp import award_xp
 
 
 UTC = timezone.utc
+
+
+class ChallengeAttemptStatus(str, Enum):
+    CREATED = "created"
+    SUBMITTED = "submitted"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
 
 
 class ChallengeError(Exception):
@@ -525,7 +531,7 @@ def submit_attempt(
     *,
     attempt: ChallengeAttempt,
     score: float,
-    evidence_type: str = ChallengeEvidenceType.GAME_RESULT.value,
+    evidence_type: str = "game_result",
     evidence_payload: dict[str, Any] | None = None,
 ) -> ChallengeAttempt:
     """
@@ -635,16 +641,21 @@ def finalise_attempt(
     # --------------------------------------------------------
     # Prevent duplicate XP
     # --------------------------------------------------------
+    #
+    # XP values may legitimately be zero. Therefore the reward
+    # amount itself must never be used as the idempotency check.
+    #
+    # `participation_awarded` is the persisted marker that says
+    # this attempt has already gone through reward finalisation.
+    #
 
-    if (
-        attempt.individual_xp > 0
-        or attempt.group_xp > 0
-    ):
+    if attempt.participation_awarded:
         return result
 
     attempt.percentile = result.percentile
     attempt.elite = result.elite
     attempt.winner = result.winner
+
     attempt.participation_xp = (
         result.participation_xp
     )
@@ -656,6 +667,21 @@ def finalise_attempt(
         result.individual_xp
     )
     attempt.group_xp = result.group_xp
+
+    # Keep the legacy persisted state fields aligned with the
+    # canonical workflow state.
+    attempt.performance_percentile = (
+        result.percentile
+    )
+    attempt.participation_awarded = (
+        result.participation_xp > 0
+    )
+    attempt.elite_awarded = (
+        result.elite_xp > 0
+    )
+    attempt.winner_awarded = (
+        result.winner_xp > 0
+    )
 
     award_xp(
         db=db,
@@ -672,6 +698,10 @@ def finalise_attempt(
         reference_id=attempt.id,
         created_by=created_by,
     )
+
+    # The reward transaction has now been created successfully.
+    # This is the canonical idempotency marker for the attempt.
+    attempt.participation_awarded = True
 
     if attempt.status != ChallengeAttemptStatus.VERIFIED.value:
         attempt.status = (
@@ -702,6 +732,9 @@ def reject_attempt(
     attempt.status = (
         ChallengeAttemptStatus.REJECTED.value
     )
+
+    # Rejected attempts are never verified and never receive XP.
+    attempt.verified = False
 
     attempt.rejection_reason = reason
     attempt.verified_by = verified_by
@@ -735,6 +768,10 @@ def verify_attempt(
     attempt.status = (
         ChallengeAttemptStatus.VERIFIED.value
     )
+
+    # Keep the legacy verification flag synchronized while the
+    # database still contains both representations.
+    attempt.verified = True
 
     attempt.verified_by = verified_by
     attempt.verified_at = utc_now()

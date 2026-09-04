@@ -14,7 +14,12 @@ from sqlalchemy.orm import Session
 
 from ..auth import require_roles
 from ..database import get_db
-from ..db.models.core import Challenge, YouthGroup, Player
+from ..db.models.core import (
+    Challenge,
+    ChallengeAttempt,
+    YouthGroup,
+    Player,
+)
 from ..services.challenge_engine import (
     ChallengeError,
     ChallengeEndedError,
@@ -23,7 +28,14 @@ from ..services.challenge_engine import (
     ChallengeNotStartedError,
     DuplicateChallengeAttemptError,
     InvalidChallengeScoreError,
-    award_challenge_xp,
+    InvalidChallengeStateError,
+    create_attempt,
+    verify_attempt,
+    reject_attempt,
+    submit_attempt,
+    finalise_attempt,
+    verify_attempt,
+    reject_attempt,
     challenge_summary,
     get_challenge,
 )
@@ -294,6 +306,113 @@ def get_available_challenge(
     )
 
 
+@router.get(
+    "/staff/attempts/{attempt_id}",
+)
+def get_staff_challenge_attempt(
+    attempt_id: int,
+    user=Depends(
+        require_roles("staff", "admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Return the complete review payload for a single challenge attempt.
+
+    Staff/admin users can use this endpoint to inspect the submitted
+    score, evidence, workflow state, reward calculation, and verification
+    metadata before deciding whether to verify or reject the attempt.
+    """
+
+    attempt = (
+        db.query(ChallengeAttempt)
+        .filter(
+            ChallengeAttempt.id == attempt_id,
+        )
+        .first()
+    )
+
+    if not attempt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Challenge attempt not found",
+        )
+
+    challenge = (
+        db.query(Challenge)
+        .filter(
+            Challenge.id == attempt.challenge_id,
+        )
+        .first()
+    )
+
+    player = (
+        db.query(Player)
+        .filter(
+            Player.id == attempt.player_id,
+        )
+        .first()
+    )
+
+    return {
+        "id": attempt.id,
+        "challenge": {
+            "id": challenge.id if challenge else attempt.challenge_id,
+            "title": challenge.title if challenge else None,
+        },
+        "player": {
+            "id": player.id if player else attempt.player_id,
+            "user_id": player.user_id if player else None,
+        },
+        "attempt": {
+            "attempt_number": attempt.attempt_number,
+            "attempt_reference": attempt.attempt_reference,
+            "status": attempt.status,
+            "score": attempt.score,
+            "percentile": attempt.percentile,
+            "performance_percentile": (
+                attempt.performance_percentile
+            ),
+            "submitted_at": (
+                attempt.submitted_at.isoformat()
+                if attempt.submitted_at
+                else None
+            ),
+        },
+        "evidence": {
+            "type": attempt.evidence_type,
+            "payload": attempt.evidence_payload,
+            "hash": attempt.evidence_hash,
+        },
+        "review": {
+            "verified": attempt.verified,
+            "verified_by": attempt.verified_by,
+            "verified_at": (
+                attempt.verified_at.isoformat()
+                if attempt.verified_at
+                else None
+            ),
+            "rejection_reason": attempt.rejection_reason,
+        },
+        "achievement": {
+            "participation_awarded": (
+                attempt.participation_awarded
+            ),
+            "elite_awarded": attempt.elite_awarded,
+            "winner_awarded": attempt.winner_awarded,
+            "elite": attempt.elite,
+            "winner": attempt.winner,
+        },
+        "xp": {
+            "participation": attempt.participation_xp,
+            "elite": attempt.elite_xp,
+            "winner": attempt.winner_xp,
+            "individual": attempt.individual_xp,
+            "group": attempt.group_xp,
+        },
+    }
+
+
 @router.post(
     "/{challenge_id}/attempt",
     status_code=status.HTTP_201_CREATED,
@@ -307,14 +426,10 @@ def submit_challenge_attempt(
     db: Session = Depends(get_db),
 ):
     """
-    Submit a minigame result.
+    Submit a challenge attempt.
 
-    The current phase-1 authentication model maps a player account to
-    Player. We resolve the player from user.id rather than accepting a
-    player_id from the request.
-
-    This prevents a player from submitting an attempt on somebody
-    else's account.
+    The client supplies only the result/evidence.
+    XP and achievement status are calculated by the server.
     """
 
     challenge = db.get(
@@ -348,33 +463,26 @@ def submit_challenge_attempt(
         or secrets.token_urlsafe(16)
     )
 
-    # --------------------------------------------------------
-    # Determine cohort
-    # --------------------------------------------------------
-    #
-    # The current schema associates players with YouthGroups. A future
-    # ChallengeAttempt table will store the actual submitted score.
-    #
-    # For now we use existing challenge transactions as the source
-    # of previous scores where possible.
-    #
-    # The current transaction model does not contain a score column,
-    # so winner/elite scoring is intentionally conservative here.
-    #
-    # A proper ChallengeAttempt table is the next schema change and
-    # will make this calculation authoritative.
-    # --------------------------------------------------------
-
-    cohort_scores = [data.score]
-
     try:
-        result = award_challenge_xp(
-            db=db,
+        attempt = create_attempt(
+            db,
             challenge=challenge,
             player=player,
-            score=data.score,
-            cohort_scores=cohort_scores,
             attempt_reference=attempt_reference,
+            client_metadata=data.metadata,
+        )
+
+        attempt = submit_attempt(
+            db,
+            attempt=attempt,
+            score=data.score,
+            evidence_type="game_result",
+            evidence_payload=data.metadata,
+        )
+
+        result = finalise_attempt(
+            db,
+            attempt=attempt,
             created_by=user.id,
         )
 
@@ -386,6 +494,7 @@ def submit_challenge_attempt(
         ChallengeEndedError,
         InvalidChallengeScoreError,
         DuplicateChallengeAttemptError,
+        InvalidChallengeStateError,
     ) as exc:
         db.rollback()
 
@@ -410,6 +519,8 @@ def submit_challenge_attempt(
         },
         "attempt": {
             "id": result.attempt_id,
+            "reference": result.attempt_reference,
+            "status": result.status,
             "score": result.score,
         },
         "achievement": {
@@ -428,6 +539,270 @@ def submit_challenge_attempt(
             db,
             player.id,
         ),
+    }
+
+
+
+@router.get(
+    "/staff/attempts",
+)
+def staff_list_attempts(
+    status_filter: str | None = None,
+    challenge_id: int | None = None,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Return challenge attempts for staff review.
+
+    By default this returns submitted attempts first, followed by
+    verified/rejected attempts. Staff can filter by status and challenge.
+
+    Player identity is intentionally limited to the player profile fields
+    needed by staff to identify the participant.
+    """
+
+    query = (
+        db.query(ChallengeAttempt)
+        .join(
+            Challenge,
+            Challenge.id == ChallengeAttempt.challenge_id,
+        )
+    )
+
+    if status_filter is not None:
+        allowed_statuses = {
+            "created",
+            "submitted",
+            "verified",
+            "rejected",
+        }
+
+        if status_filter not in allowed_statuses:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Invalid attempt status. "
+                    "Expected one of: "
+                    + ", ".join(sorted(allowed_statuses))
+                ),
+            )
+
+        query = query.filter(
+            ChallengeAttempt.status == status_filter,
+        )
+
+    if challenge_id is not None:
+        query = query.filter(
+            ChallengeAttempt.challenge_id == challenge_id,
+        )
+
+    attempts = (
+        query
+        .order_by(
+            ChallengeAttempt.submitted_at.desc(),
+            ChallengeAttempt.id.desc(),
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": attempt.id,
+            "challenge_id": attempt.challenge_id,
+            "challenge_title": (
+                attempt.challenge.title
+                if attempt.challenge is not None
+                else None
+            ),
+            "player_id": attempt.player_id,
+            "gamertag": (
+                attempt.player.gamertag
+                if attempt.player is not None
+                else None
+            ),
+            "attempt_number": attempt.attempt_number,
+            "attempt_reference": attempt.attempt_reference,
+            "score": attempt.score,
+            "status": attempt.status,
+            "evidence_type": attempt.evidence_type,
+            "evidence_payload": attempt.evidence_payload,
+            "submitted_at": attempt.submitted_at,
+            "verified_by": attempt.verified_by,
+            "verified_at": attempt.verified_at,
+            "rejection_reason": attempt.rejection_reason,
+            "percentile": attempt.percentile,
+            "elite": attempt.elite,
+            "winner": attempt.winner,
+            "participation_xp": attempt.participation_xp,
+            "elite_xp": attempt.elite_xp,
+            "winner_xp": attempt.winner_xp,
+            "individual_xp": attempt.individual_xp,
+            "group_xp": attempt.group_xp,
+        }
+        for attempt in attempts
+    ]
+
+
+@router.post(
+    "/staff/attempts/{attempt_id}/verify",
+)
+def staff_verify_attempt(
+    attempt_id: int,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Verify a submitted challenge attempt and award XP.
+
+    The challenge engine remains the single authority for calculating
+    percentile, elite/winner status and XP.
+    """
+
+    attempt = db.get(
+        ChallengeAttempt,
+        attempt_id,
+    )
+
+    if attempt is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Challenge attempt not found",
+        )
+
+    try:
+        result = verify_attempt(
+            db,
+            attempt=attempt,
+            verified_by=user.id,
+        )
+
+        db.commit()
+
+    except InvalidChallengeStateError as exc:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+    except ChallengeError as exc:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return {
+        "success": True,
+        "attempt": {
+            "id": attempt.id,
+            "reference": attempt.attempt_reference,
+            "status": attempt.status,
+            "score": attempt.score,
+        },
+        "achievement": {
+            "elite": result.elite,
+            "winner": result.winner,
+        },
+        "xp": {
+            "individual": result.individual_xp,
+            "group": result.group_xp,
+            "participation": result.participation_xp,
+            "elite": result.elite_xp,
+            "winner": result.winner_xp,
+        },
+        "percentile": result.percentile,
+    }
+
+
+class ChallengeAttemptRejectRequest(BaseModel):
+    reason: str = Field(
+        min_length=1,
+        max_length=1000,
+    )
+
+
+@router.post(
+    "/staff/attempts/{attempt_id}/reject",
+)
+def staff_reject_attempt(
+    attempt_id: int,
+    data: ChallengeAttemptRejectRequest,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Reject a submitted challenge attempt.
+
+    Rejection never awards XP.
+    """
+
+    attempt = db.get(
+        ChallengeAttempt,
+        attempt_id,
+    )
+
+    if attempt is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Challenge attempt not found",
+        )
+
+    try:
+        attempt = reject_attempt(
+            db,
+            attempt=attempt,
+            reason=data.reason.strip(),
+            verified_by=user.id,
+        )
+
+        db.commit()
+
+    except InvalidChallengeStateError as exc:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+    except ChallengeError as exc:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return {
+        "success": True,
+        "attempt": {
+            "id": attempt.id,
+            "reference": attempt.attempt_reference,
+            "status": attempt.status,
+            "score": attempt.score,
+        },
+        "rejection_reason": attempt.rejection_reason,
+        "verified_by": attempt.verified_by,
+        "verified_at": attempt.verified_at,
     }
 
 

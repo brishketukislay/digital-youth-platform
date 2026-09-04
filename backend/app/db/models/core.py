@@ -1742,6 +1742,96 @@ class ChallengeAttempt(Base):
         nullable=True,
     )
 
+    # ------------------------------------------------------------------
+    # Challenge workflow state
+    # ------------------------------------------------------------------
+
+    attempt_reference: Mapped[str] = mapped_column(
+        String(100),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(30),
+        default="created",
+        nullable=False,
+        index=True,
+    )
+
+    evidence_type: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    evidence_payload: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    rejection_reason: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    verified_by: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+
+    verified_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
+    percentile: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
+    elite: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    winner: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    participation_xp: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    elite_xp: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    winner_xp: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    individual_xp: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    group_xp: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
     challenge: Mapped["Challenge"] = relationship(
         "Challenge",
         back_populates="attempts",
