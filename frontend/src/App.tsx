@@ -14,14 +14,10 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 
-import { AuthUser, getApiErrorMessage, me } from "./api/client";
-
-/* ============================================================
-   LAZY ROUTES
-============================================================ */
+import { createContext, useContext } from "react";
+import { AuthUser, me } from "./api/client";
 
 const Login = lazy(() => import("./pages/Login"));
 const PlayerDashboard = lazy(
@@ -30,13 +26,15 @@ const PlayerDashboard = lazy(
 const Leaderboard = lazy(
   () => import("./pages/Leaderboard"),
 );
+const PublicDashboard = lazy(
+  () => import("./pages/PublicDashboard"),
+);
+const YouthWorkerDashboard = lazy(
+  () => import("./pages/youth-worker/YouthWorkerDashboard"),
+);
 const AdminDashboard = lazy(
   () => import("./pages/admin/AdminDashboard"),
 );
-
-/* ============================================================
-   TYPES
-============================================================ */
 
 type AuthStatus =
   | "loading"
@@ -50,16 +48,10 @@ interface AuthContextValue {
   clear: () => void;
 }
 
-/* ============================================================
-   AUTH CONTEXT
-============================================================ */
-
-import { createContext, useContext } from "react";
-
 const AuthContext =
   createContext<AuthContextValue | null>(null);
 
-function useAuth(): AuthContextValue {
+export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 
   if (!context) {
@@ -76,7 +68,9 @@ function AuthProvider({
 }: {
   children: ReactNode;
 }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] =
+    useState<AuthUser | null>(null);
+
   const [status, setStatus] =
     useState<AuthStatus>("loading");
 
@@ -125,7 +119,7 @@ function AuthProvider({
     };
   }, [clear]);
 
-  const value = useMemo<AuthContextValue>(
+  const value = useMemo(
     () => ({
       user,
       status,
@@ -141,10 +135,6 @@ function AuthProvider({
     </AuthContext.Provider>
   );
 }
-
-/* ============================================================
-   LOADING SCREEN
-============================================================ */
 
 function AppLoading({
   message = "Loading your game...",
@@ -165,10 +155,6 @@ function AppLoading({
     </main>
   );
 }
-
-/* ============================================================
-   ERROR FALLBACK
-============================================================ */
 
 function AppError({
   message,
@@ -200,53 +186,24 @@ function AppError({
   );
 }
 
-/* ============================================================
-   SUSPENSE FALLBACK
-============================================================ */
-
 function PageLoader() {
-  return (
-    <AppLoading message="Loading..." />
-  );
+  return <AppLoading message="Loading..." />;
 }
 
-/* ============================================================
-   ROOT REDIRECT
-============================================================ */
-
-function RootRedirect() {
-  const { user, status } = useAuth();
-
-  if (status === "loading") {
-    return <AppLoading />;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user.role === "player") {
-    return <Navigate to="/player" replace />;
-  }
-
-  if (
-    user.role === "admin" ||
-    user.role === "youth_worker"
-  ) {
-    return <Navigate to="/admin" replace />;
-  }
-
-  return <Navigate to="/login" replace />;
+/**
+ * Public pages never require authentication.
+ */
+function PublicRoute() {
+  return <Outlet />;
 }
 
-/* ============================================================
-   AUTHENTICATED ROUTE
-============================================================ */
-
+/**
+ * Authenticated route guard.
+ */
 function RequireAuth({
   allowedRoles,
 }: {
-  allowedRoles?: AuthUser["role"][];
+  allowedRoles?: string[];
 }) {
   const { user, status } = useAuth();
   const location = useLocation();
@@ -255,7 +212,7 @@ function RequireAuth({
     return <AppLoading />;
   }
 
-  if (status === "unauthenticated" || !user) {
+  if (!user) {
     return (
       <Navigate
         to="/login"
@@ -277,10 +234,6 @@ function RequireAuth({
   return <Outlet />;
 }
 
-/* ============================================================
-   ROLE REDIRECT
-============================================================ */
-
 function RoleRedirect() {
   const { user } = useAuth();
 
@@ -292,8 +245,15 @@ function RoleRedirect() {
     case "player":
       return <Navigate to="/player" replace />;
 
-    case "admin":
     case "youth_worker":
+      return (
+        <Navigate
+          to="/youth-worker"
+          replace
+        />
+      );
+
+    case "admin":
       return <Navigate to="/admin" replace />;
 
     default:
@@ -301,9 +261,9 @@ function RoleRedirect() {
   }
 }
 
-/* ============================================================
-   LOGIN ROUTE GUARD
-============================================================ */
+function RootRoute() {
+  return <PublicDashboard />;
+}
 
 function LoginRoute() {
   const { user, status } = useAuth();
@@ -319,75 +279,11 @@ function LoginRoute() {
   return <Login />;
 }
 
-/* ============================================================
-   PLAYER SHELL
-============================================================ */
-
-function PlayerRoute() {
-  return (
-    <RequireAuth allowedRoles={["player"]} />
-  );
-}
-
-/* ============================================================
-   STAFF SHELL
-============================================================ */
-
-function StaffRoute() {
-  return (
-    <RequireAuth
-      allowedRoles={["admin", "youth_worker"]}
-    />
-  );
-}
-
-/* ============================================================
-   PUBLIC ROUTES
-============================================================ */
-
-function PublicLeaderboardRoute() {
-  return <Leaderboard />;
-}
-
-/* ============================================================
-   NOT FOUND
-============================================================ */
-
-function NotFound() {
-  const navigate = useNavigate();
-
-  return (
-    <main className="app-error">
-      <div className="app-error__card">
-        <div className="app-error__code">404</div>
-
-        <h1>Page not found</h1>
-
-        <p>
-          That part of the platform does not exist.
-        </p>
-
-        <button
-          type="button"
-          className="button button--primary"
-          onClick={() => navigate("/")}
-        >
-          Back to platform
-        </button>
-      </div>
-    </main>
-  );
-}
-
-/* ============================================================
-   APP ROUTES
-============================================================ */
-
 function AppRoutes() {
   const [routeError, setRouteError] =
     useState<string | null>(null);
 
-  const handleRetry = useCallback(() => {
+  const retry = useCallback(() => {
     setRouteError(null);
     window.location.reload();
   }, []);
@@ -396,7 +292,7 @@ function AppRoutes() {
     return (
       <AppError
         message={routeError}
-        onRetry={handleRetry}
+        onRetry={retry}
       />
     );
   }
@@ -404,85 +300,115 @@ function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* ----------------------------------------------------
-            PUBLIC
-        ---------------------------------------------------- */}
+        {/* PUBLIC */}
 
-        <Route
-          path="/"
-          element={<RootRedirect />}
-        />
+        <Route element={<PublicRoute />}>
+          <Route
+            path="/"
+            element={<RootRoute />}
+          />
+
+          <Route
+            path="/leaderboard"
+            element={<Leaderboard />}
+          />
+
+          <Route
+            path="/public"
+            element={<PublicDashboard />}
+          />
+        </Route>
+
+        {/* AUTH */}
 
         <Route
           path="/login"
           element={<LoginRoute />}
         />
 
+        {/* PLAYER */}
+
         <Route
-          path="/leaderboard"
-          element={<PublicLeaderboardRoute />}
-        />
-
-        {/* ----------------------------------------------------
-            PLAYER
-        ---------------------------------------------------- */}
-
-        <Route element={<PlayerRoute />}>
+          element={
+            <RequireAuth
+              allowedRoles={["player"]}
+            />
+          }
+        >
           <Route
             path="/player"
             element={<PlayerDashboard />}
           />
         </Route>
 
-        {/* ----------------------------------------------------
-            ADMIN / YOUTH WORKER
-        ---------------------------------------------------- */}
+        {/* YOUTH WORKER */}
 
-        <Route element={<StaffRoute />}>
+        <Route
+          element={
+            <RequireAuth
+              allowedRoles={["youth_worker"]}
+            />
+          }
+        >
+          <Route
+            path="/youth-worker"
+            element={
+              <YouthWorkerDashboard />
+            }
+          />
+        </Route>
+
+        {/* ADMIN */}
+
+        <Route
+          element={
+            <RequireAuth
+              allowedRoles={["admin"]}
+            />
+          }
+        >
           <Route
             path="/admin"
             element={<AdminDashboard />}
           />
         </Route>
 
-        {/* ----------------------------------------------------
-            FUTURE ROUTES
-        ---------------------------------------------------- */}
-
-        {/*
-          These are intentionally not implemented yet.
-
-          The platform is going to grow into:
-
-          /admin/programme
-          /admin/themes
-          /admin/phases
-          /admin/maps
-          /admin/points
-          /admin/rewards
-          /admin/challenges
-          /admin/community
-          /admin/players
-
-          We will add them once the admin shell is replaced.
-        */}
-
-        {/* ----------------------------------------------------
-            FALLBACK
-        ---------------------------------------------------- */}
-
         <Route
           path="*"
-          element={<NotFound />}
+          element={
+            <NotFound />
+          }
         />
       </Routes>
     </Suspense>
   );
 }
 
-/* ============================================================
-   APPLICATION
-============================================================ */
+function NotFound() {
+  return (
+    <main className="app-error">
+      <div className="app-error__card">
+        <div className="app-error__code">
+          404
+        </div>
+
+        <h1>Page not found</h1>
+
+        <p>
+          That part of the platform does not
+          exist yet.
+        </p>
+
+        <a
+          className="button button--primary"
+          href="/"
+        >
+          Back to platform
+        </a>
+      </div>
+    </main>
+  );
+}
 
 export default function App() {
   return (
@@ -493,9 +419,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
-/* ============================================================
-   EXPORT AUTH HOOK
-============================================================ */
-
-export { useAuth };
