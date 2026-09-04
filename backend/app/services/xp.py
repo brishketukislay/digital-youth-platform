@@ -5,6 +5,7 @@ from typing import Iterable
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from ..db.models import (
     Player,
@@ -444,7 +445,41 @@ def award_xp(
     )
 
     db.add(transaction)
-    db.flush()
+
+    try:
+        db.flush()
+    except IntegrityError:
+        # A concurrent request may have created the same
+        # reference between our idempotency check and flush.
+        db.rollback()
+
+        if (
+            reference_type is not None
+            and reference_id is not None
+        ):
+            existing = (
+                db.query(XPTransaction)
+                .filter(
+                    XPTransaction.reference_type == reference_type,
+                    XPTransaction.reference_id == reference_id,
+                )
+                .first()
+            )
+
+            if existing is not None:
+                if (
+                    existing.player_id != player.id
+                    or existing.amount != amount
+                    or existing.group_amount != group_amount
+                ):
+                    raise DuplicateXPTransactionError(
+                        "An XP transaction already exists "
+                        "for this reference with different values."
+                    )
+
+                return existing
+
+        raise
 
     return transaction
 
