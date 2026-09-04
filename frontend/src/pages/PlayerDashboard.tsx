@@ -1,73 +1,51 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import Layout from "../components/Layout";
 
 import {
-  getPlayerDashboard,
-  type PlayerDashboardData,
+  getApiErrorMessage,
+  playerDashboard,
+  type PlayerDashboard as PlayerDashboardData,
 } from "../api/client";
 
 import {
-  ActiveChallenges,
-  BadgeCabinet,
-  CurrentPhase,
-  GroupProgress,
-  MysteryRewards,
   PlayerHero,
-  QuickActions,
-  RecentActivity,
-  ResourceLibrary,
-  SkillTreeProgress,
-} from "../components/player/dashboard";
-
-import {
-  getGroupXP,
-  getGroupTargetXP,
-  getLifetimeXP,
-  getSkillTreeProgress,
-} from "../components/player/dashboard/dashboardUtils";
-
-import type {
-  PlayerDashboardViewData,
-} from "../components/player/dashboard/dashboardTypes";
+  GroupProgress,
+  CurrentPhase,
+  SkillTree,
+  BadgeCabinet,
+  MysteryProgress,
+  Challenges,
+  GameMap,
+  PrivacyNotice,
+} from "../components/player";
 
 /* -------------------------------------------------------------------------- */
-/* Types                                                                      */
+/* Player Dashboard                                                           */
 /* -------------------------------------------------------------------------- */
 
-type DashboardLoadState =
-  | "loading"
-  | "success"
-  | "error";
-
-type PlayerDashboardProps = {
-  /**
-   * Optional player id.
-   *
-   * If the backend derives the player from the authenticated
-   * session, this can be omitted.
-   */
-  playerId?: string | number;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Page                                                                       */
-/* -------------------------------------------------------------------------- */
-
-export default function PlayerDashboard({
-  playerId,
-}: PlayerDashboardProps) {
+export default function PlayerDashboard() {
   const [
     data,
     setData,
-  ] = useState<
-    PlayerDashboardViewData | null
-  >(null);
+  ] = useState<PlayerDashboardData | null>(
+    null,
+  );
 
   const [
-    status,
-    setStatus,
-  ] = useState<DashboardLoadState>(
-    "loading",
-  );
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    refreshing,
+    setRefreshing,
+  ] = useState(false);
 
   const [
     error,
@@ -77,405 +55,272 @@ export default function PlayerDashboard({
   );
 
   /* ------------------------------------------------------------------------ */
-  /* Data loading                                                             */
+  /* Load                                                                     */
+  /* ------------------------------------------------------------------------ */
+
+  const loadDashboard =
+    useCallback(
+      async (
+        background = false,
+      ) => {
+        try {
+          if (background) {
+            setRefreshing(true);
+          } else {
+            setLoading(true);
+          }
+
+          setError(null);
+
+          const response =
+            await playerDashboard();
+
+          setData(
+            response.data,
+          );
+        } catch (loadError) {
+          setError(
+            getApiErrorMessage(
+              loadError,
+              "Unable to load your dashboard.",
+            ),
+          );
+        } finally {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      },
+      [],
+    );
+
+  /* ------------------------------------------------------------------------ */
+  /* Initial load                                                             */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadDashboard() {
-      try {
-        setStatus("loading");
-        setError(null);
-
-        /*
-         * The generated API client should remain the single
-         * transport layer for dashboard data.
-         *
-         * If your generated client accepts a player id, pass it
-         * here. Otherwise the authenticated backend session
-         * determines the player.
-         */
-        const response =
-          playerId !== undefined
-            ? await getPlayerDashboard(
-                playerId,
-              )
-            : await getPlayerDashboard();
-
-        if (cancelled) {
-          return;
-        }
-
-        setData(
-          response as PlayerDashboardViewData,
-        );
-
-        setStatus("success");
-      } catch (caught) {
-        if (cancelled) {
-          return;
-        }
-
-        console.error(
-          "Failed to load player dashboard:",
-          caught,
-        );
-
-        setError(
-          getDashboardErrorMessage(
-            caught,
-          ),
-        );
-
-        setStatus("error");
-      }
-    }
-
     void loadDashboard();
+  }, [loadDashboard]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Background refresh                                                       */
+  /* ------------------------------------------------------------------------ */
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(
+        () => {
+          void loadDashboard(
+            true,
+          );
+        },
+        60_000,
+      );
 
     return () => {
-      cancelled = true;
+      window.clearInterval(
+        interval,
+      );
     };
-  }, [playerId]);
+  }, [loadDashboard]);
 
   /* ------------------------------------------------------------------------ */
-  /* Derived values                                                           */
+  /* Theme                                                                    */
   /* ------------------------------------------------------------------------ */
 
-  const summary = useMemo(() => {
-    if (!data) {
-      return null;
-    }
+  const themeStyle =
+    useMemo(() => {
+      if (!data?.theme) {
+        return undefined;
+      }
 
-    const lifetimeXP =
-      getLifetimeXP(data);
-
-    const groupXP =
-      getGroupXP(data);
-
-    const groupTargetXP =
-      getGroupTargetXP(data);
-
-    const skillProgress =
-      getSkillTreeProgress(data);
-
-    return {
-      lifetimeXP,
-      groupXP,
-      groupTargetXP,
-      skillProgress,
-    };
-  }, [data]);
+      return {
+        "--player-primary":
+          data.theme.primary,
+        "--player-secondary":
+          data.theme.secondary,
+        "--player-accent":
+          data.theme.accent,
+        "--player-background":
+          data.theme.background,
+        "--player-surface":
+          data.theme.surface,
+        "--player-text":
+          data.theme.text,
+      } as React.CSSProperties;
+    }, [data?.theme]);
 
   /* ------------------------------------------------------------------------ */
-  /* Loading                                                                   */
+  /* Loading                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    status === "loading" &&
-    !data
-  ) {
+  if (loading && !data) {
     return (
-      <PlayerDashboardLoading />
+      <Layout>
+        <div
+          className="card dashboard-loading"
+          aria-live="polite"
+        >
+          <div
+            className="loading-orb"
+            aria-hidden="true"
+          >
+            ✦
+          </div>
+
+          <h2>
+            Loading your journey...
+          </h2>
+
+          <p className="muted">
+            Getting your latest progress.
+          </p>
+        </div>
+      </Layout>
     );
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Error                                                                     */
+  /* Fatal error                                                              */
   /* ------------------------------------------------------------------------ */
 
-  if (
-    status === "error" &&
-    !data
-  ) {
+  if (error && !data) {
     return (
-      <PlayerDashboardError
-        message={
-          error ??
-          "We couldn't load your dashboard."
-        }
-        onRetry={() => {
-          /*
-           * Changing this page's key through the browser is not
-           * required. A full refresh remains available through
-           * the button if the current route needs a clean retry.
-           */
-          window.location.reload();
-        }}
-      />
+      <Layout>
+        <div
+          className="card dashboard-error"
+          role="alert"
+        >
+          <div
+            className="dashboard-error__icon"
+            aria-hidden="true"
+          >
+            !
+          </div>
+
+          <h2>
+            We couldn't load your
+            journey
+          </h2>
+
+          <p className="muted">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={() =>
+              void loadDashboard()
+            }
+          >
+            Try again
+          </button>
+        </div>
+      </Layout>
     );
   }
 
-  if (!data || !summary) {
-    return null;
+  /* ------------------------------------------------------------------------ */
+  /* Defensive state                                                          */
+  /* ------------------------------------------------------------------------ */
+
+  if (!data?.player) {
+    return (
+      <Layout>
+        <div className="card">
+          <div className="empty-state">
+            <span
+              className="empty-state__icon"
+              aria-hidden="true"
+            >
+              👤
+            </span>
+
+            <strong>
+              Player profile not found
+            </strong>
+
+            <p>
+              Please speak to your youth
+              worker.
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Dashboard                                                                 */
+  /* Dashboard                                                                */
   /* ------------------------------------------------------------------------ */
 
   return (
-    <main
-      className="min-h-screen bg-slate-950 text-white"
-      aria-label="Player dashboard"
+    <Layout
+      title={
+        data.programme?.name ||
+        "Digital Youth Platform"
+      }
     >
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* ---------------------------------------------------------------- */}
-        {/* Hero                                                              */}
-        {/* ---------------------------------------------------------------- */}
+      <div
+        className="player-dashboard"
+        style={themeStyle}
+      >
+        <PlayerHero
+          data={data}
+        />
 
-        <section
-          aria-labelledby="player-dashboard-heading"
-          className="mb-6"
-        >
-          <PlayerHero
-            data={data}
-          />
-        </section>
+        {refreshing && (
+          <div
+            className="dashboard-sync"
+            aria-live="polite"
+          >
+            Updating your progress...
+          </div>
+        )}
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Group progress                                                    */}
-        {/* ---------------------------------------------------------------- */}
+        <GroupProgress
+          data={data}
+        />
 
-        <section
-          aria-labelledby="group-progress-heading"
-          className="mb-6"
-        >
-          <GroupProgress
-            data={data}
-          />
-        </section>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Current phase                                                     */}
-        {/* ---------------------------------------------------------------- */}
-
-        <section
-          aria-labelledby="current-phase-heading"
-          className="mb-6"
-        >
+        <div className="grid player-core-grid">
           <CurrentPhase
             data={data}
           />
-        </section>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Individual progression                                            */}
-        {/* ---------------------------------------------------------------- */}
-
-        <section
-          aria-labelledby="skill-tree-heading"
-          className="mb-6"
-        >
-          <SkillTreeProgress
-            data={data}
+          <MysteryProgress
+            xp={data.player.xp}
           />
-        </section>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Challenges                                                        */}
-        {/* ---------------------------------------------------------------- */}
-
-        <section
-          aria-labelledby="active-challenges-heading"
-          className="mb-6"
-        >
-          <ActiveChallenges
-            data={data}
-          />
-        </section>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Rewards                                                            */}
-        {/* ---------------------------------------------------------------- */}
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <section
-            aria-labelledby="mystery-rewards-heading"
-          >
-            <MysteryRewards
-              data={data}
-            />
-          </section>
-
-          <section
-            aria-labelledby="badge-cabinet-heading"
-          >
-            <BadgeCabinet
-              data={data}
-            />
-          </section>
         </div>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Activity + resources                                              */}
-        {/* ---------------------------------------------------------------- */}
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <section
-            aria-labelledby="recent-activity-heading"
-          >
-            <RecentActivity
-              data={data}
-            />
-          </section>
-
-          <section
-            aria-labelledby="resource-library-heading"
-          >
-            <ResourceLibrary
-              data={data}
-            />
-          </section>
-        </div>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Quick actions                                                     */}
-        {/* ---------------------------------------------------------------- */}
-
-        <section
-          aria-labelledby="quick-actions-heading"
-          className="mt-6"
-        >
-          <QuickActions
+        <div className="grid player-progression-grid">
+          <SkillTree
             data={data}
           />
-        </section>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Development-only refresh indicator                                */}
-        {/* ---------------------------------------------------------------- */}
+          <BadgeCabinet
+            data={data}
+          />
+        </div>
 
-        {status === "loading" && (
+        <Challenges
+          data={data}
+        />
+
+        <GameMap
+          data={data}
+        />
+
+        <PrivacyNotice />
+
+        {error && (
           <div
-            className="pointer-events-none fixed bottom-4 right-4 rounded-full border border-white/10 bg-slate-900/90 px-4 py-2 text-xs text-slate-300 shadow-xl backdrop-blur"
+            className="notice notice--error section-gap"
             role="status"
-            aria-live="polite"
           >
-            Updating…
+            {error}
           </div>
         )}
       </div>
-    </main>
+    </Layout>
   );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Loading state                                                              */
-/* -------------------------------------------------------------------------- */
-
-function PlayerDashboardLoading() {
-  return (
-    <main
-      className="min-h-screen bg-slate-950 text-white"
-      aria-label="Loading player dashboard"
-    >
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div
-          className="animate-pulse space-y-6"
-          aria-hidden="true"
-        >
-          {/* Hero */}
-          <div className="h-48 rounded-3xl bg-slate-900" />
-
-          {/* Group progress */}
-          <div className="h-36 rounded-3xl bg-slate-900" />
-
-          {/* Phase */}
-          <div className="h-52 rounded-3xl bg-slate-900" />
-
-          {/* Skill tree */}
-          <div className="h-64 rounded-3xl bg-slate-900" />
-
-          {/* Challenges */}
-          <div className="h-48 rounded-3xl bg-slate-900" />
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="h-64 rounded-3xl bg-slate-900" />
-            <div className="h-64 rounded-3xl bg-slate-900" />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="h-72 rounded-3xl bg-slate-900" />
-            <div className="h-72 rounded-3xl bg-slate-900" />
-          </div>
-        </div>
-
-        <p className="sr-only">
-          Loading your dashboard…
-        </p>
-      </div>
-    </main>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Error state                                                                */
-/* -------------------------------------------------------------------------- */
-
-type PlayerDashboardErrorProps = {
-  message: string;
-  onRetry: () => void;
-};
-
-function PlayerDashboardError({
-  message,
-  onRetry,
-}: PlayerDashboardErrorProps) {
-  return (
-    <main
-      className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white"
-      aria-label="Player dashboard error"
-    >
-      <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-slate-900 p-8 text-center shadow-2xl">
-        <div
-          className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-2xl"
-          aria-hidden="true"
-        >
-          !
-        </div>
-
-        <h1 className="text-xl font-bold">
-          Dashboard unavailable
-        </h1>
-
-        <p className="mt-3 text-sm leading-6 text-slate-400">
-          {message}
-        </p>
-
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-slate-900"
-        >
-          Try again
-        </button>
-      </div>
-    </main>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Error normalisation                                                        */
-/* -------------------------------------------------------------------------- */
-
-function getDashboardErrorMessage(
-  error: unknown,
-): string {
-  if (
-    error instanceof Error &&
-    error.message
-  ) {
-    return error.message;
-  }
-
-  if (
-    typeof error === "string" &&
-    error.trim()
-  ) {
-    return error;
-  }
-
-  return "Something went wrong while loading your player dashboard.";
 }

@@ -14,11 +14,10 @@ export function PrivacyNotice() {
         </strong>
 
         <p>
-          The public game uses your
-          gamertag and avatar. Your
-          real name and photograph are
-          never displayed on the public
-          leaderboard.
+          The public game uses your gamertag
+          and avatar. Your real name and
+          photograph are never displayed on
+          the public leaderboard.
         </p>
       </div>
     </section>

@@ -1,38 +1,76 @@
-import {
-  EmptyState,
-  ProgressBar,
-  SectionHeading,
-} from "./DashboardPrimitives";
-
-import {
-  formatXP,
-  getCompletedMilestones,
-  getMilestonePercentage,
-} from "./dashboardUtils";
-
 import type {
-  DashboardSectionProps,
-} from "./dashboardTypes";
+  PlayerDashboard,
+  SkillMilestone,
+} from "../../api/client";
+
+type Props = {
+  data: PlayerDashboard;
+};
+
+function formatXP(value: number) {
+  return Math.max(0, value).toLocaleString("en-GB");
+}
+
+function milestonePercentage(
+  milestones: SkillMilestone[],
+) {
+  if (!milestones.length) {
+    return 0;
+  }
+
+  const completed =
+    milestones.filter(
+      milestone =>
+        milestone.completed,
+    ).length;
+
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      (completed /
+        milestones.length) *
+        100,
+    ),
+  );
+}
 
 export function SkillTree({
   data,
-}: DashboardSectionProps) {
+}: Props) {
   const skillTree =
     data.skill_tree;
 
   if (!skillTree) {
     return (
       <section className="card">
-        <SectionHeading
-          eyebrow="PERSONAL PROGRESSION"
-          title="Skill tree"
-        />
+        <div className="card-title-row">
+          <div>
+            <div className="eyebrow">
+              PERSONAL PROGRESSION
+            </div>
 
-        <EmptyState
-          icon="🌱"
-          title="Your next goal is coming"
-          description="Your youth worker will help you choose a personal skill goal."
-        />
+            <h2>Skill tree</h2>
+          </div>
+        </div>
+
+        <div className="empty-state">
+          <span
+            className="empty-state__icon"
+            aria-hidden="true"
+          >
+            🌱
+          </span>
+
+          <strong>
+            Your next goal is coming
+          </strong>
+
+          <p>
+            Your youth worker will help you
+            choose a personal skill goal.
+          </p>
+        </div>
       </section>
     );
   }
@@ -41,34 +79,34 @@ export function SkillTree({
     skillTree.milestones ?? [];
 
   const completed =
-    getCompletedMilestones(
-      milestones,
-    );
+    milestones.filter(
+      milestone =>
+        milestone.completed,
+    ).length;
 
   const progress =
-    getMilestonePercentage(
+    milestonePercentage(
       milestones,
     );
 
   return (
     <section className="card skill-tree-card">
-      <SectionHeading
-        eyebrow="PERSONAL PROGRESSION"
-        title="Skill tree"
-        action={
-          <span className="percentage-badge">
-            {Math.round(
-              progress,
-            )}
-            %
-          </span>
-        }
-      />
+      <div className="card-title-row">
+        <div>
+          <div className="eyebrow">
+            PERSONAL PROGRESSION
+          </div>
+
+          <h2>Skill tree</h2>
+        </div>
+
+        <span className="percentage-badge">
+          {Math.round(progress)}%
+        </span>
+      </div>
 
       <div className="skill-tree-heading">
-        <h3>
-          {skillTree.name}
-        </h3>
+        <h3>{skillTree.name}</h3>
 
         {skillTree.description && (
           <p className="muted">
@@ -77,11 +115,23 @@ export function SkillTree({
         )}
       </div>
 
-      <ProgressBar
-        value={progress}
-        className="skill-progress"
-        ariaLabel="Skill tree completion"
-      />
+      <div
+        className="progress skill-progress"
+        role="progressbar"
+        aria-label="Skill tree completion"
+        aria-valuenow={Math.round(
+          progress,
+        )}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div
+          className="progress__fill"
+          style={{
+            width: `${progress}%`,
+          }}
+        />
+      </div>
 
       <div className="skill-progress-meta">
         <span>
@@ -91,10 +141,7 @@ export function SkillTree({
         </span>
 
         <strong>
-          {Math.round(
-            progress,
-          )}
-          %
+          {Math.round(progress)}%
         </strong>
       </div>
 
@@ -106,10 +153,7 @@ export function SkillTree({
           ) => {
             const previousCompleted =
               milestones
-                .slice(
-                  0,
-                  index,
-                )
+                .slice(0, index)
                 .every(
                   item =>
                     item.completed,
@@ -119,8 +163,8 @@ export function SkillTree({
               milestone.completed
                 ? "completed"
                 : previousCompleted
-                  ? "current"
-                  : "locked";
+                ? "current"
+                : "locked";
 
             return (
               <div
@@ -138,9 +182,7 @@ export function SkillTree({
 
                 <div className="skill-node-content">
                   <strong>
-                    {
-                      milestone.name
-                    }
+                    {milestone.name}
                   </strong>
 
                   <span>
@@ -152,9 +194,7 @@ export function SkillTree({
 
                   {milestone.reward && (
                     <small>
-                      {
-                        milestone.reward
-                      }
+                      {milestone.reward}
                     </small>
                   )}
                 </div>
@@ -164,18 +204,16 @@ export function SkillTree({
                   aria-label={
                     milestone.completed
                       ? "Completed"
-                      : state ===
-                          "current"
-                        ? "Current milestone"
-                        : "Locked"
+                      : state === "current"
+                      ? "Current milestone"
+                      : "Locked"
                   }
                 >
                   {milestone.completed
                     ? "DONE"
-                    : state ===
-                        "current"
-                      ? "NEXT"
-                      : "LOCKED"}
+                    : state === "current"
+                    ? "NEXT"
+                    : "LOCKED"}
                 </div>
               </div>
             );

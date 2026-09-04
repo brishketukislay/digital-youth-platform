@@ -1,61 +1,67 @@
-import {
-  MYSTERY_THRESHOLDS,
-} from "./dashboardConstants";
+import type { PlayerDashboard } from "../../api/client";
 
-import {
-  SectionHeading,
-} from "./DashboardPrimitives";
+type Props = {
+  xp: number;
+};
 
-import {
-  formatXP,
-  getNextThreshold,
-  isMysteryUnlocked,
-} from "./dashboardUtils";
+const MYSTERY_THRESHOLDS = [
+  {
+    xp: 15_000,
+    label: "Early Hook",
+  },
+  {
+    xp: 45_000,
+    label: "Midway",
+  },
+  {
+    xp: 85_000,
+    label: "Legendary",
+  },
+] as const;
+
+function formatXP(value: number) {
+  return Math.max(0, value).toLocaleString("en-GB");
+}
 
 export function MysteryProgress({
   xp,
-}: {
-  xp: number;
-}) {
+}: Props) {
   const next =
-    getNextThreshold(
-      xp,
-      MYSTERY_THRESHOLDS.map(
-        item => item.xp,
-      ),
+    MYSTERY_THRESHOLDS.find(
+      milestone =>
+        xp < milestone.xp,
     );
 
   const unlocked =
     MYSTERY_THRESHOLDS.filter(
       milestone =>
-        isMysteryUnlocked(
-          xp,
-          milestone.xp,
-        ),
+        xp >= milestone.xp,
     );
 
   return (
     <section className="card">
-      <SectionHeading
-        eyebrow="MYSTERY CONTENT"
-        title="Hidden rewards"
-      />
+      <div className="card-title-row">
+        <div>
+          <div className="eyebrow">
+            MYSTERY CONTENT
+          </div>
+
+          <h2>Hidden rewards</h2>
+        </div>
+      </div>
 
       <p className="muted">
-        Your lifetime XP unlocks
-        mystery milestones. Rewards
-        are revealed by the platform
-        when they are genuinely earned.
+        Your lifetime XP unlocks mystery
+        milestones. Rewards are revealed by
+        the platform when they are genuinely
+        earned.
       </p>
 
       <div className="mystery-track">
         {MYSTERY_THRESHOLDS.map(
           milestone => {
             const complete =
-              isMysteryUnlocked(
-                xp,
-                milestone.xp,
-              );
+              xp >= milestone.xp;
 
             return (
               <div
@@ -76,9 +82,7 @@ export function MysteryProgress({
                 </div>
 
                 <strong>
-                  {
-                    milestone.label
-                  }
+                  {milestone.label}
                 </strong>
 
                 <span>
@@ -103,7 +107,7 @@ export function MysteryProgress({
             {formatXP(
               Math.max(
                 0,
-                next - xp,
+                next.xp - xp,
               ),
             )}{" "}
             XP to go
@@ -119,9 +123,7 @@ export function MysteryProgress({
       {unlocked.length > 0 && (
         <p className="small-muted">
           {unlocked.length} of{" "}
-          {
-            MYSTERY_THRESHOLDS.length
-          }{" "}
+          {MYSTERY_THRESHOLDS.length}{" "}
           mystery milestones reached.
         </p>
       )}
