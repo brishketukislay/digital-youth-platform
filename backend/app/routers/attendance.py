@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from ..auth import get_current_user
 from ..db.database import get_db
+from ..db.models import AttendanceSession, Player
 from ..schemas.attendance import (
     AttendanceCheckInRequest,
     AttendanceResponse,
@@ -10,7 +12,7 @@ from ..services.attendance import check_in
 
 
 router = APIRouter(
-    prefix="/attendance",
+    prefix="/api/attendance",
     tags=["attendance"],
 )
 
@@ -23,29 +25,41 @@ router = APIRouter(
 def check_in_player(
     payload: AttendanceCheckInRequest,
     db: Session = Depends(get_db),
+    user=Depends(get_current_user),
 ):
     """
-    Register the authenticated player for a session.
-
-    Authentication/player resolution will be connected to the
-    final auth system rather than trusting player_id from the client.
+    Register the authenticated player for an attendance session.
     """
 
-    # Temporary compatibility with the current pilot API.
-    # Replace with authenticated-player resolution when auth is wired.
-    player_id = None
+    player = (
+        db.query(Player)
+        .filter(Player.user_id == user.id)
+        .first()
+    )
 
-    if player_id is None:
+    if not player:
         raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="Authenticated player context is not configured yet.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Player profile not found.",
+        )
+
+    attendance_session = db.get(
+        AttendanceSession,
+        payload.session_id,
+    )
+
+    if not attendance_session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Attendance session not found.",
         )
 
     try:
         attendance = check_in(
             db,
-            player_id=player_id,
-            session_id=payload.session_id,
+            player=player,
+            attendance_session=attendance_session,
+            created_by=user.id,
         )
 
         db.commit()

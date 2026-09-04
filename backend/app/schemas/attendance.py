@@ -12,7 +12,7 @@ class AttendanceResponse(BaseModel):
     player_id: int
     session_id: int
     checked_in_at: datetime
-    xp_awarded: bool
+    xp_awarded: int
 
     class Config:
         from_attributes = True

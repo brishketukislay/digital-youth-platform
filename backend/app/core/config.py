@@ -10,15 +10,8 @@ class Settings(BaseSettings):
     """
     Application configuration.
 
-    Configuration is deliberately environment-driven so the same application
-    can run locally, in test, staging and production without code changes.
-
-    Example environment variables:
-
-        APP_ENV=development
-        DATABASE_URL=sqlite:///./youth_platform.db
-        SESSION_SECRET=replace-me
-        CORS_ORIGINS=http://localhost:5173
+    Configuration is environment-driven so the same application can run
+    locally, in test, staging and production without code changes.
     """
 
     model_config = SettingsConfigDict(
@@ -28,12 +21,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # ------------------------------------------------------------------
     # Application
-    # ------------------------------------------------------------------
-
     app_name: str = "Digital Youth Platform"
-
     app_version: str = "2.0.0"
 
     app_env: str = Field(
@@ -43,37 +32,23 @@ class Settings(BaseSettings):
 
     debug: bool = False
 
-    # ------------------------------------------------------------------
     # Database
-    # ------------------------------------------------------------------
-
     database_url: str = "sqlite:///./youth_platform.db"
-
     database_echo: bool = False
 
-    # ------------------------------------------------------------------
     # Authentication / sessions
-    # ------------------------------------------------------------------
-
     session_secret: str = Field(
         default="CHANGE_ME_IN_PRODUCTION",
         min_length=16,
     )
 
     session_cookie_name: str = "dyp_session"
-
     session_max_age_seconds: int = 60 * 60 * 24 * 7
-
     session_cookie_secure: bool = False
-
     session_cookie_http_only: bool = True
-
     session_cookie_same_site: str = "lax"
 
-    # ------------------------------------------------------------------
     # Frontend / CORS
-    # ------------------------------------------------------------------
-
     cors_origins: list[str] = Field(
         default_factory=lambda: [
             "http://localhost:5173",
@@ -82,52 +57,28 @@ class Settings(BaseSettings):
 
     frontend_dist_path: str = "frontend/dist"
 
-    # ------------------------------------------------------------------
     # Programme defaults
-    # ------------------------------------------------------------------
-
     default_target_xp: int = 1_500_000
-
     default_programme_duration_weeks: int = 24
 
-    # ------------------------------------------------------------------
     # XP safety limits
-    # ------------------------------------------------------------------
-
     max_manual_xp_adjustment: int = 50_000
-
     max_group_penalty_xp: int = 150_000
-
     max_xp_multiplier: float = 2.0
 
-    # ------------------------------------------------------------------
     # Public leaderboard
-    # ------------------------------------------------------------------
-
     public_leaderboard_enabled: bool = True
-
     public_leaderboard_poll_seconds: int = 15
 
-    # ------------------------------------------------------------------
     # Notifications
-    # ------------------------------------------------------------------
-
     notifications_enabled: bool = True
-
     browser_notifications_enabled: bool = True
 
-    # ------------------------------------------------------------------
     # Community awards
-    # ------------------------------------------------------------------
-
     community_awards_enabled: bool = True
-
     community_award_requires_staff_approval: bool = True
 
-    # ------------------------------------------------------------------
     # Validation
-    # ------------------------------------------------------------------
-
     @field_validator("app_env")
     @classmethod
     def validate_environment(cls, value: str) -> str:
@@ -151,13 +102,7 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, value):
         """
-        Allow either:
-
-            CORS_ORIGINS=["http://localhost:5173"]
-
-        or an environment variable such as:
-
-            CORS_ORIGINS=http://localhost:5173,https://example.org
+        Allow either a JSON/list value or a comma-separated environment value.
         """
 
         if isinstance(value, str):
@@ -221,10 +166,17 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """
-    Cached settings accessor.
-
-    Keeping this cached means configuration is loaded once per process,
-    while still allowing dependency injection in tests.
+    Return the cached application settings instance.
     """
-
     return Settings()
+
+
+# Backwards-compatible module-level settings object.
+#
+# Existing modules currently import:
+#
+#     from app.core.config import settings
+#
+# Keeping this object means those imports continue to work while the
+# dependency-friendly get_settings() accessor remains available.
+settings = get_settings()
