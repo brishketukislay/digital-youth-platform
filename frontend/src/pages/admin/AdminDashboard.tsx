@@ -1,1905 +1,1326 @@
-// import {
-//   useEffect,
-//   useState,
-// } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { Link } from "react-router-dom";
 
-// import Layout from "../../components/Layout";
-
-// import {
-//   adminOverview,
-//   adminPlayers,
-//   getProgramme,
-//   updateProgramme,
-
-//   getThemes,
-//   createTheme,
-//   activateTheme,
-
-//   getMaps,
-//   createMap,
-//   activateMap,
-
-//   getPhases,
-//   createPhase,
-
-//   getPointRules,
-//   updatePointRule,
-
-//   getRewards,
-//   createReward,
-
-//   startAttendance,
-//   awardXP,
-// } from "../../api/client";
-
-
-// const defaultTheme = {
-//   name: "Forest",
-
-//   primary: "#18775B",
-//   secondary: "#0F513C",
-//   accent: "#43B98B",
-
-//   background: "#F3F7F5",
-//   surface: "#FFFFFF",
-//   text: "#17221E",
-// };
-
-
-// export default function AdminDashboard() {
-
-//   const [overview, setOverview] =
-//     useState<any>(null);
-
-//   const [players, setPlayers] =
-//     useState<any[]>([]);
-
-//   const [programme, setProgramme] =
-//     useState<any>(null);
-
-//   const [themes, setThemes] =
-//     useState<any[]>([]);
-
-//   const [maps, setMaps] =
-//     useState<any[]>([]);
-
-//   const [phases, setPhases] =
-//     useState<any[]>([]);
-
-//   const [rules, setRules] =
-//     useState<any[]>([]);
-
-//   const [rewards, setRewards] =
-//     useState<any[]>([]);
-
-//   const [attendance, setAttendance] =
-//     useState<any>(null);
-
-//   const [message, setMessage] =
-//     useState("");
-
-
-//   async function load() {
-
-//     try {
-
-//       const [
-//         overviewResponse,
-//         playersResponse,
-//         programmeResponse,
-//         themesResponse,
-//         mapsResponse,
-//         phasesResponse,
-//         rulesResponse,
-//         rewardsResponse,
-//       ] = await Promise.all([
-
-//         adminOverview(),
-//         adminPlayers(),
-
-//         getProgramme(),
-
-//         getThemes(),
-//         getMaps(),
-
-//         getPhases(),
-//         getPointRules(),
-//         getRewards(),
-
-//       ]);
-
-
-//       setOverview(
-//         overviewResponse.data
-//       );
-
-//       setPlayers(
-//         playersResponse.data
-//       );
-
-//       setProgramme(
-//         programmeResponse.data
-//       );
-
-//       setThemes(
-//         themesResponse.data
-//       );
-
-//       setMaps(
-//         mapsResponse.data
-//       );
-
-//       setPhases(
-//         phasesResponse.data
-//       );
-
-//       setRules(
-//         rulesResponse.data
-//       );
-
-//       setRewards(
-//         rewardsResponse.data
-//       );
-
-//     } catch (error: any) {
-
-//       setMessage(
-//         error?.response?.data?.detail ||
-//         "Unable to load administration data."
-//       );
-
-//     }
-
-//   }
-
-
-//   useEffect(() => {
-
-//     load();
-
-//   }, []);
-
-
-//   async function saveProgramme() {
-
-//     if (!programme) {
-//       return;
-//     }
-
-//     await updateProgramme({
-
-//       name:
-//         programme.name,
-
-//       description:
-//         programme.description,
-
-//       start_date:
-//         programme.start_date,
-
-//       end_date:
-//         programme.end_date,
-
-//       target_xp:
-//         Number(
-//           programme.target_xp
-//         ),
-
-//     });
-
-//     setMessage(
-//       "Programme settings saved."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function addForestTheme() {
-
-//     await createTheme(
-//       defaultTheme
-//     );
-
-//     setMessage(
-//       "Theme created."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function useTheme(
-//     id: number
-//   ) {
-
-//     await activateTheme(
-//       id
-//     );
-
-//     setMessage(
-//       "Theme activated."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function addMap() {
-
-//     const name =
-//       window.prompt(
-//         "Map name",
-//         "Cumbernauld"
-//       );
-
-//     if (!name) {
-//       return;
-//     }
-
-//     const image =
-//       window.prompt(
-//         "Map image URL",
-//         ""
-//       );
-
-//     await createMap({
-
-//       name,
-
-//       description:
-//         "Programme map",
-
-//       background_image:
-//         image || null,
-
-//     });
-
-//     setMessage(
-//       "Map created."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function useMap(
-//     id: number
-//   ) {
-
-//     await activateMap(
-//       id
-//     );
-
-//     setMessage(
-//       "Map activated."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function addPhase() {
-
-//     const name =
-//       window.prompt(
-//         "Phase name",
-//         "Art"
-//       );
-
-//     if (!name) {
-//       return;
-//     }
-
-//     const description =
-//       window.prompt(
-//         "Phase description",
-//         ""
-//       );
-
-
-//     await createPhase({
-
-//       name,
-
-//       description,
-
-//       colour:
-//         "#18775B",
-
-//       icon:
-//         "star",
-
-//     });
-
-
-//     setMessage(
-//       "Phase created."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function editRule(
-//     rule: any
-//   ) {
-
-//     const individual =
-//       window.prompt(
-//         `${rule.name} – individual XP`,
-//         String(
-//           rule.individual_xp
-//         )
-//       );
-
-//     if (
-//       individual === null
-//     ) {
-//       return;
-//     }
-
-
-//     const group =
-//       window.prompt(
-//         `${rule.name} – group XP`,
-//         String(
-//           rule.group_xp
-//         )
-//       );
-
-//     if (
-//       group === null
-//     ) {
-//       return;
-//     }
-
-
-//     await updatePointRule(
-//       rule.id,
-//       {
-
-//         name:
-//           rule.name,
-
-//         code:
-//           rule.code,
-
-//         individual_xp:
-//           Number(
-//             individual
-//           ),
-
-//         group_xp:
-//           Number(
-//             group
-//           ),
-
-//         enabled:
-//           rule.enabled,
-
-//       }
-//     );
-
-
-//     setMessage(
-//       "XP rule updated."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function addReward() {
-
-//     const name =
-//       window.prompt(
-//         "Reward name",
-//         "Mystery Reward"
-//       );
-
-//     if (!name) {
-//       return;
-//     }
-
-
-//     const xp =
-//       window.prompt(
-//         "Lifetime XP threshold",
-//         "15000"
-//       );
-
-
-//     await createReward({
-
-//       name,
-
-//       description:
-//         "Programme reward",
-
-//       xp_threshold:
-//         Number(xp),
-
-//       reward_type:
-//         "individual",
-
-//       value:
-//         0,
-
-//       active:
-//         true,
-
-//     });
-
-
-//     setMessage(
-//       "Reward created."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   async function createAttendance() {
-
-//     const response =
-//       await startAttendance();
-
-//     setAttendance(
-//       response.data
-//     );
-
-//   }
-
-
-//   async function giveXP(
-//     player: any
-//   ) {
-
-//     const amount =
-//       window.prompt(
-//         `XP for ${player.gamertag}`,
-//         "500"
-//       );
-
-//     if (!amount) {
-//       return;
-//     }
-
-
-//     const reason =
-//       window.prompt(
-//         "Reason",
-//         "Positive contribution"
-//       );
-
-
-//     await awardXP({
-
-//       player_id:
-//         player.id,
-
-//       amount:
-//         Number(amount),
-
-//       reason:
-//         reason ||
-//         "Manual award",
-
-//     });
-
-
-//     setMessage(
-//       "XP awarded."
-//     );
-
-//     await load();
-
-//   }
-
-
-//   if (!overview) {
-
-//     return (
-
-//       <Layout title="Administration">
-
-//         <div className="container">
-//           Loading administration...
-//         </div>
-
-//       </Layout>
-
-//     );
-
-//   }
-
-
-//   return (
-
-//     <Layout title="Programme Administration">
-
-//       <div className="admin-header">
-
-//         <div>
-
-//           <h1>
-//             Programme Control Centre
-//           </h1>
-
-//           <p className="muted">
-//             Everything that changes between
-//             programmes can be configured here.
-//           </p>
-
-//         </div>
-
-//         {message && (
-
-//           <div className="success-message">
-//             {message}
-//           </div>
-
-//         )}
-
-//       </div>
-
-
-//       {/* ====================================================
-//           OVERVIEW
-//       ==================================================== */}
-
-//       <div className="grid admin-stats">
-
-//         <div className="card">
-
-//           <div className="stat-label">
-//             PLAYERS
-//           </div>
-
-//           <div className="xp">
-//             {overview.players}
-//           </div>
-
-//         </div>
-
-
-//         <div className="card">
-
-//           <div className="stat-label">
-//             GROUP XP
-//           </div>
-
-//           <div className="xp">
-//             {overview.group_xp.toLocaleString()}
-//           </div>
-
-//         </div>
-
-
-//         <div className="card">
-
-//           <div className="stat-label">
-//             TARGET
-//           </div>
-
-//           <div className="xp">
-//             {overview.target_xp.toLocaleString()}
-//           </div>
-
-//         </div>
-
-//       </div>
-
-
-//       {/* ====================================================
-//           PROGRAMME
-//       ==================================================== */}
-
-//       {programme && (
-
-//         <section className="card admin-section">
-
-//           <div className="section-title">
-
-//             <div>
-
-//               <h2>
-//                 Programme
-//               </h2>
-
-//               <p className="muted">
-//                 Name, dates and collective target.
-//               </p>
-
-//             </div>
-
-//             <button
-//               className="btn"
-//               onClick={
-//                 saveProgramme
-//               }
-//             >
-//               Save
-//             </button>
-
-//           </div>
-
-
-//           <label>
-//             Programme name
-
-//             <input
-//               value={
-//                 programme.name
-//               }
-//               onChange={
-//                 e =>
-//                   setProgramme({
-//                     ...programme,
-//                     name:
-//                       e.target.value,
-//                   })
-//               }
-//             />
-
-//           </label>
-
-
-//           <label>
-//             Description
-
-//             <textarea
-//               value={
-//                 programme.description ||
-//                 ""
-//               }
-//               onChange={
-//                 e =>
-//                   setProgramme({
-//                     ...programme,
-//                     description:
-//                       e.target.value,
-//                   })
-//               }
-//             />
-
-//           </label>
-
-
-//           <label>
-//             Group jackpot target XP
-
-//             <input
-//               type="number"
-//               value={
-//                 programme.target_xp
-//               }
-//               onChange={
-//                 e =>
-//                   setProgramme({
-//                     ...programme,
-//                     target_xp:
-//                       Number(
-//                         e.target.value
-//                       ),
-//                   })
-//               }
-//             />
-
-//           </label>
-
-//         </section>
-
-//       )}
-
-
-//       {/* ====================================================
-//           THEMES
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               App Theme
-//             </h2>
-
-//             <p className="muted">
-//               Change the colours of the entire
-//               platform without changing code.
-//             </p>
-
-//           </div>
-
-//           <button
-//             className="btn secondary"
-//             onClick={
-//               addForestTheme
-//             }
-//           >
-//             Add Theme
-//           </button>
-
-//         </div>
-
-
-//         <div className="theme-grid">
-
-//           {themes.map(theme => (
-
-//             <div
-//               key={theme.id}
-//               className="theme-card"
-//               style={{
-//                 background:
-//                   theme.background,
-//                 color:
-//                   theme.text,
-//               }}
-//             >
-
-//               <div
-//                 className="theme-preview"
-//                 style={{
-//                   background:
-//                     theme.primary,
-//                 }}
-//               >
-//                 {theme.name}
-//               </div>
-
-
-//               <div className="theme-swatches">
-
-//                 <span
-//                   style={{
-//                     background:
-//                       theme.primary,
-//                   }}
-//                 />
-
-//                 <span
-//                   style={{
-//                     background:
-//                       theme.secondary,
-//                   }}
-//                 />
-
-//                 <span
-//                   style={{
-//                     background:
-//                       theme.accent,
-//                   }}
-//                 />
-
-//               </div>
-
-
-//               <button
-//                 className="btn"
-//                 onClick={() =>
-//                   useTheme(
-//                     theme.id
-//                   )
-//                 }
-//               >
-//                 Use Theme
-//               </button>
-
-//             </div>
-
-//           ))}
-
-//         </div>
-
-//       </section>
-
-
-//       {/* ====================================================
-//           MAP
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               Maps
-//             </h2>
-
-//             <p className="muted">
-//               Replace Cumbernauld with another
-//               programme map whenever required.
-//             </p>
-
-//           </div>
-
-//           <button
-//             className="btn"
-//             onClick={
-//               addMap
-//             }
-//           >
-//             Add Map
-//           </button>
-
-//         </div>
-
-
-//         <div className="admin-list">
-
-//           {maps.map(map => (
-
-//             <div
-//               className="admin-row"
-//               key={map.id}
-//             >
-
-//               <div>
-
-//                 <strong>
-//                   {map.name}
-//                 </strong>
-
-//                 <div className="muted">
-//                   {map.description}
-//                 </div>
-
-//               </div>
-
-
-//               <button
-//                 className="btn secondary"
-//                 onClick={() =>
-//                   useMap(
-//                     map.id
-//                   )
-//                 }
-//               >
-//                 Use This Map
-//               </button>
-
-//             </div>
-
-//           ))}
-
-//         </div>
-
-//       </section>
-
-
-//       {/* ====================================================
-//           PHASES
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               Phases
-//             </h2>
-
-//             <p className="muted">
-//               Programme themes and activities.
-//             </p>
-
-//           </div>
-
-//           <button
-//             className="btn"
-//             onClick={
-//               addPhase
-//             }
-//           >
-//             Add Phase
-//           </button>
-
-//         </div>
-
-
-//         <div className="admin-list">
-
-//           {phases.map(
-//             phase => (
-
-//               <div
-//                 className="admin-row"
-//                 key={phase.id}
-//               >
-
-//                 <div>
-
-//                   <strong>
-//                     {phase.icon}{" "}
-//                     {phase.name}
-//                   </strong>
-
-//                   <div className="muted">
-//                     {
-//                       phase.description
-//                     }
-//                   </div>
-
-//                 </div>
-
-//                 <div
-//                   className="colour-dot"
-//                   style={{
-//                     background:
-//                       phase.colour,
-//                   }}
-//                 />
-
-//               </div>
-
-//             )
-//           )}
-
-//         </div>
-
-//       </section>
-
-
-//       {/* ====================================================
-//           XP RULES
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               XP Rules
-//             </h2>
-
-//             <p className="muted">
-//               Control how much XP different
-//               activities generate.
-//             </p>
-
-//           </div>
-
-//         </div>
-
-
-//         <div className="admin-list">
-
-//           {rules.map(
-//             rule => (
-
-//               <div
-//                 className="admin-row"
-//                 key={rule.id}
-//               >
-
-//                 <div>
-
-//                   <strong>
-//                     {rule.name}
-//                   </strong>
-
-//                   <div className="muted">
-//                     {rule.code}
-//                   </div>
-
-//                 </div>
-
-
-//                 <div className="rule-values">
-
-//                   <span>
-//                     Individual:
-//                     {" "}
-//                     {rule.individual_xp}
-//                   </span>
-
-//                   <span>
-//                     Group:
-//                     {" "}
-//                     {rule.group_xp}
-//                   </span>
-
-//                   <button
-//                     className="btn secondary"
-//                     onClick={() =>
-//                       editRule(
-//                         rule
-//                       )
-//                     }
-//                   >
-//                     Edit
-//                   </button>
-
-//                 </div>
-
-//               </div>
-
-//             )
-//           )}
-
-//         </div>
-
-//       </section>
-
-
-//       {/* ====================================================
-//           REWARDS
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               Rewards
-//             </h2>
-
-//             <p className="muted">
-//               Configure individual reward thresholds.
-//             </p>
-
-//           </div>
-
-//           <button
-//             className="btn"
-//             onClick={
-//               addReward
-//             }
-//           >
-//             Add Reward
-//           </button>
-
-//         </div>
-
-
-//         <div className="admin-list">
-
-//           {rewards.map(
-//             reward => (
-
-//               <div
-//                 className="admin-row"
-//                 key={reward.id}
-//               >
-
-//                 <div>
-
-//                   <strong>
-//                     {reward.name}
-//                   </strong>
-
-//                   <div className="muted">
-//                     {
-//                       reward.description
-//                     }
-//                   </div>
-
-//                 </div>
-
-//                 <strong>
-//                   {
-//                     reward.xp_threshold?.toLocaleString()
-//                   }{" "}
-//                   XP
-//                 </strong>
-
-//               </div>
-
-//             )
-//           )}
-
-//         </div>
-
-//       </section>
-
-
-//       {/* ====================================================
-//           ATTENDANCE
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               Session Check-in
-//             </h2>
-
-//             <p className="muted">
-//               Display a temporary code for players.
-//             </p>
-
-//           </div>
-
-//           <button
-//             className="btn"
-//             onClick={
-//               createAttendance
-//             }
-//           >
-//             Start Session
-//           </button>
-
-//         </div>
-
-
-//         {attendance && (
-
-//           <div className="attendance-code">
-
-//             {attendance.code}
-
-//             <small>
-//               Code expires in approximately
-//               10 minutes.
-//             </small>
-
-//           </div>
-
-//         )}
-
-//       </section>
-
-
-//       {/* ====================================================
-//           PLAYERS
-//       ==================================================== */}
-
-//       <section className="card admin-section">
-
-//         <div className="section-title">
-
-//           <div>
-
-//             <h2>
-//               Players
-//             </h2>
-
-//             <p className="muted">
-//               Staff-only management view.
-//             </p>
-
-//           </div>
-
-//         </div>
-
-
-//         <div className="admin-list">
-
-//           {players.map(
-//             player => (
-
-//               <div
-//                 className="admin-row"
-//                 key={player.id}
-//               >
-
-//                 <div
-//                   className="player-avatar"
-//                 >
-//                   {player.avatar}
-//                 </div>
-
-
-//                 <div
-//                   style={{
-//                     flex: 1,
-//                   }}
-//                 >
-
-//                   <strong>
-//                     {player.gamertag}
-//                   </strong>
-
-//                   <div className="muted">
-//                     {
-//                       player.xp.toLocaleString()
-//                     }{" "}
-//                     XP
-//                   </div>
-
-//                 </div>
-
-
-//                 <button
-//                   className="btn secondary"
-//                   onClick={() =>
-//                     giveXP(
-//                       player
-//                     )
-//                   }
-//                 >
-//                   Award XP
-//                 </button>
-
-//               </div>
-
-//             )
-//           )}
-
-//         </div>
-
-//       </section>
-
-//     </Layout>
-
-//   );
-// }
-import { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
 import {
   adminOverview,
-  adminPlayers,
-  startAttendance,
-  awardXP,
-  adminCommunityAwards,
-  reviewCommunityAward,
+  getApiErrorMessage,
+  type AdminOverview,
+  type Challenge,
+  type Player,
+  type Programme,
 } from "../../api/client";
 
-type Player = {
-  id: number;
-  gamertag: string;
-  avatar: string;
-  xp: number;
-};
+/* ============================================================
+   CONFIG
+============================================================ */
 
-type CommunityAward = {
-  id: number;
-  player_id?: number;
-  category: string;
-  description: string;
-  submitted_by_name: string;
-  submitted_by_contact: string;
-  status: string;
-  xp: number;
-  created_at: string;
-};
+const JACKPOT_TARGET = 1_500_000;
+const REFRESH_INTERVAL = 30_000;
 
-const avatars: Record<string, string> = {
-  "avatar-1": "🦊",
-  "avatar-2": "🐼",
-  "avatar-3": "🐸",
-  "avatar-4": "🐯",
-  "avatar-5": "🐺",
-  "avatar-6": "🤖",
-  "avatar-7": "👾",
-  "avatar-8": "🐙",
-  "avatar-9": "🦉",
-  "avatar-10": "🐻",
-};
+/* ============================================================
+   HELPERS
+============================================================ */
 
-export default function AdminDashboard() {
-  const [overview, setOverview] =
-    useState<any>();
-
-  const [players, setPlayers] =
-    useState<Player[]>([]);
-
-  const [awards, setAwards] =
-    useState<CommunityAward[]>([]);
-
-  const [attendance, setAttendance] =
-    useState<any>();
-
-  const [selectedPlayer, setSelectedPlayer] =
-    useState<Player | null>(null);
-
-  const [xpAmount, setXpAmount] =
-    useState("500");
-
-  const [xpReason, setXpReason] =
-    useState("Positive participation");
-
-  const [message, setMessage] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  async function load() {
-    try {
-      setLoading(true);
-
-      const [
-        overviewResponse,
-        playersResponse,
-        awardsResponse,
-      ] = await Promise.all([
-        adminOverview(),
-        adminPlayers(),
-        adminCommunityAwards().catch(
-          () => ({ data: [] })
-        ),
-      ]);
-
-      setOverview(
-        overviewResponse.data
-      );
-
-      setPlayers(
-        playersResponse.data
-      );
-
-      setAwards(
-        awardsResponse.data || []
-      );
-    } catch (error) {
-      console.error(error);
-
-      setMessage(
-        "Unable to load administration data."
-      );
-    } finally {
-      setLoading(false);
+function asNumber(
+  ...values: unknown[]
+): number {
+  for (const value of values) {
+    if (
+      typeof value === "number" &&
+      Number.isFinite(value)
+    ) {
+      return value;
     }
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function createAttendance() {
-    try {
-      const response =
-        await startAttendance();
-
-      setAttendance(response.data);
-      setMessage(
-        "New attendance session started."
-      );
-    } catch (error: any) {
-      setMessage(
-        error?.response?.data?.detail ||
-          "Unable to start attendance."
-      );
-    }
-  }
-
-  async function giveXP() {
-    if (!selectedPlayer) return;
-
-    const amount =
-      Number(xpAmount);
 
     if (
-      !Number.isFinite(amount) ||
-      amount === 0
+      typeof value === "string" &&
+      value.trim() !== ""
     ) {
-      setMessage(
-        "Enter a valid XP amount."
-      );
-      return;
-    }
+      const parsed = Number(value);
 
-    try {
-      await awardXP(
-        selectedPlayer.id,
-        amount,
-        xpReason
-      );
-
-      setMessage(
-        `${amount > 0 ? "+" : ""}${amount} XP recorded for ${selectedPlayer.gamertag}.`
-      );
-
-      setSelectedPlayer(null);
-
-      await load();
-    } catch (error: any) {
-      setMessage(
-        error?.response?.data?.detail ||
-          "Unable to award XP."
-      );
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
     }
   }
 
-  async function reviewAward(
-    award: CommunityAward,
-    status: "approved" | "rejected"
-  ) {
-    try {
-      await reviewCommunityAward(
-        award.id,
-        status
-      );
+  return 0;
+}
 
-      setMessage(
-        status === "approved"
-          ? "Community award approved."
-          : "Community award rejected."
-      );
+function formatNumber(
+  value: number,
+): string {
+  return new Intl.NumberFormat(
+    "en-GB",
+  ).format(Math.round(value));
+}
 
-      await load();
-    } catch (error: any) {
-      setMessage(
-        error?.response?.data?.detail ||
-          "Unable to review award."
-      );
-    }
+function formatCompact(
+  value: number,
+): string {
+  if (value >= 1_000_000) {
+    return `${(
+      value / 1_000_000
+    ).toFixed(1)}M`;
   }
 
-  if (loading) {
-    return (
-      <Layout title="Administration">
-        <div className="card">
-          <h2>Loading administration...</h2>
-        </div>
-      </Layout>
-    );
+  if (value >= 1_000) {
+    return `${(
+      value / 1_000
+    ).toFixed(1)}K`;
   }
+
+  return formatNumber(value);
+}
+
+function progressPercent(
+  current: number,
+  target: number,
+): number {
+  if (!target) {
+    return 0;
+  }
+
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      (current / target) * 100,
+    ),
+  );
+}
+
+function playerLabel(
+  player: Player,
+): string {
+  return (
+    player.gamertag ||
+    player.username ||
+    `Player ${player.id}`
+  );
+}
+
+function challengeLabel(
+  challenge: Challenge,
+): string {
+  return (
+    challenge.title ||
+    challenge.name ||
+    "Untitled challenge"
+  );
+}
+
+function timeAgo(
+  value?: string,
+): string {
+  if (!value) {
+    return "No recent activity";
+  }
+
+  const timestamp =
+    new Date(value).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return "Unknown";
+  }
+
+  const seconds = Math.max(
+    0,
+    Math.floor(
+      (Date.now() - timestamp) /
+        1000,
+    ),
+  );
+
+  if (seconds < 60) {
+    return "Just now";
+  }
+
+  const minutes = Math.floor(
+    seconds / 60,
+  );
+
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+
+  const hours = Math.floor(
+    minutes / 60,
+  );
+
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+
+  const days = Math.floor(
+    hours / 24,
+  );
+
+  return `${days}d ago`;
+}
+
+/* ============================================================
+   ICON
+============================================================ */
+
+function Icon({
+  name,
+  size = 20,
+}: {
+  name:
+    | "users"
+    | "xp"
+    | "challenge"
+    | "reward"
+    | "arrow"
+    | "refresh"
+    | "plus"
+    | "activity"
+    | "settings"
+    | "phase"
+    | "alert"
+    | "check";
+  size?: number;
+}) {
+  const props = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap:
+      "round" as const,
+    strokeLinejoin:
+      "round" as const,
+  };
+
+  switch (name) {
+    case "users":
+      return (
+        <svg {...props}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      );
+
+    case "xp":
+      return (
+        <svg {...props}>
+          <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
+        </svg>
+      );
+
+    case "challenge":
+      return (
+        <svg {...props}>
+          <path d="M6 9h12a5 5 0 0 1 4.7 6.7l-1.1 3A3 3 0 0 1 16 20l-4-4-4 4a3 3 0 0 1-5.6-1.3l-1.1-3A5 5 0 0 1 6 9Z" />
+          <path d="M7 13v4" />
+          <path d="M5 15h4" />
+          <circle cx="16.5" cy="14" r="1" />
+          <circle cx="19" cy="16.5" r="1" />
+        </svg>
+      );
+
+    case "reward":
+      return (
+        <svg {...props}>
+          <path d="M20 12v9H4v-9" />
+          <path d="M2 7h20v5H2z" />
+          <path d="M12 7v14" />
+          <path d="M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7Z" />
+          <path d="M12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7Z" />
+        </svg>
+      );
+
+    case "arrow":
+      return (
+        <svg {...props}>
+          <path d="M5 12h14" />
+          <path d="m13 6 6 6-6 6" />
+        </svg>
+      );
+
+    case "refresh":
+      return (
+        <svg {...props}>
+          <path d="M20 11a8 8 0 0 0-15.5-2M4 5v4h4" />
+          <path d="M4 13a8 8 0 0 0 15.5-2M20 19v-4h-4" />
+        </svg>
+      );
+
+    case "plus":
+      return (
+        <svg {...props}>
+          <path d="M12 5v14" />
+          <path d="M5 12h14" />
+        </svg>
+      );
+
+    case "activity":
+      return (
+        <svg {...props}>
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      );
+
+    case "settings":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-2.5v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.6-1H6v-2.5h.4A1.7 1.7 0 0 0 8 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V5h2.5v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.4V14h-.4a1.7 1.7 0 0 0-1.6 1Z" />
+        </svg>
+      );
+
+    case "phase":
+      return (
+        <svg {...props}>
+          <path d="M5 21V4" />
+          <path d="M5 4c4-3 8 3 14 0v10c-6 3-10-3-14 0" />
+        </svg>
+      );
+
+    case "alert":
+      return (
+        <svg {...props}>
+          <path d="M10.3 3.7 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+      );
+
+    case "check":
+      return (
+        <svg {...props}>
+          <path d="m5 12 4 4L19 6" />
+        </svg>
+      );
+
+    default:
+      return null;
+  }
+}
+
+/* ============================================================
+   STAT CARD
+============================================================ */
+
+function StatCard({
+  icon,
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  icon:
+    | "users"
+    | "xp"
+    | "challenge"
+    | "reward";
+  label: string;
+  value: string;
+  detail: string;
+  tone: string;
+}) {
+  return (
+    <div className="admin-stat-card">
+      <div
+        className={`admin-stat-icon admin-stat-icon--${tone}`}
+      >
+        <Icon
+          name={icon}
+          size={21}
+        />
+      </div>
+
+      <div className="admin-stat-card__value">
+        {value}
+      </div>
+
+      <div className="admin-stat-card__label">
+        {label}
+      </div>
+
+      <div className="admin-stat-card__detail">
+        {detail}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   JACKPOT
+============================================================ */
+
+function Jackpot({
+  xp,
+  target,
+}: {
+  xp: number;
+  target: number;
+}) {
+  const percentage =
+    progressPercent(xp, target);
+
+  const remaining = Math.max(
+    0,
+    target - xp,
+  );
+
+  const milestones = [
+    {
+      label: "First prize",
+      value: 500_000,
+    },
+    {
+      label: "Mid prize",
+      value: 1_000_000,
+    },
+    {
+      label: "Jackpot",
+      value: 1_500_000,
+    },
+  ];
 
   return (
-    <Layout title="Administration">
-      <section className="hero">
-        <div className="eyebrow hero-eyebrow">
-          ADMIN CONTROL CENTRE
+    <section className="admin-card admin-jackpot">
+      <div className="admin-card-header">
+        <div>
+          <span className="admin-eyebrow">
+            Collective progression
+          </span>
+
+          <h2>
+            Group jackpot
+          </h2>
+
+          <p>
+            Individual achievements build
+            the shared cohort total.
+          </p>
         </div>
 
-        <h1>
-          Programme Control Centre
-        </h1>
-
-        <p>
-          Operate the programme, manage participants
-          and approve positive activity.
-        </p>
-      </section>
-
-      {message && (
-        <div className="notice">
-          {message}
-        </div>
-      )}
-
-      {/* OVERVIEW */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span>Players</span>
-          <strong>
-            {overview?.players || 0}
-          </strong>
-        </div>
-
-        <div className="stat-card">
-          <span>Group XP</span>
-          <strong>
-            {(
-              overview?.group_xp || 0
-            ).toLocaleString()}
-          </strong>
-        </div>
-
-        <div className="stat-card">
-          <span>Programme</span>
-          <strong className="stat-text">
-            {overview?.programme ||
-              "Not configured"}
-          </strong>
-        </div>
-
-        <div className="stat-card">
-          <span>Pending awards</span>
-          <strong>
-            {
-              awards.filter(
-                award =>
-                  award.status ===
-                  "pending"
-              ).length
-            }
-          </strong>
+        <div className="jackpot-percentage">
+          {percentage.toFixed(1)}%
         </div>
       </div>
 
-      <div className="admin-grid">
-        {/* ATTENDANCE */}
-        <section className="card">
-          <div className="card-title-row">
-            <div>
-              <div className="eyebrow">
-                SESSION
-              </div>
-              <h2>Attendance</h2>
-            </div>
+      <div className="jackpot-total">
+        <strong>
+          {formatNumber(xp)}
+        </strong>
 
-            <span className="admin-icon">
-              👥
-            </span>
-          </div>
+        <span>
+          / {formatNumber(target)} XP
+        </span>
+      </div>
 
-          <p className="muted">
-            Generate a short-lived code for the
-            current youth work session.
-          </p>
+      <div className="jackpot-track">
+        <div
+          className="jackpot-track__fill"
+          style={{
+            width: `${percentage}%`,
+          }}
+        />
+      </div>
 
-          <button
-            className="btn"
-            onClick={createAttendance}
-          >
-            Start Session
-          </button>
+      <div className="jackpot-milestones">
+        {milestones.map(
+          milestone => {
+            const reached =
+              xp >= milestone.value;
 
-          {attendance && (
-            <div className="attendance-display">
-              <span>
-                Ask players to enter:
-              </span>
-
-              <strong>
-                {attendance.code}
-              </strong>
-
-              <small>
-                Code expires in approximately
-                10 minutes.
-              </small>
-            </div>
-          )}
-        </section>
-
-        {/* XP */}
-        <section className="card">
-          <div className="card-title-row">
-            <div>
-              <div className="eyebrow">
-                GAME ECONOMY
-              </div>
-              <h2>Award XP</h2>
-            </div>
-
-            <span className="admin-icon">
-              ⭐
-            </span>
-          </div>
-
-          {!selectedPlayer ? (
-            <p className="muted">
-              Select a player below to award or
-              deduct XP.
-            </p>
-          ) : (
-            <>
-              <div className="selected-player">
-                <div className="large-avatar small">
-                  {avatars[
-                    selectedPlayer.avatar
-                  ] || "⭐"}
+            return (
+              <div
+                key={milestone.value}
+                className={`jackpot-milestone ${
+                  reached
+                    ? "jackpot-milestone--reached"
+                    : ""
+                }`}
+              >
+                <div className="jackpot-milestone__dot">
+                  {reached && (
+                    <Icon
+                      name="check"
+                      size={12}
+                    />
+                  )}
                 </div>
 
                 <div>
                   <strong>
-                    {selectedPlayer.gamertag}
+                    {formatCompact(
+                      milestone.value,
+                    )}
                   </strong>
 
-                  <small>
-                    Current XP:{" "}
-                    {selectedPlayer.xp.toLocaleString()}
-                  </small>
+                  <span>
+                    {milestone.label}
+                  </span>
                 </div>
               </div>
-
-              <label>
-                XP amount
-              </label>
-
-              <input
-                value={xpAmount}
-                onChange={event =>
-                  setXpAmount(
-                    event.target.value
-                  )
-                }
-                type="number"
-              />
-
-              <label>
-                Reason
-              </label>
-
-              <input
-                value={xpReason}
-                onChange={event =>
-                  setXpReason(
-                    event.target.value
-                  )
-                }
-              />
-
-              <div className="button-row">
-                <button
-                  className="btn"
-                  onClick={giveXP}
-                >
-                  Record XP
-                </button>
-
-                <button
-                  className="btn secondary"
-                  onClick={() =>
-                    setSelectedPlayer(
-                      null
-                    )
-                  }
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          )}
-        </section>
+            );
+          },
+        )}
       </div>
 
-      {/* PLAYER LIST */}
-      <section className="card section-gap">
-        <div className="card-title-row">
-          <div>
-            <div className="eyebrow">
-              PARTICIPANTS
-            </div>
+      <div className="jackpot-footer">
+        <span>
+          {formatCompact(
+            remaining,
+          )}{" "}
+          XP remaining
+        </span>
 
-            <h2>Players</h2>
-          </div>
-        </div>
-
-        <div className="player-admin-list">
-          {players.map(player => (
-            <button
-              className="player-admin-row"
-              key={player.id}
-              onClick={() =>
-                setSelectedPlayer(
-                  player
-                )
-              }
-            >
-              <div className="admin-player-avatar">
-                {avatars[
-                  player.avatar
-                ] || "⭐"}
-              </div>
-
-              <div className="admin-player-info">
-                <strong>
-                  {player.gamertag}
-                </strong>
-
-                <small>
-                  Player #{player.id}
-                </small>
-              </div>
-
-              <strong>
-                {player.xp.toLocaleString()} XP
-              </strong>
-
-              <span className="row-arrow">
-                →
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* COMMUNITY AWARDS */}
-      <section className="card section-gap">
-        <div className="card-title-row">
-          <div>
-            <div className="eyebrow">
-              COMMUNITY
-            </div>
-
-            <h2>
-              Community Recognition
-            </h2>
-          </div>
-
-          <span className="admin-icon">
-            ⭐
-          </span>
-        </div>
-
-        {awards.length === 0 ? (
-          <div className="empty-state">
-            <span>🤝</span>
-
-            <p>
-              No community awards have been
-              submitted yet.
-            </p>
-          </div>
-        ) : (
-          <div className="award-list">
-            {awards.map(award => (
-              <div
-                className="award-admin-row"
-                key={award.id}
-              >
-                <div className="award-status-icon">
-                  {award.status ===
-                  "approved"
-                    ? "✓"
-                    : award.status ===
-                      "rejected"
-                    ? "×"
-                    : "?"}
-                </div>
-
-                <div className="award-details">
-                  <strong>
-                    {award.category}
-                  </strong>
-
-                  <p>
-                    {award.description}
-                  </p>
-
-                  <small>
-                    Submitted by:{" "}
-                    {
-                      award.submitted_by_name
-                    }
-                  </small>
-                </div>
-
-                <div className="award-xp">
-                  +
-                  {award.xp.toLocaleString()}
-                  <small>XP</small>
-                </div>
-
-                {award.status ===
-                  "pending" && (
-                  <div className="button-column">
-                    <button
-                      className="btn"
-                      onClick={() =>
-                        reviewAward(
-                          award,
-                          "approved"
-                        )
-                      }
-                    >
-                      Approve
-                    </button>
-
-                    <button
-                      className="btn danger"
-                      onClick={() =>
-                        reviewAward(
-                          award,
-                          "rejected"
-                        )
-                      }
-                    >
-                      Reject
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* CONFIGURATION */}
-      <section className="card section-gap">
-        <div className="card-title-row">
-          <div>
-            <div className="eyebrow">
-              PLATFORM
-            </div>
-
-            <h2>
-              Programme Configuration
-            </h2>
-          </div>
-
-          <span className="admin-icon">
-            ⚙️
-          </span>
-        </div>
-
-        <div className="configuration-grid">
-          <ConfigTile
-            icon="🎨"
-            title="Theme"
-            description="Colours, branding and visual identity."
+        <Link
+          to="/admin"
+          className="admin-text-button"
+        >
+          View economy
+          <Icon
+            name="arrow"
+            size={14}
           />
-
-          <ConfigTile
-            icon="🗺️"
-            title="Map"
-            description="Replace the programme map and locations."
-          />
-
-          <ConfigTile
-            icon="⭐"
-            title="XP Rules"
-            description="Configure points awarded for activities."
-          />
-
-          <ConfigTile
-            icon="🏆"
-            title="Rewards"
-            description="Configure individual and group rewards."
-          />
-
-          <ConfigTile
-            icon="🌳"
-            title="Skill Trees"
-            description="Configure progression goals and milestones."
-          />
-
-          <ConfigTile
-            icon="🎯"
-            title="Challenges"
-            description="Create and schedule flash challenges."
-          />
-
-          <ConfigTile
-            icon="📚"
-            title="Resources"
-            description="Manage guides, videos and partner services."
-          />
-
-          <ConfigTile
-            icon="🎭"
-            title="Avatars"
-            description="Manage the fixed anonymous avatar library."
-          />
-        </div>
-      </section>
-    </Layout>
+        </Link>
+      </div>
+    </section>
   );
 }
 
-function ConfigTile({
-  icon,
-  title,
-  description,
-}: {
-  icon: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="configuration-tile">
-      <span>
-        {icon}
-      </span>
+/* ============================================================
+   CURRENT PHASE
+============================================================ */
 
-      <div>
-        <strong>
-          {title}
-        </strong>
+function CurrentPhase({
+  programme,
+}: {
+  programme?: Programme;
+}) {
+  const phase =
+    programme?.current_phase ||
+    "No active phase";
+
+  const status =
+    programme?.status ||
+    "Configured";
+
+  return (
+    <section className="admin-card">
+      <div className="admin-card-header">
+        <div>
+          <span className="admin-eyebrow">
+            Programme
+          </span>
+
+          <h2>
+            Current phase
+          </h2>
+        </div>
+
+        <Icon
+          name="phase"
+          size={22}
+        />
+      </div>
+
+      <div className="phase-visual">
+        <div className="phase-orbit phase-orbit--one" />
+        <div className="phase-orbit phase-orbit--two" />
+
+        <div className="phase-visual__icon">
+          <Icon
+            name="phase"
+            size={27}
+          />
+        </div>
+      </div>
+
+      <div className="phase-content">
+        <span className="status-badge">
+          <span />
+          {status}
+        </span>
+
+        <h3>{phase}</h3>
 
         <p>
-          {description}
+          The active phase controls the
+          theme, activities, map area,
+          resources and progression
+          content available to players.
         </p>
       </div>
-    </div>
+
+      <Link
+        to="/admin"
+        className="admin-card-link"
+      >
+        Manage phase
+        <Icon
+          name="arrow"
+          size={15}
+        />
+      </Link>
+    </section>
+  );
+}
+
+/* ============================================================
+   CHALLENGES
+============================================================ */
+
+function Challenges({
+  challenges,
+}: {
+  challenges: Challenge[];
+}) {
+  const active = challenges
+    .filter(challenge => {
+      const status =
+        challenge.status?.toLowerCase();
+
+      return (
+        !status ||
+        status === "active" ||
+        status === "scheduled"
+      );
+    })
+    .slice(0, 5);
+
+  return (
+    <section className="admin-card">
+      <div className="admin-card-header">
+        <div>
+          <span className="admin-eyebrow">
+            Engagement
+          </span>
+
+          <h2>
+            Live challenges
+          </h2>
+        </div>
+
+        <Link
+          to="/admin"
+          className="admin-text-button"
+        >
+          Manage
+          <Icon
+            name="arrow"
+            size={14}
+          />
+        </Link>
+      </div>
+
+      {active.length === 0 ? (
+        <div className="admin-empty">
+          <div className="admin-empty__icon">
+            <Icon
+              name="challenge"
+              size={23}
+            />
+          </div>
+
+          <strong>
+            No active challenges
+          </strong>
+
+          <p>
+            Create a time-bound activity
+            to give players another route
+            to earn XP.
+          </p>
+
+          <Link
+            to="/admin"
+            className="admin-button admin-button--primary"
+          >
+            <Icon
+              name="plus"
+              size={16}
+            />
+            Create challenge
+          </Link>
+        </div>
+      ) : (
+        <div className="challenge-list">
+          {active.map(
+            challenge => {
+              const reward =
+                asNumber(
+                  challenge.xp_reward,
+                  challenge.points,
+                );
+
+              return (
+                <div
+                  key={challenge.id}
+                  className="challenge-item"
+                >
+                  <div className="challenge-icon">
+                    <Icon
+                      name="challenge"
+                      size={17}
+                    />
+                  </div>
+
+                  <div className="challenge-copy">
+                    <strong>
+                      {challengeLabel(
+                        challenge,
+                      )}
+                    </strong>
+
+                    <span>
+                      {challenge.starts_at
+                        ? `Starts ${new Date(
+                            challenge.starts_at,
+                          ).toLocaleString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute:
+                                "2-digit",
+                            },
+                          )}`
+                        : "No start time"}
+                    </span>
+                  </div>
+
+                  <div className="challenge-reward">
+                    +{formatCompact(reward)}
+                    <small>
+                      XP
+                    </small>
+                  </div>
+                </div>
+              );
+            },
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ============================================================
+   PLAYER ATTENTION
+============================================================ */
+
+function PlayerAttention({
+  players,
+}: {
+  players: Player[];
+}) {
+  const needsAttention =
+    useMemo(() => {
+      return players
+        .filter(player => {
+          if (
+            player.is_active === false
+          ) {
+            return false;
+          }
+
+          if (
+            typeof player.engagement_score ===
+              "number"
+          ) {
+            return (
+              player.engagement_score <
+              50
+            );
+          }
+
+          const last =
+            player.last_activity ||
+            player.last_seen;
+
+          if (!last) {
+            return false;
+          }
+
+          const age =
+            Date.now() -
+            new Date(last).getTime();
+
+          return (
+            age >
+            7 * 24 * 60 * 60 * 1000
+          );
+        })
+        .slice(0, 5);
+    }, [players]);
+
+  return (
+    <section className="admin-card">
+      <div className="admin-card-header">
+        <div>
+          <span className="admin-eyebrow">
+            Youth work support
+          </span>
+
+          <h2>
+            Engagement watch
+          </h2>
+        </div>
+
+        <Link
+          to="/admin"
+          className="admin-text-button"
+        >
+          All players
+          <Icon
+            name="arrow"
+            size={14}
+          />
+        </Link>
+      </div>
+
+      {needsAttention.length === 0 ? (
+        <div className="attention-positive">
+          <div>
+            <Icon
+              name="check"
+              size={21}
+            />
+          </div>
+
+          <section>
+            <strong>
+              No immediate concerns
+            </strong>
+
+            <p>
+              There are currently no
+              players flagged by the
+              available engagement data.
+            </p>
+          </section>
+        </div>
+      ) : (
+        <div className="attention-list">
+          {needsAttention.map(
+            player => (
+              <div
+                key={player.id}
+                className="attention-item"
+              >
+                <div className="attention-avatar">
+                  ★
+                </div>
+
+                <div className="attention-copy">
+                  <strong>
+                    {playerLabel(
+                      player,
+                    )}
+                  </strong>
+
+                  <span>
+                    {timeAgo(
+                      player.last_activity ||
+                        player.last_seen,
+                    )}
+                  </span>
+                </div>
+
+                <div className="attention-alert">
+                  <Icon
+                    name="alert"
+                    size={15}
+                  />
+                </div>
+              </div>
+            ),
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ============================================================
+   QUICK ACTIONS
+============================================================ */
+
+function QuickActions() {
+  const actions = [
+    {
+      label: "Create challenge",
+      description:
+        "Launch a timed engagement event",
+      icon: "challenge" as const,
+    },
+    {
+      label: "Manage players",
+      description:
+        "Review anonymous player profiles",
+      icon: "users" as const,
+    },
+    {
+      label: "Configure XP",
+      description:
+        "Control the point economy",
+      icon: "xp" as const,
+    },
+    {
+      label: "Manage rewards",
+      description:
+        "Configure vouchers and prizes",
+      icon: "reward" as const,
+    },
+  ];
+
+  return (
+    <section className="admin-quick-actions">
+      <div>
+        <span className="admin-eyebrow">
+          Staff tools
+        </span>
+
+        <h2>
+          Quick actions
+        </h2>
+      </div>
+
+      <div className="quick-action-grid">
+        {actions.map(action => (
+          <Link
+            key={action.label}
+            to="/admin"
+            className="quick-action"
+          >
+            <div className="quick-action__icon">
+              <Icon
+                name={action.icon}
+                size={20}
+              />
+            </div>
+
+            <div>
+              <strong>
+                {action.label}
+              </strong>
+
+              <span>
+                {action.description}
+              </span>
+            </div>
+
+            <Icon
+              name="arrow"
+              size={15}
+            />
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   LOADING
+============================================================ */
+
+function LoadingState() {
+  return (
+    <main className="admin-page">
+      <div className="admin-loading">
+        <div className="admin-loading__spinner" />
+
+        <strong>
+          Loading programme data
+        </strong>
+
+        <span>
+          Connecting to the platform…
+        </span>
+      </div>
+    </main>
+  );
+}
+
+/* ============================================================
+   ERROR
+============================================================ */
+
+function ErrorState({
+  message,
+  retry,
+}: {
+  message: string;
+  retry: () => void;
+}) {
+  return (
+    <main className="admin-page">
+      <div className="admin-error">
+        <div className="admin-error__icon">
+          <Icon
+            name="alert"
+            size={25}
+          />
+        </div>
+
+        <div>
+          <h2>
+            Dashboard unavailable
+          </h2>
+
+          <p>{message}</p>
+
+          <button
+            type="button"
+            onClick={retry}
+            className="admin-button admin-button--primary"
+          >
+            <Icon
+              name="refresh"
+              size={16}
+            />
+            Try again
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+/* ============================================================
+   MAIN
+============================================================ */
+
+export default function AdminDashboard() {
+  const [data, setData] =
+    useState<AdminOverview | null>(
+      null,
+    );
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const load = useCallback(
+    async (
+      background = false,
+    ) => {
+      if (background) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      try {
+        setError(null);
+
+        const response =
+          await adminOverview();
+
+        setData(response.data);
+      } catch (requestError) {
+        setError(
+          getApiErrorMessage(
+            requestError,
+            "Unable to load the staff dashboard.",
+          ),
+        );
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    void load();
+
+    const interval =
+      window.setInterval(
+        () => {
+          void load(true);
+        },
+        REFRESH_INTERVAL,
+      );
+
+    return () =>
+      window.clearInterval(
+        interval,
+      );
+  }, [load]);
+
+  if (loading) {
+    return <LoadingState />;
+  }
+
+  if (error && !data) {
+    return (
+      <ErrorState
+        message={error}
+        retry={() => void load()}
+      />
+    );
+  }
+
+  const programme =
+    data?.programme ||
+    data?.programs?.[0];
+
+  const players =
+    data?.players || [];
+
+  const challenges =
+    data?.challenges || [];
+
+  const collectiveXp =
+    asNumber(
+      data?.stats?.collective_xp,
+      data?.stats?.total_xp,
+      programme?.collective_xp,
+      programme?.total_xp,
+      programme?.group_xp,
+    );
+
+  const target =
+    asNumber(
+      programme?.target_xp,
+      programme?.jackpot_target,
+      JACKPOT_TARGET,
+    );
+
+  const activePlayers =
+    asNumber(
+      data?.stats?.active_players,
+      players.filter(
+        player =>
+          player.is_active !== false,
+      ).length,
+    );
+
+  const totalPlayers =
+    asNumber(
+      data?.stats?.total_players,
+      players.length,
+    );
+
+  const weeklyXp =
+    asNumber(
+      data?.stats?.weekly_xp,
+    );
+
+  const pendingAwards =
+    asNumber(
+      data?.stats?.pending_awards,
+    );
+
+  const activeChallenges =
+    asNumber(
+      data?.stats?.active_challenges,
+      challenges.filter(
+        challenge =>
+          challenge.status?.toLowerCase() ===
+          "active",
+      ).length,
+    );
+
+  const programmeName =
+    programme?.name ||
+    programme?.title ||
+    "Digital Youth Platform";
+
+  return (
+    <main className="admin-page">
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
+
+      <header className="admin-header">
+        <div>
+          <span className="admin-eyebrow">
+            {programmeName}
+          </span>
+
+          <h1>
+            Programme command centre
+          </h1>
+
+          <p>
+            A live overview of collective
+            progress, engagement and
+            programme activity.
+          </p>
+        </div>
+
+        <div className="admin-header-actions">
+          <div className="admin-live-status">
+            <span
+              className={
+                refreshing
+                  ? "admin-live-status__dot admin-live-status__dot--refreshing"
+                  : "admin-live-status__dot"
+              }
+            />
+
+            {refreshing
+              ? "Updating"
+              : "Live"}
+          </div>
+
+          <button
+            type="button"
+            className="admin-button admin-button--secondary"
+            onClick={() =>
+              void load(true)
+            }
+            disabled={refreshing}
+          >
+            <Icon
+              name="refresh"
+              size={16}
+            />
+
+            Refresh
+          </button>
+        </div>
+      </header>
+
+      {/* ======================================================
+          NON-BLOCKING ERROR
+      ====================================================== */}
+
+      {error && (
+        <div
+          className="admin-warning"
+          role="status"
+        >
+          <Icon
+            name="alert"
+            size={18}
+          />
+
+          <span>
+            {error}
+          </span>
+
+          <button
+            type="button"
+            onClick={() =>
+              void load(true)
+            }
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ======================================================
+          STATS
+      ====================================================== */}
+
+      <section className="admin-stat-grid">
+        <StatCard
+          icon="xp"
+          label="Collective XP"
+          value={`${formatCompact(
+            collectiveXp,
+          )} XP`}
+          detail={`${progressPercent(
+            collectiveXp,
+            target,
+          ).toFixed(
+            1,
+          )}% of jackpot target`}
+          tone="purple"
+        />
+
+        <StatCard
+          icon="users"
+          label="Active players"
+          value={formatNumber(
+            activePlayers,
+          )}
+          detail={`${formatNumber(
+            totalPlayers,
+          )} enrolled`}
+          tone="blue"
+        />
+
+        <StatCard
+          icon="xp"
+          label="XP this week"
+          value={formatCompact(
+            weeklyXp,
+          )}
+          detail="Across the programme"
+          tone="green"
+        />
+
+        <StatCard
+          icon="challenge"
+          label="Active challenges"
+          value={formatNumber(
+            activeChallenges,
+          )}
+          detail={
+            pendingAwards
+              ? `${formatNumber(
+                  pendingAwards,
+                )} awards awaiting review`
+              : "No pending awards"
+          }
+          tone="amber"
+        />
+      </section>
+
+      {/* ======================================================
+          TOP ROW
+      ====================================================== */}
+
+      <section className="admin-dashboard-grid admin-dashboard-grid--top">
+        <Jackpot
+          xp={collectiveXp}
+          target={target}
+        />
+
+        <CurrentPhase
+          programme={programme}
+        />
+      </section>
+
+      {/* ======================================================
+          SECOND ROW
+      ====================================================== */}
+
+      <section className="admin-dashboard-grid">
+        <Challenges
+          challenges={challenges}
+        />
+
+        <PlayerAttention
+          players={players}
+        />
+      </section>
+
+      {/* ======================================================
+          QUICK ACTIONS
+      ====================================================== */}
+
+      <QuickActions />
+    </main>
   );
 }
