@@ -13,6 +13,15 @@ from .routers import (
     player,
     public,
 )
+from .routers import (
+    admin,
+    attendance,
+    auth,
+    leaderboard,
+    player,
+    public,
+    gamification,
+)
 
 
 app = FastAPI(
@@ -38,6 +47,13 @@ app.include_router(leaderboard.router)
 app.include_router(attendance.router)
 app.include_router(admin.router)
 app.include_router(public.router)
+app.include_router(auth.router)
+app.include_router(player.router)
+app.include_router(leaderboard.router)
+app.include_router(attendance.router)
+app.include_router(admin.router)
+app.include_router(public.router)
+app.include_router(gamification.router)
 
 
 @app.get("/api/health")

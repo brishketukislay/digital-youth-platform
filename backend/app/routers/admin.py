@@ -36,6 +36,13 @@ from ..services.xp import (
     player_xp,
     group_xp,
 )
+from pydantic import BaseModel, Field
+
+from ..services.gamification import (
+    award_positive_xp,
+    award_individual_penalty,
+    get_programme_xp,
+)
 
 
 router = APIRouter(
@@ -143,7 +150,91 @@ class ProgrammeRequest(BaseModel):
 
     target_xp: int = 1500000
 
+class StaffAwardXPRequest(BaseModel):
+    player_id: int
+    amount: int = Field(
+        ...,
+        ge=-50_000,
+        le=50_000,
+    )
+    reason: str = Field(
+        ...,
+        min_length=3,
+        max_length=500,
+    )
+@router.post("/xp/award")
+def staff_award_xp(
+    data: StaffAwardXPRequest,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
 
+    player = db.get(
+        Player,
+        data.player_id,
+    )
+
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found.",
+        )
+
+    try:
+        if data.amount > 0:
+            result = award_positive_xp(
+                db,
+                programme_id=programme.id,
+                player_id=player.id,
+                amount=data.amount,
+                group_amount=data.amount,
+                source_type="manual",
+                reason=data.reason,
+                created_by=user.id,
+            )
+        else:
+            result = award_individual_penalty(
+                db,
+                programme_id=programme.id,
+                player_id=player.id,
+                amount=abs(data.amount),
+                reason=data.reason,
+                created_by=user.id,
+            )
+
+        audit(
+            db,
+            user.id,
+            "xp.adjusted",
+            (
+                f"player={player.gamertag};"
+                f"amount={data.amount};"
+                f"reason={data.reason}"
+            ),
+        )
+
+        db.commit()
+
+        return {
+            "success": True,
+            "player_xp": result.player_xp,
+            "programme_xp": result.programme_xp,
+            "transaction_id": result.transaction_id,
+        }
+
+    except ValueError as exc:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
 @router.get("/programme")
 def programme_config(
     user=Depends(
