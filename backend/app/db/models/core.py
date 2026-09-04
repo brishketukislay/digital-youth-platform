@@ -242,14 +242,18 @@ class Programme(Base, TimestampMixin):
     )
 
     maps: Mapped[list["GameMap"]] = relationship(
-        "GameMap",
-        back_populates="programme",
-    )
+    "GameMap",
+    back_populates="programme",
+    foreign_keys="GameMap.programme_id",
+)
+
 
     phases: Mapped[list["Phase"]] = relationship(
-        "Phase",
-        back_populates="programme",
-    )
+    "Phase",
+    back_populates="programme",
+    foreign_keys="Phase.programme_id",
+)
+
 
     groups: Mapped[list["YouthGroup"]] = relationship(
         "YouthGroup",
@@ -399,9 +403,11 @@ class GameMap(Base, TimestampMixin):
     )
 
     programme: Mapped[Optional["Programme"]] = relationship(
-        "Programme",
-        back_populates="maps",
-    )
+    "Programme",
+    back_populates="maps",
+    foreign_keys=[programme_id],
+)
+
 
     locations: Mapped[list["MapLocation"]] = relationship(
         "MapLocation",
@@ -552,9 +558,11 @@ class Phase(Base, TimestampMixin):
     )
 
     programme: Mapped["Programme"] = relationship(
-        "Programme",
-        back_populates="phases",
-    )
+    "Programme",
+    back_populates="phases",
+    foreign_keys=[programme_id],
+)
+
 
     locations: Mapped[list["PhaseLocation"]] = relationship(
         "PhaseLocation",

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..db import get_db
+from ..db.database import get_db
 from ..schemas.attendance import (
     AttendanceCheckInRequest,
     AttendanceResponse,

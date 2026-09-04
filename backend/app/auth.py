@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from .db.database import get_db
-from .db.models.models import User
+from .db.models import User
 
 SECRET = "CHANGE_THIS_SECRET_BEFORE_PRODUCTION"
 serializer = URLSafeTimedSerializer(SECRET)

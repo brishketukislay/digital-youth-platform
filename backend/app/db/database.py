@@ -2,8 +2,7 @@ from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-
-from .models import Base
+from .base import Base
 
 
 DATABASE_URL = "sqlite:///./youth_platform.db"

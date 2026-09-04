@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 
 from ..db.database import get_db
 
-from ..db.models.models import (
+from ..db.models import (
     Player,
     Programme,
     Theme,
-    Map,
+    GameMap,
     MapLocation,
     Phase,
     Badge,
@@ -143,16 +143,16 @@ def dashboard(
             Theme,
             programme.theme_id,
         )
-        if programme and programme.theme_id
+        if programme and programme.active_theme_id
         else None
     )
 
     game_map = (
         db.get(
-            Map,
-            programme.map_id,
+            GameMap,
+            programme.active_map_id,
         )
-        if programme and programme.map_id
+        if programme and programme.active_map_id
         else None
     )
 

@@ -12,13 +12,13 @@ from sqlalchemy.orm import Session
 
 from ..db.database import get_db
 
-from ..db.models.models import (
+from ..db.models import (
     User,
     Player,
-    Group,
+    YouthGroup,
     Programme,
     Theme,
-    Map,
+    GameMap,
     MapLocation,
     Phase,
     PointRule,
@@ -161,8 +161,9 @@ def programme_config(
         "start_date": programme.start_date,
         "end_date": programme.end_date,
         "target_xp": programme.target_xp,
-        "theme_id": programme.theme_id,
-        "map_id": programme.map_id,
+        "theme_id": programme.active_theme_id,
+        "map_id": programme.active_map_id,
+        "phase_id": programme.active_phase_id,
     }
 
 
@@ -253,8 +254,11 @@ def create_theme(
     db: Session = Depends(get_db),
 ):
 
+    programme = get_programme(db)
+
     theme = Theme(
-        **data.model_dump()
+        programme_id=programme.id,
+        **data.model_dump(),
     )
 
     db.add(theme)
@@ -338,7 +342,13 @@ def activate_theme(
             detail="Theme not found",
         )
 
-    programme.theme_id = theme.id
+    if theme.programme_id != programme.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Theme does not belong to the active programme",
+        )
+
+    programme.active_theme_id = theme.id
 
     audit(
         db,
@@ -373,16 +383,21 @@ def maps(
     db: Session = Depends(get_db),
 ):
 
+    programme = get_programme(db)
+
     return [
         {
             "id": m.id,
             "name": m.name,
             "description": m.description,
             "background_image": m.background_image,
-            "active": m.active,
+            "active": m.id == programme.active_map_id,
         }
-        for m in db.query(Map)
-        .order_by(Map.name)
+        for m in db.query(GameMap)
+        .filter(
+            GameMap.programme_id == programme.id
+        )
+        .order_by(GameMap.name)
         .all()
     ]
 
@@ -396,7 +411,10 @@ def create_map(
     db: Session = Depends(get_db),
 ):
 
-    game_map = Map(
+    programme = get_programme(db)
+
+    game_map = GameMap(
+        programme_id=programme.id,
         name=data.name,
         description=data.description,
         background_image=data.background_image,
@@ -430,7 +448,7 @@ def update_map(
 ):
 
     game_map = db.get(
-        Map,
+        GameMap,
         map_id,
     )
 
@@ -470,7 +488,7 @@ def activate_map(
     programme = get_programme(db)
 
     game_map = db.get(
-        Map,
+        GameMap,
         map_id,
     )
 
@@ -480,7 +498,13 @@ def activate_map(
             detail="Map not found",
         )
 
-    programme.map_id = game_map.id
+    if game_map.programme_id != programme.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Map does not belong to the active programme",
+        )
+
+    programme.active_map_id = game_map.id
 
     audit(
         db,
@@ -519,6 +543,17 @@ def map_locations(
     ),
     db: Session = Depends(get_db),
 ):
+
+    game_map = db.get(
+        GameMap,
+        map_id,
+    )
+
+    if not game_map:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found",
+        )
 
     return [
         {
@@ -561,7 +596,7 @@ def create_map_location(
             detail="Y must be between 0 and 1",
         )
 
-    if not db.get(Map, map_id):
+    if not db.get(GameMap, map_id):
         raise HTTPException(
             status_code=404,
             detail="Map not found",
@@ -891,12 +926,12 @@ def players(
     query = (
         db.query(Player)
         .join(
-            Group,
-            Player.group_id == Group.id,
+            YouthGroup,
+            Player.group_id == YouthGroup.id,
         )
         .filter(
             Player.active == True,
-            Group.programme_id == programme.id,
+            YouthGroup.programme_id == programme.id,
         )
     )
 

@@ -5,7 +5,7 @@ from typing import Callable
 from fastapi import Depends, HTTPException, status
 
 from .auth import get_current_user
-from .db.models.models import User
+from .db.models import User
 
 
 PLAYER = "player"

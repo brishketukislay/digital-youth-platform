@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from ..db.models.models import (
+from ..db.models import (
     Attendance,
     AttendanceSession,
     Player,

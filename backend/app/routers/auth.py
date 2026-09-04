@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..db.database import get_db
-from ..db.models.models import User
+from ..db.models import User
 from ..auth import verify_password, create_session, get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])

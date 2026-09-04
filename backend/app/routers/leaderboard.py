@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from ..db.database import get_db
-from ..db.models.models import Player, XPTransaction
+from ..db.models import Player, XPTransaction
 
 router = APIRouter(prefix="/api/leaderboard", tags=["leaderboard"])
 

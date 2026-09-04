@@ -5,18 +5,10 @@ from typing import Iterable
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from sqlalchemy.orm import Session
 
-from ..db.models.models import (
+from ..db.models import (
     Player,
     YouthGroup,
-    XPTransaction,
-)
-
-
-from ..models import (
-    Player,
     XPTransaction,
 )
 
@@ -63,13 +55,11 @@ def _validate_amount(
     field_name: str,
 ) -> int:
     """
-    XP is always represented as an integer.
+    XP is represented as an integer.
 
-    Negative XP is permitted because the PRD explicitly supports
-    individual penalties and exceptional group deductions.
+    Negative XP is permitted because penalties are supported.
 
-    What is forbidden is malformed/non-integer XP or zero-value
-    transactions.
+    Zero-value transactions are rejected.
     """
 
     if isinstance(amount, bool):
@@ -79,10 +69,7 @@ def _validate_amount(
 
     try:
         value = int(amount)
-    except (
-        TypeError,
-        ValueError,
-    ) as exc:
+    except (TypeError, ValueError) as exc:
         raise InvalidXPAmountError(
             f"{field_name} must be an integer."
         ) from exc
@@ -99,10 +86,7 @@ def _get_player(
     db: Session,
     player_id: int,
 ) -> Player:
-    player = db.get(
-        Player,
-        player_id,
-    )
+    player = db.get(Player, player_id)
 
     if player is None:
         raise PlayerNotFoundError(
@@ -116,11 +100,16 @@ def _find_reference(
     db: Session,
     reference: str,
 ) -> XPTransaction | None:
+    """
+    Find an existing transaction by its reference.
+
+    The current ORM uses `reference` as the idempotency/reference field.
+    """
+
     return (
         db.query(XPTransaction)
         .filter(
-            XPTransaction.reference
-            == reference,
+            XPTransaction.reference == reference,
         )
         .first()
     )
@@ -133,22 +122,18 @@ def player_xp(
     """
     Return lifetime net XP for a player.
 
-    This is calculated from the immutable ledger rather than trusting
-    the cached Player field.
+    XP is calculated from the immutable transaction ledger.
     """
 
     result = (
         db.query(
             func.coalesce(
-                func.sum(
-                    XPTransaction.amount
-                ),
+                func.sum(XPTransaction.amount),
                 0,
             )
         )
         .filter(
-            XPTransaction.player_id
-            == player_id,
+            XPTransaction.player_id == player_id,
         )
         .scalar()
     )
@@ -161,10 +146,9 @@ def player_current_xp(
     player_id: int,
 ) -> int:
     """
-    Current XP is currently equivalent to lifetime net XP.
+    Current XP currently equals lifetime net XP.
 
-    Keeping this as a separate API is deliberate: later the platform
-    can introduce spendable/current XP while retaining lifetime XP.
+    Kept separate so a spendable/current XP system can be introduced later.
     """
 
     return player_xp(
@@ -200,43 +184,36 @@ def group_xp(
     programme_id: int | None = None,
 ) -> int:
     """
-    Calculate group XP from the transaction ledger.
+    Calculate collective XP from the transaction ledger.
 
-    Group XP is stored on transactions because an individual action
-    can contribute to the collective pool.
+    Group XP is stored directly on XP transactions so historical XP
+    does not move when a player changes groups.
 
-    When group_id is supplied it takes precedence over programme_id.
+    If group_id is supplied it takes precedence over programme_id.
     """
 
-    query = (
-        db.query(
-            func.coalesce(
-                func.sum(
-                    XPTransaction.group_amount
-                ),
-                0,
-            )
-        )
-        .join(
-            Player,
-            Player.id
-            == XPTransaction.player_id,
-        )
-        .join(
-            YouthGroup,
-            YouthGroup.id
-            == Player.group_id,
+    query = db.query(
+        func.coalesce(
+            func.sum(XPTransaction.group_amount),
+            0,
         )
     )
 
     if group_id is not None:
         query = query.filter(
-            YouthGroup.id == group_id
+            XPTransaction.group_id == group_id,
         )
+
     elif programme_id is not None:
-        query = query.filter(
-            YouthGroup.programme_id
-            == programme_id
+        query = (
+            query
+            .join(
+                YouthGroup,
+                YouthGroup.id == XPTransaction.group_id,
+            )
+            .filter(
+                YouthGroup.programme_id == programme_id,
+            )
         )
 
     result = query.scalar()
@@ -249,7 +226,7 @@ def programme_xp(
     programme_id: int,
 ) -> int:
     """
-    Collective XP across all groups belonging to a programme.
+    Collective XP across all groups in a programme.
     """
 
     return group_xp(
@@ -272,13 +249,14 @@ def award_xp(
     db: Session,
     *,
     programme_id: int,
-    player_id: int | None,
+    player_id: int,
     amount: int,
     group_amount: int = 0,
     transaction_type: str,
     reason: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    reference: str | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
     """
@@ -287,16 +265,10 @@ def award_xp(
     IMPORTANT:
     This function does not commit.
 
-    The caller owns the transaction so a complete operation such as:
+    The caller owns the transaction so related operations can be
+    committed atomically.
 
-        challenge attempt
-        + attempt status
-        + XP transaction
-
-    can be committed atomically.
-
-    `reference` is the idempotency key. If supplied, the same reference
-    can never produce two XP transactions.
+    `reference` is used as an idempotency key when supplied.
     """
 
     amount = _validate_amount(
@@ -335,12 +307,9 @@ def award_xp(
 
         if existing is not None:
             if (
-                existing.player_id
-                != player.id
-                or existing.amount
-                != amount
-                or existing.group_amount
-                != group_amount
+                existing.player_id != player.id
+                or existing.amount != amount
+                or existing.group_amount != group_amount
             ):
                 raise DuplicateXPTransactionError(
                     "An XP transaction already exists "
@@ -350,19 +319,18 @@ def award_xp(
             return existing
 
     transaction = XPTransaction(
-    programme_id=programme_id,
-    player_id=player_id,
-    group_id=player.group_id if player else None,
-    amount=amount,
-    group_amount=group_amount,
-    transaction_type=transaction_type,
-    reason=reason,
-    reference_type=reference_type,
-    reference_id=reference_id,
-    created_by=created_by,
-)
-
-
+        programme_id=programme_id,
+        player_id=player_id,
+        group_id=player.group_id,
+        amount=amount,
+        group_amount=group_amount,
+        type=transaction_type,
+        reason=reason,
+        reference_type=reference_type,
+        reference_id=reference_id,
+        reference=reference,
+        created_by=created_by,
+    )
 
     db.add(transaction)
     db.flush()
@@ -373,6 +341,7 @@ def award_xp(
 def award_positive_xp(
     db: Session,
     *,
+    programme_id: int,
     player_id: int,
     amount: int,
     group_amount: int = 0,
@@ -382,10 +351,7 @@ def award_positive_xp(
     created_by: int | None = None,
 ) -> XPTransaction:
     """
-    Convenience API for normal rewards.
-
-    This prevents accidental negative rewards from being sent through
-    attendance/challenge/civic-action code.
+    Convenience API for normal positive rewards.
     """
 
     amount = _validate_amount(
@@ -405,6 +371,7 @@ def award_positive_xp(
 
     return award_xp(
         db=db,
+        programme_id=programme_id,
         player_id=player_id,
         amount=amount,
         group_amount=group_amount,
@@ -418,6 +385,7 @@ def award_positive_xp(
 def award_penalty_xp(
     db: Session,
     *,
+    programme_id: int,
     player_id: int,
     amount: int,
     reason: str,
@@ -428,15 +396,7 @@ def award_penalty_xp(
     """
     Create an individual negative XP transaction.
 
-    The caller passes the magnitude as a positive number:
-
-        amount=300
-
-    The ledger records:
-
-        -300
-
-    This makes penalty code much harder to accidentally invert.
+    The caller supplies the penalty magnitude as a positive number.
     """
 
     amount = _validate_amount(
@@ -444,11 +404,11 @@ def award_penalty_xp(
         field_name="amount",
     )
 
-    if amount < 0:
-        amount = abs(amount)
+    amount = abs(amount)
 
     return award_xp(
         db=db,
+        programme_id=programme_id,
         player_id=player_id,
         amount=-amount,
         group_amount=0,
@@ -459,49 +419,10 @@ def award_penalty_xp(
     )
 
 
-def group_xp(
-    db: Session,
-    group_id: int | None = None,
-    programme_id: int | None = None,
-) -> int:
-    """
-    Calculate collective XP using the group recorded on the transaction.
-
-    Historical XP must not move when a player changes groups.
-    """
-
-    query = db.query(
-        func.coalesce(
-            func.sum(XPTransaction.group_amount),
-            0,
-        )
-    )
-
-    if group_id is not None:
-        query = query.filter(
-            XPTransaction.group_id == group_id
-        )
-
-    elif programme_id is not None:
-        query = (
-            query
-            .join(
-                YouthGroup,
-                YouthGroup.id == XPTransaction.group_id,
-            )
-            .filter(
-                YouthGroup.programme_id == programme_id
-            )
-        )
-
-    result = query.scalar()
-
-    return int(result or 0)
-
-
 def award_group_penalty_xp(
     db: Session,
     *,
+    programme_id: int,
     player_id: int,
     amount: int,
     reason: str,
@@ -512,10 +433,7 @@ def award_group_penalty_xp(
     """
     Remove XP from the collective pool.
 
-    This is intentionally a separate API from individual penalties.
-
-    The PRD's exceptional group loss protocol must never be implemented
-    by simply changing an individual's amount.
+    Individual player XP is unchanged.
     """
 
     amount = _validate_amount(
@@ -523,48 +441,19 @@ def award_group_penalty_xp(
         field_name="amount",
     )
 
-    if amount < 0:
-        amount = abs(amount)
+    amount = abs(amount)
 
-    player = _get_player(
-        db,
-        player_id,
-    )
-
-    if reference:
-        existing = _find_reference(
-            db,
-            reference,
-        )
-
-        if existing is not None:
-            if (
-                existing.player_id != player.id
-                or existing.amount != 0
-                or existing.group_amount
-                != -amount
-            ):
-                raise DuplicateXPTransactionError(
-                    "An XP transaction already exists "
-                    "for this reference with different values."
-                )
-
-            return existing
-
-    transaction = XPTransaction(
-        player_id=player.id,
+    return award_xp(
+        db=db,
+        programme_id=programme_id,
+        player_id=player_id,
         amount=0,
         group_amount=-amount,
-        type=transaction_type,
+        transaction_type=transaction_type,
         reason=reason,
         reference=reference,
         created_by=created_by,
     )
-
-    db.add(transaction)
-    db.flush()
-
-    return transaction
 
 
 def transactions_for_player(
@@ -574,8 +463,7 @@ def transactions_for_player(
     return (
         db.query(XPTransaction)
         .filter(
-            XPTransaction.player_id
-            == player_id,
+            XPTransaction.player_id == player_id,
         )
         .order_by(
             XPTransaction.created_at.desc(),
@@ -591,14 +479,8 @@ def transactions_for_group(
 ) -> list[XPTransaction]:
     return (
         db.query(XPTransaction)
-        .join(
-            Player,
-            Player.id
-            == XPTransaction.player_id,
-        )
         .filter(
-            Player.group_id
-            == group_id,
+            XPTransaction.group_id == group_id,
         )
         .order_by(
             XPTransaction.created_at.desc(),
@@ -613,11 +495,15 @@ def transaction_to_dict(
 ) -> dict:
     return {
         "id": transaction.id,
+        "programme_id": transaction.programme_id,
         "player_id": transaction.player_id,
+        "group_id": transaction.group_id,
         "amount": transaction.amount,
         "group_amount": transaction.group_amount,
         "type": transaction.type,
         "reason": transaction.reason,
+        "reference_type": transaction.reference_type,
+        "reference_id": transaction.reference_id,
         "reference": transaction.reference,
         "created_by": transaction.created_by,
         "created_at": transaction.created_at,
