@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from ..db.database import get_db
 
 from ..db.models import (
+        Reward,
+        PlayerReward,
     Player,
     Programme,
     Theme,
@@ -246,6 +248,91 @@ def dashboard(
         player.id,
     )
 
+    # ------------------------------------------------------------
+    # REWARDS
+    #
+    # Automatically grant active rewards when the player reaches
+    # the configured XP threshold.
+    # ------------------------------------------------------------
+
+    active_rewards = (
+        db.query(Reward)
+        .filter(
+            Reward.programme_id == programme.id,
+            Reward.active.is_(True),
+        )
+        .order_by(
+            Reward.xp_threshold.asc(),
+            Reward.id.asc(),
+        )
+        .all()
+    )
+
+    player_rewards = (
+        db.query(PlayerReward)
+        .filter(
+            PlayerReward.player_id == player.id,
+        )
+        .all()
+    )
+
+    granted_reward_ids = {
+        reward.reward_id
+        for reward in player_rewards
+    }
+
+    for reward in active_rewards:
+        if (
+            reward.xp_threshold is not None
+            and player_total >= reward.xp_threshold
+            and reward.id not in granted_reward_ids
+        ):
+            player_reward = PlayerReward(
+                player_id=player.id,
+                reward_id=reward.id,
+                status="pending",
+            )
+
+            db.add(player_reward)
+            db.flush()
+
+            player_rewards.append(player_reward)
+            granted_reward_ids.add(reward.id)
+
+    db.commit()
+
+    mystery_rewards = []
+
+    for reward in active_rewards:
+        player_reward = next(
+            (
+                item
+                for item in player_rewards
+                if item.reward_id == reward.id
+            ),
+            None,
+        )
+
+        mystery_rewards.append({
+            "id": reward.id,
+            "name": reward.name,
+            "xp_threshold": reward.xp_threshold,
+            "thresholdXP": reward.xp_threshold,
+            "reward_type": reward.reward_type,
+            "value": reward.value,
+            "active": reward.active,
+            "unlocked": player_reward is not None,
+            "claimed": (
+                player_reward is not None
+                and player_reward.status == "claimed"
+            ),
+            "status": (
+                player_reward.status
+                if player_reward is not None
+                else "locked"
+            ),
+        })
+
     return {
 
         "player": {
@@ -254,6 +341,8 @@ def dashboard(
             "avatar": player.avatar,
             "xp": player_total,
         },
+
+        "mystery_rewards": mystery_rewards,
 
         "group_xp": group_xp(
             db,
