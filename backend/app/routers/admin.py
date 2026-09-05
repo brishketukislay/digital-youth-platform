@@ -141,15 +141,37 @@ def overview(
 # ============================================================
 
 class ProgrammeRequest(BaseModel):
-
-    name: str
-    description: str | None = None
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str | None = Field(
+        default=None,
+        max_length=5000,
+    )
 
     start_date: date | None = None
     end_date: date | None = None
 
-    target_xp: int = 1500000
+    target_xp: int = Field(
+        default=1_500_000,
+        ge=0,
+    )
 
+    weekly_target_xp: int | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    max_group_penalty_percent: float = Field(
+        default=10.0,
+        ge=0,
+        le=100,
+    )
+
+    active_theme_id: int | None = None
+    active_map_id: int | None = None
+    active_phase_id: int | None = None
+
+    active: bool = True
+    
 class StaffAwardXPRequest(BaseModel):
     player_id: int
     amount: int = Field(
@@ -399,4 +421,416 @@ def create_phase(
 
     return {
         "id": phase.id,
+    }
+
+# ============================================================
+# POINT ECONOMY CONFIGURATION
+# ============================================================
+
+class PointRuleRequest(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+    )
+
+    code: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+    )
+
+    description: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    individual_xp: int = Field(
+        default=0,
+        ge=0,
+        le=1_000_000,
+    )
+
+    group_xp: int = Field(
+        default=0,
+        ge=0,
+        le=1_000_000,
+    )
+
+    weekly_cap: int | None = Field(
+        default=None,
+        ge=0,
+        le=10_000_000,
+    )
+
+    enabled: bool = True
+
+
+@router.get("/point-rules")
+def get_point_rules(
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    rules = (
+        db.query(PointRule)
+        .filter(
+            PointRule.programme_id == programme.id
+        )
+        .order_by(
+            PointRule.name.asc()
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": rule.id,
+            "name": rule.name,
+            "code": rule.code,
+            "description": rule.description,
+            "individual_xp": rule.individual_xp,
+            "group_xp": rule.group_xp,
+            "weekly_cap": rule.weekly_cap,
+            "enabled": rule.enabled,
+        }
+        for rule in rules
+    ]
+
+
+@router.post("/point-rules")
+def create_point_rule(
+    data: PointRuleRequest,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    code = data.code.strip().lower()
+
+    if not code:
+        raise HTTPException(
+            status_code=400,
+            detail="Point rule code is required.",
+        )
+
+    existing = (
+        db.query(PointRule)
+        .filter(
+            PointRule.programme_id == programme.id,
+            PointRule.code == code,
+        )
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="A point rule with this code already exists.",
+        )
+
+    if (
+        data.individual_xp == 0
+        and data.group_xp == 0
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="A point rule must award some XP.",
+        )
+
+    rule = PointRule(
+        programme_id=programme.id,
+        name=data.name.strip(),
+        code=code,
+        description=(
+            data.description.strip()
+            if data.description
+            else None
+        ),
+        individual_xp=data.individual_xp,
+        group_xp=data.group_xp,
+        weekly_cap=data.weekly_cap,
+        enabled=data.enabled,
+    )
+
+    db.add(rule)
+
+    audit(
+        db,
+        user.id,
+        "point_rule.created",
+        (
+            f"code={code};"
+            f"individual_xp={data.individual_xp};"
+            f"group_xp={data.group_xp}"
+        ),
+    )
+
+    db.commit()
+    db.refresh(rule)
+
+    return {
+        "id": rule.id,
+        "success": True,
+    }
+
+
+@router.put("/point-rules/{rule_id}")
+def update_point_rule(
+    rule_id: int,
+    data: PointRuleRequest,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    rule = (
+        db.query(PointRule)
+        .filter(
+            PointRule.id == rule_id,
+            PointRule.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not rule:
+        raise HTTPException(
+            status_code=404,
+            detail="Point rule not found.",
+        )
+
+    code = data.code.strip().lower()
+
+    duplicate = (
+        db.query(PointRule)
+        .filter(
+            PointRule.programme_id == programme.id,
+            PointRule.code == code,
+            PointRule.id != rule.id,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise HTTPException(
+            status_code=409,
+            detail="A point rule with this code already exists.",
+        )
+
+    if (
+        data.individual_xp == 0
+        and data.group_xp == 0
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="A point rule must award some XP.",
+        )
+
+    old_values = (
+        f"name={rule.name};"
+        f"code={rule.code};"
+        f"individual_xp={rule.individual_xp};"
+        f"group_xp={rule.group_xp};"
+        f"weekly_cap={rule.weekly_cap};"
+        f"enabled={rule.enabled}"
+    )
+
+    rule.name = data.name.strip()
+    rule.code = code
+    rule.description = (
+        data.description.strip()
+        if data.description
+        else None
+    )
+    rule.individual_xp = data.individual_xp
+    rule.group_xp = data.group_xp
+    rule.weekly_cap = data.weekly_cap
+    rule.enabled = data.enabled
+
+    audit(
+        db,
+        user.id,
+        "point_rule.updated",
+        (
+            f"id={rule.id};"
+            f"old=[{old_values}];"
+            f"new=["
+            f"name={rule.name};"
+            f"code={rule.code};"
+            f"individual_xp={rule.individual_xp};"
+            f"group_xp={rule.group_xp};"
+            f"weekly_cap={rule.weekly_cap};"
+            f"enabled={rule.enabled}"
+            f"]"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": rule.id,
+    }
+
+
+@router.delete("/point-rules/{rule_id}")
+def delete_point_rule(
+    rule_id: int,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    rule = (
+        db.query(PointRule)
+        .filter(
+            PointRule.id == rule_id,
+            PointRule.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not rule:
+        raise HTTPException(
+            status_code=404,
+            detail="Point rule not found.",
+        )
+
+    # Do not physically delete rules which may have been
+    # used historically. Disable them instead.
+    rule.enabled = False
+
+    audit(
+        db,
+        user.id,
+        "point_rule.disabled",
+        (
+            f"id={rule.id};"
+            f"code={rule.code}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": rule.id,
+        "enabled": False,
+    }
+
+
+# ============================================================
+# REWARD CONFIGURATION
+# ============================================================
+
+@router.put("/rewards/{reward_id}")
+def update_reward(
+    reward_id: int,
+    data: RewardRequest,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    reward = db.get(
+        Reward,
+        reward_id,
+    )
+
+    if not reward:
+        raise HTTPException(
+            status_code=404,
+            detail="Reward not found.",
+        )
+
+    old_values = (
+        f"name={reward.name};"
+        f"xp_threshold={reward.xp_threshold};"
+        f"reward_type={reward.reward_type};"
+        f"value={reward.value};"
+        f"active={reward.active}"
+    )
+
+    reward.name = data.name.strip()
+    reward.description = (
+        data.description.strip()
+        if data.description
+        else None
+    )
+    reward.xp_threshold = data.xp_threshold
+    reward.reward_type = data.reward_type
+    reward.value = data.value
+    reward.active = data.active
+
+    audit(
+        db,
+        user.id,
+        "reward.updated",
+        (
+            f"id={reward.id};"
+            f"old=[{old_values}];"
+            f"new=["
+            f"name={reward.name};"
+            f"xp_threshold={reward.xp_threshold};"
+            f"reward_type={reward.reward_type};"
+            f"value={reward.value};"
+            f"active={reward.active}"
+            f"]"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": reward.id,
+    }
+
+
+@router.delete("/rewards/{reward_id}")
+def disable_reward(
+    reward_id: int,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    reward = db.get(
+        Reward,
+        reward_id,
+    )
+
+    if not reward:
+        raise HTTPException(
+            status_code=404,
+            detail="Reward not found.",
+        )
+
+    reward.active = False
+
+    audit(
+        db,
+        user.id,
+        "reward.disabled",
+        (
+            f"id={reward.id};"
+            f"name={reward.name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": reward.id,
+        "active": False,
     }

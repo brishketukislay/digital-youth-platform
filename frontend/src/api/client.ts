@@ -527,6 +527,24 @@ export async function createReward(
   );
 }
 
+export async function updateReward(
+  id: Id,
+  data: RewardRequest
+) {
+  return api.put<ApiSuccess>(
+    `/admin/rewards/${id}`,
+    data
+  );
+}
+
+export async function disableReward(
+  id: Id
+) {
+  return api.delete<ApiSuccess>(
+    `/admin/rewards/${id}`
+  );
+}
+
 /* ============================================================
    ATTENDANCE
    ============================================================ */
