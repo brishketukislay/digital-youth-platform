@@ -475,6 +475,7 @@ export type PointRule = {
   individual_xp: number;
   group_xp: number;
   weekly_cap?: number | null;
+  awards_per_week: number;
   enabled: boolean;
 };
 
@@ -485,6 +486,7 @@ export type PointRuleRequest = {
   individual_xp: number;
   group_xp: number;
   weekly_cap?: number | null;
+  awards_per_week?: number;
   enabled?: boolean;
 };
 
