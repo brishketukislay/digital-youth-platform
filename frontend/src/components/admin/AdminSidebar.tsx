@@ -70,6 +70,12 @@ const navigation: NavigationItem[] = [
     group: "Engagement",
   },
   {
+  id: "attempts",
+  label: "Attempts",
+  icon: "✓",
+  group: "Engagement",
+  },
+  {
     id: "players",
     label: "Players",
     icon: "♙",

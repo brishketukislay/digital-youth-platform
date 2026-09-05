@@ -934,51 +934,157 @@ export async function submitChallengeAttempt(
   );
 }
 
-export async function getStaffChallenges() {
-  return api.get<StaffChallenge[]>(
-    "/challenges/staff/list"
+/* ============================================================
+   CHALLENGE ATTEMPT REVIEW
+   ============================================================ */
+
+export type ChallengeAttemptStatus =
+  | "created"
+  | "submitted"
+  | "verified"
+  | "rejected";
+
+export type StaffChallengeAttempt = {
+  id: Id;
+
+  attempt_reference: string;
+
+  challenge_id: Id;
+  challenge_title?: string | null;
+
+  player_id: Id;
+  player_name?: string | null;
+  player_username?: string | null;
+
+  score: number;
+
+  status: ChallengeAttemptStatus;
+
+  evidence_type?: string | null;
+  evidence_payload?: string | null;
+  evidence_hash?: string | null;
+
+  rejection_reason?: string | null;
+
+  verified?: boolean;
+  verified_by?: Id | null;
+  verified_at?: string | null;
+
+  percentile?: number | null;
+  elite?: boolean;
+  winner?: boolean;
+
+  participation_xp?: number;
+  elite_xp?: number;
+  winner_xp?: number;
+  individual_xp?: number;
+  group_xp?: number;
+
+  submitted_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+
+  [key: string]: unknown;
+};
+
+export type StaffChallengeAttemptListResponse = {
+  attempts: StaffChallengeAttempt[];
+};
+
+export type ChallengeAttemptRejectRequest = {
+  reason: string;
+};
+
+/**
+ * Staff attempt queue.
+ *
+ * Phase 3 backend:
+ * GET /challenges/staff/attempts
+ *
+ * Optional filters:
+ * - status
+ * - challenge_id
+ */
+export async function getStaffChallengeAttempts(
+  params?: {
+    status?: ChallengeAttemptStatus;
+    challenge_id?: Id;
+  },
+) {
+  const search = new URLSearchParams();
+
+  if (params?.status) {
+    search.set(
+      "status",
+      params.status,
+    );
+  }
+
+  if (params?.challenge_id != null) {
+    search.set(
+      "challenge_id",
+      String(params.challenge_id),
+    );
+  }
+
+  const query =
+    search.toString();
+
+  return api.get<StaffChallengeAttemptListResponse>(
+    `/challenges/staff/attempts${
+      query
+        ? `?${query}`
+        : ""
+    }`,
   );
 }
 
-export async function createChallenge(
-  payload: ChallengeRequest
+/**
+ * Staff attempt detail.
+ *
+ * Phase 3 backend:
+ * GET /challenges/staff/attempts/{attempt_id}
+ */
+export async function getStaffChallengeAttempt(
+  attemptId: Id,
 ) {
-  return api.post<PlayerChallenge>(
-    "/challenges/staff",
-    payload
+  return api.get<StaffChallengeAttempt>(
+    `/challenges/staff/attempts/${attemptId}`,
   );
 }
 
-export async function updateChallenge(
-  challengeId: Id,
-  payload: ChallengeRequest
+/**
+ * Verify a submitted attempt.
+ *
+ * Phase 3 backend:
+ * POST /challenges/staff/attempts/{attempt_id}/verify
+ *
+ * Verification is authoritative on the backend and may
+ * award the configured challenge XP.
+ */
+export async function verifyChallengeAttempt(
+  attemptId: Id,
 ) {
-  return api.put<PlayerChallenge>(
-    `/challenges/staff/${challengeId}`,
-    payload
+  return api.post(
+    `/challenges/staff/attempts/${attemptId}/verify`,
   );
 }
 
-export async function enableChallenge(
-  challengeId: Id
+/**
+ * Reject a submitted attempt.
+ *
+ * Phase 3 backend:
+ * POST /challenges/staff/attempts/{attempt_id}/reject
+ */
+export async function rejectChallengeAttempt(
+  attemptId: Id,
+  payload: ChallengeAttemptRejectRequest,
 ) {
-  return api.post<{
-    success: boolean;
-    id: Id;
-    active: boolean;
-  }>(`/challenges/staff/${challengeId}/enable`);
-}
-
-export async function disableChallenge(
-  challengeId: Id
-) {
-  return api.post<{
-    success: boolean;
-    id: Id;
-    active: boolean;
-  }>(`/challenges/staff/${challengeId}/disable`);
-}
-
+  return api.post(
+    `/challenges/staff/attempts/${attemptId}/reject`,
+    payload,
+  );
+};
 /* ============================================================
    RESOURCES
    ============================================================ */
