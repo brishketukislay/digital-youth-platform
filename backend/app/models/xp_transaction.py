@@ -1,125 +1,39 @@
 from __future__ import annotations
 
-from datetime import datetime
+import enum
 
-from sqlalchemy import (
-    CheckConstraint,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    UniqueConstraint,
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from .base import Base
+from app.db.models.core import XPTransaction
 
 
-class XPTransaction(Base):
+class XPTransactionType(str, enum.Enum):
     """
-    Immutable XP ledger entry.
+    Canonical transaction type values used by the application.
 
-    amount:
-        Change to the individual player's XP.
-
-    group_amount:
-        Change to the collective group/programme XP pool.
-
-    Existing transactions must never be edited to correct a balance.
-    Create a compensating transaction instead.
+    The database stores transaction_type as VARCHAR, so keeping this enum
+    here provides a stable public API without introducing a second ORM model.
     """
 
-    __tablename__ = "xp_transactions"
+    ATTENDANCE = "attendance"
+    BEHAVIOUR = "behaviour"
+    REFLECTION = "reflection"
+    ACTIVITY = "activity"
+    CHALLENGE = "challenge"
+    CIVIC_ACTION = "civic_action"
+    COMMUNITY_AWARD = "community_award"
 
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-    )
+    SKILL_MILESTONE = "skill_milestone"
+    BADGE = "badge"
+    BONUS = "bonus"
+    MULTIPLIER = "multiplier"
 
-    programme_id: Mapped[int] = mapped_column(
-        ForeignKey("programmes.id"),
-        nullable=False,
-        index=True,
-    )
+    PENALTY = "penalty"
+    GROUP_PENALTY = "group_penalty"
 
-    player_id: Mapped[int | None] = mapped_column(
-        ForeignKey("players.id"),
-        nullable=True,
-        index=True,
-    )
+    ADMIN_ADJUSTMENT = "admin_adjustment"
+    SYSTEM = "system"
 
-    group_id: Mapped[int | None] = mapped_column(
-        ForeignKey("groups.id"),
-        nullable=True,
-        index=True,
-    )
 
-    amount: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-    )
-
-    group_amount: Mapped[int] = mapped_column(
-        Integer,
-        default=0,
-        nullable=False,
-    )
-
-    transaction_type: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True,
-    )
-
-    reason: Mapped[str | None] = mapped_column(
-        String(500),
-        nullable=True,
-    )
-
-    reference_type: Mapped[str | None] = mapped_column(
-        String(100),
-        nullable=True,
-    )
-
-    reference_id: Mapped[int | None] = mapped_column(
-        Integer,
-        nullable=True,
-    )
-
-    created_by: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"),
-        nullable=True,
-    )
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False,
-        index=True,
-    )
-
-    programme: Mapped["Programme"] = relationship(
-        "Programme",
-    )
-
-    player: Mapped["Player | None"] = relationship(
-        "Player",
-        back_populates="xp_transactions",
-    )
-
-    created_by_user: Mapped["User | None"] = relationship(
-        "User",
-        foreign_keys=[created_by],
-    )
-
-    __table_args__ = (
-        CheckConstraint(
-            "amount != 0 OR group_amount != 0",
-            name="ck_xp_transaction_non_zero",
-        ),
-        UniqueConstraint(
-            "reference_type",
-            "reference_id",
-            name="uq_xp_transaction_reference",
-        ),
-    )
+__all__ = [
+    "XPTransaction",
+    "XPTransactionType",
+]
