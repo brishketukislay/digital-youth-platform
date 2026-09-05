@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.services.gamification import get_active_programme
 
 import secrets
 from datetime import datetime, timezone
@@ -1019,7 +1020,10 @@ def create_challenge(
             detail="Challenge end time must be after its start time.",
         )
 
+    programme = get_active_programme(db)
+
     challenge = Challenge(
+        programme_id=programme.id,
         phase_id=data.phase_id,
         title=data.title.strip(),
         description=data.description,

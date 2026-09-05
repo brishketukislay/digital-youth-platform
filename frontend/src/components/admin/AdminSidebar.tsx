@@ -5,6 +5,8 @@ type AdminSidebarProps = {
   onSectionChange: (
     section: AdminSection
   ) => void;
+  onSignOut: () => void;
+  signingOut: boolean;
 };
 
 type NavigationItem = {
@@ -70,10 +72,10 @@ const navigation: NavigationItem[] = [
     group: "Engagement",
   },
   {
-  id: "attempts",
-  label: "Attempts",
-  icon: "✓",
-  group: "Engagement",
+    id: "attempts",
+    label: "Attempts",
+    icon: "✓",
+    group: "Engagement",
   },
   {
     id: "players",
@@ -106,6 +108,8 @@ const groups = [
 export function AdminSidebar({
   activeSection,
   onSectionChange,
+  onSignOut,
+  signingOut,
 }: AdminSidebarProps) {
   return (
     <aside className="hidden w-64 shrink-0 border-r border-white/10 bg-slate-900 lg:block">
@@ -179,6 +183,20 @@ export function AdminSidebar({
             <div className="mt-1 text-sm font-medium">
               Authorised dashboard
             </div>
+
+            <button
+              type="button"
+              onClick={onSignOut}
+              disabled={signingOut}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>↪</span>
+              <span>
+                {signingOut
+                  ? "Signing out..."
+                  : "Sign out"}
+              </span>
+            </button>
           </div>
         </div>
       </div>
