@@ -278,65 +278,6 @@ def list_available_challenges(
     return result
 
 
-
-@router.get("/my-attempts")
-def list_my_challenge_attempts(
-    db: Session = Depends(get_db),
-    current_user=Depends(require_roles("player")),
-):
-    """
-    Return the authenticated player's challenge attempts.
-
-    This is intentionally player-scoped and never accepts player_id
-    from the client.
-    """
-
-    player = (
-        db.query(Player)
-        .filter(Player.user_id == current_user.id)
-        .first()
-    )
-
-    if player is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Player profile not found",
-        )
-
-    attempts = (
-        db.query(ChallengeAttempt)
-        .filter(
-            ChallengeAttempt.player_id == player.id,
-        )
-        .order_by(ChallengeAttempt.id.desc())
-        .all()
-    )
-
-    return {
-        "attempts": [
-            {
-                "id": attempt.id,
-                "challenge_id": attempt.challenge_id,
-                "attempt_reference": attempt.attempt_reference,
-                "status": attempt.status,
-                "score": attempt.score,
-                "percentile": attempt.percentile,
-                "elite": attempt.elite,
-                "winner": attempt.winner,
-                "participation_xp": attempt.participation_xp,
-                "elite_xp": attempt.elite_xp,
-                "winner_xp": attempt.winner_xp,
-                "individual_xp": attempt.individual_xp,
-                "group_xp": attempt.group_xp,
-                "submitted_at": attempt.submitted_at,
-                "verified_at": attempt.verified_at,
-                "rejection_reason": attempt.rejection_reason,
-            }
-            for attempt in attempts
-        ]
-    }
-
-
 @router.get("/{challenge_id}")
 def get_available_challenge(
     challenge_id: int,
