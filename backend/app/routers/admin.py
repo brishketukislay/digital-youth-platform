@@ -164,7 +164,7 @@ class StaffAwardXPRequest(BaseModel):
     )
 @router.post("/xp/award")
 def award_player_xp(
-    data: AwardXPRequest,
+    data: StaffAwardXPRequest,
     user=Depends(
         require_roles(
             "admin",

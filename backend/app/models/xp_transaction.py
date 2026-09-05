@@ -1,67 +1,35 @@
 from __future__ import annotations
 
-import enum
 from datetime import datetime
 
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    Enum,
     ForeignKey,
     Integer,
-    JSON,
     String,
-    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
 
-class XPTransactionType(str, enum.Enum):
-    ATTENDANCE = "attendance"
-    BEHAVIOUR = "behaviour"
-    REFLECTION = "reflection"
-    ACTIVITY = "activity"
-    CHALLENGE = "challenge"
-    CIVIC_ACTION = "civic_action"
-    COMMUNITY_AWARD = "community_award"
-
-    SKILL_MILESTONE = "skill_milestone"
-    BADGE = "badge"
-    BONUS = "bonus"
-    MULTIPLIER = "multiplier"
-
-    PENALTY = "penalty"
-    GROUP_PENALTY = "group_penalty"
-
-    ADMIN_ADJUSTMENT = "admin_adjustment"
-    SYSTEM = "system"
-
-
 class XPTransaction(Base):
     """
     Immutable XP ledger entry.
 
-    Balances are projections derived from these transactions.
-    This table is the authoritative audit history.
+    amount:
+        Change to the individual player's XP.
+
+    group_amount:
+        Change to the collective group/programme XP pool.
+
+    Existing transactions must never be edited to correct a balance.
+    Create a compensating transaction instead.
     """
 
     __tablename__ = "xp_transactions"
-
-    __table_args__ = (
-        CheckConstraint(
-            "amount <> 0",
-            name="ck_xp_transaction_non_zero",
-        ),
-        CheckConstraint(
-            """
-            player_id IS NOT NULL
-            OR cohort_id IS NOT NULL
-            """,
-            name="ck_xp_transaction_has_target",
-        ),
-    )
 
     id: Mapped[int] = mapped_column(
         Integer,
@@ -69,30 +37,20 @@ class XPTransaction(Base):
     )
 
     programme_id: Mapped[int] = mapped_column(
-        ForeignKey("programmes.id", ondelete="CASCADE"),
+        ForeignKey("programmes.id"),
         nullable=False,
         index=True,
     )
 
     player_id: Mapped[int | None] = mapped_column(
-        ForeignKey("players.id", ondelete="SET NULL"),
+        ForeignKey("players.id"),
         nullable=True,
         index=True,
     )
 
-    cohort_id: Mapped[int | None] = mapped_column(
-        ForeignKey("cohorts.id", ondelete="SET NULL"),
+    group_id: Mapped[int | None] = mapped_column(
+        ForeignKey("groups.id"),
         nullable=True,
-        index=True,
-    )
-
-    transaction_type: Mapped[XPTransactionType] = mapped_column(
-        Enum(
-            XPTransactionType,
-            name="xp_transaction_type",
-            native_enum=False,
-        ),
-        nullable=False,
         index=True,
     )
 
@@ -101,45 +59,42 @@ class XPTransaction(Base):
         nullable=False,
     )
 
-    source_type: Mapped[str | None] = mapped_column(
-        String(100),
-        nullable=True,
-        index=True,
-    )
-
-    source_id: Mapped[int | None] = mapped_column(
+    group_amount: Mapped[int] = mapped_column(
         Integer,
-        nullable=True,
+        default=0,
+        nullable=False,
     )
 
-    idempotency_key: Mapped[str] = mapped_column(
-        String(255),
+    transaction_type: Mapped[str] = mapped_column(
+        String(100),
         nullable=False,
-        unique=True,
         index=True,
     )
 
     reason: Mapped[str | None] = mapped_column(
-        Text,
+        String(500),
         nullable=True,
     )
 
-    metadata_json: Mapped[dict] = mapped_column(
-        JSON,
-        nullable=False,
-        default=dict,
+    reference_type: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
     )
 
-    created_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"),
+    reference_id: Mapped[int | None] = mapped_column(
+        Integer,
         nullable=True,
-        index=True,
+    )
+
+    created_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        nullable=False,
         default=datetime.utcnow,
+        nullable=False,
         index=True,
     )
 
@@ -149,12 +104,22 @@ class XPTransaction(Base):
 
     player: Mapped["Player | None"] = relationship(
         "Player",
+        back_populates="xp_transactions",
     )
 
-    cohort: Mapped["Cohort | None"] = relationship(
-        "Cohort",
-    )
-
-    created_by: Mapped["User | None"] = relationship(
+    created_by_user: Mapped["User | None"] = relationship(
         "User",
+        foreign_keys=[created_by],
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "amount != 0 OR group_amount != 0",
+            name="ck_xp_transaction_non_zero",
+        ),
+        UniqueConstraint(
+            "reference_type",
+            "reference_id",
+            name="uq_xp_transaction_reference",
+        ),
     )
