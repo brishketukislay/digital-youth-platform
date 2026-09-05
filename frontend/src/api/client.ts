@@ -495,11 +495,15 @@ export async function updatePointRule(
 
 export type Reward = {
   id: Id;
+  programme_id: Id;
   name: string;
   description: string | null;
   xp_threshold: number | null;
   reward_type: string;
   value: number;
+  currency: string;
+  badge_id: Id | null;
+  mystery: boolean;
   active: boolean;
 };
 
@@ -1172,5 +1176,85 @@ export type Resource = {
 export async function getResources() {
   return api.get<Resource[]>(
     "/resources"
+  );
+}
+
+/* ============================================================
+   JACKPOT / PROGRAMME MILESTONES
+   ============================================================ */
+
+export type ProgrammeMilestone = {
+  id: Id;
+  name: string;
+  xp_threshold: number;
+  reward_description: string | null;
+  reward_value: number;
+  reward_type: string;
+  sort_order: number;
+  active: boolean;
+  achieved: boolean;
+  awarded_at: string | null;
+};
+
+export type JackpotConfiguration = {
+  programme: {
+    id: Id;
+    name: string;
+    target_xp: number;
+    weekly_target_xp: number;
+    max_group_penalty_percent: number;
+  };
+
+  current_xp: number;
+  progress_percent: number;
+  remaining_xp: number;
+
+  milestones: ProgrammeMilestone[];
+};
+
+export type ProgrammeMilestoneRequest = {
+  name: string;
+  xp_threshold: number;
+  reward_description?: string | null;
+  reward_value: number;
+  reward_type: string;
+  sort_order: number;
+  active: boolean;
+};
+
+export async function getJackpot() {
+  return api.get<JackpotConfiguration>(
+    "/admin/jackpot"
+  );
+}
+
+export async function createJackpotMilestone(
+  data: ProgrammeMilestoneRequest
+) {
+  return api.post<{ success: boolean; id: Id }>(
+    "/admin/jackpot/milestones",
+    data
+  );
+}
+
+export async function updateJackpotMilestone(
+  id: Id,
+  data: ProgrammeMilestoneRequest
+) {
+  return api.put<{ success: boolean; id: Id }>(
+    `/admin/jackpot/milestones/${id}`,
+    data
+  );
+}
+
+export async function disableJackpotMilestone(
+  id: Id
+) {
+  return api.delete<{
+    success: boolean;
+    id: Id;
+    active: boolean;
+  }>(
+    `/admin/jackpot/milestones/${id}`
   );
 }
