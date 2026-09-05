@@ -516,6 +516,63 @@ export async function updatePointRule(
 }
 
 /* ============================================================
+   ADMIN AUDIT LOG
+   ============================================================ */
+
+export type AdminAuditLog = {
+  id: Id;
+  user_id: Id | null;
+  action: string;
+  entity_type: string | null;
+  entity_id: Id | null;
+  details: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+  username: string | null;
+};
+
+export type AdminAuditLogResponse = {
+  items: AdminAuditLog[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export async function getAdminAuditLogs(
+  params: {
+    limit?: number;
+    offset?: number;
+    action?: string;
+    user_id?: Id;
+  } = {},
+) {
+  const search = new URLSearchParams();
+
+  if (params.limit !== undefined) {
+    search.set("limit", String(params.limit));
+  }
+
+  if (params.offset !== undefined) {
+    search.set("offset", String(params.offset));
+  }
+
+  if (params.action) {
+    search.set("action", params.action);
+  }
+
+  if (params.user_id !== undefined) {
+    search.set("user_id", String(params.user_id));
+  }
+
+  const query = search.toString();
+
+  return api.get<AdminAuditLogResponse>(
+    `/admin/audit-logs${query ? `?${query}` : ""}`,
+  );
+}
+
+/* ============================================================
    REWARDS
    ============================================================ */
 

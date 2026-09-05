@@ -13,6 +13,7 @@ import AdminThemes from "./AdminThemes";
 import AdminPhases from "./AdminPhases";
 import RewardsManager from "../../components/admin/RewardsManager";
 import PhaseManager from "../../components/admin/phases/PhaseManager";
+import { AuditLogPanel } from "../../components/admin/audit/AuditLogPanel";
 
 export default function AdminDashboard() {
   const [section, setSection] =
@@ -61,6 +62,10 @@ export default function AdminDashboard() {
 
       {section === "attempts" && (
         <ChallengeAttemptReview />
+      )}
+
+      {section === "audit" && (
+        <AuditLogPanel />
       )}
     </AdminShell>
   );

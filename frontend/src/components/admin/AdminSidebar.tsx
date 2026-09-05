@@ -95,6 +95,12 @@ const navigation: NavigationItem[] = [
     icon: "✓",
     group: "People",
   },
+  {
+    id: "audit",
+    label: "Audit Log",
+    icon: "◷",
+    group: "People",
+  },
 ];
 
 const groups = [

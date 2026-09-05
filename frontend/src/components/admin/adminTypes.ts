@@ -11,4 +11,5 @@ export type AdminSection =
   | "attempts"
   | "players"
   | "community"
-  | "attendance";
+  | "attendance"
+  | "audit";

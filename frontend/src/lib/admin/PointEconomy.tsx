@@ -162,11 +162,18 @@ export function PointEconomy() {
         {
           name: selectedBackendRule.name,
           code: selectedBackendRule.code,
+          description:
+            selectedBackendRule.description ?? null,
           individual_xp:
             values.xpPerAward,
           group_xp:
             selectedBackendRule.group_xp,
-          enabled: values.enabled,
+          weekly_cap:
+            selectedBackendRule.weekly_cap ?? null,
+          awards_per_week:
+            values.awardsPerWeek,
+          enabled:
+            values.enabled,
         },
       );
 
@@ -177,6 +184,8 @@ export function PointEconomy() {
                 ...rule,
                 individual_xp:
                   values.xpPerAward,
+                awards_per_week:
+                  values.awardsPerWeek,
                 enabled:
                   values.enabled,
               }

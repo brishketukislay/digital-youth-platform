@@ -71,6 +71,11 @@ const titles: Record<
     description:
       "Review and approve positive community nominations.",
   },
+  audit: {
+    title: "Audit Log",
+    description:
+      "Review administrative actions and system activity.",
+  },
   attendance: {
     title: "Attendance",
     description:

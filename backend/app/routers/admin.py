@@ -151,6 +151,79 @@ def overview(
 
 
 # ============================================================
+# ADMIN AUDIT LOG
+# ============================================================
+
+@router.get("/audit-logs")
+def get_audit_logs(
+    limit: int = 100,
+    offset: int = 0,
+    action: str | None = None,
+    user_id: int | None = None,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Return the most recent administrative audit events.
+
+    Audit logs are staff-only and read-only. Existing audit
+    writers remain authoritative for creating entries.
+    """
+
+    limit = max(1, min(limit, 250))
+    offset = max(0, offset)
+
+    query = db.query(AuditLog)
+
+    if action:
+        query = query.filter(
+            AuditLog.action == action.strip()
+        )
+
+    if user_id is not None:
+        query = query.filter(
+            AuditLog.user_id == user_id
+        )
+
+    total = query.count()
+
+    logs = (
+        query
+        .order_by(AuditLog.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "items": [
+            {
+                "id": log.id,
+                "user_id": log.user_id,
+                "action": log.action,
+                "entity_type": log.entity_type,
+                "entity_id": log.entity_id,
+                "details": log.details,
+                "ip_address": log.ip_address,
+                "user_agent": log.user_agent,
+                "created_at": log.created_at,
+                "username": (
+                    log.user.username
+                    if log.user
+                    else None
+                ),
+            }
+            for log in logs
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+# ============================================================
 # PROGRAMME CONFIGURATION
 # ============================================================
 
