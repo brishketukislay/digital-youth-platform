@@ -934,6 +934,55 @@ export async function submitChallengeAttempt(
   );
 }
 
+export async function getStaffChallenges() {
+  return api.get<StaffChallenge[]>(
+    "/challenges/staff/list"
+  );
+}
+
+export async function createChallenge(
+  payload: ChallengeRequest
+) {
+  return api.post<PlayerChallenge>(
+    "/challenges/staff",
+    payload
+  );
+}
+
+export async function updateChallenge(
+  challengeId: Id,
+  payload: ChallengeRequest
+) {
+  return api.put<PlayerChallenge>(
+    `/challenges/staff/${challengeId}`,
+    payload
+  );
+}
+
+export async function enableChallenge(
+  challengeId: Id
+) {
+  return api.post<{
+    success: boolean;
+    id: Id;
+    active: boolean;
+  }>(
+    `/challenges/staff/${challengeId}/enable`
+  );
+}
+
+export async function disableChallenge(
+  challengeId: Id
+) {
+  return api.post<{
+    success: boolean;
+    id: Id;
+    active: boolean;
+  }>(
+    `/challenges/staff/${challengeId}/disable`
+  );
+}
+
 /* ============================================================
    CHALLENGE ATTEMPT REVIEW
    ============================================================ */
@@ -987,9 +1036,12 @@ export type StaffChallengeAttempt = {
   [key: string]: unknown;
 };
 
-export type StaffChallengeAttemptListResponse = {
-  attempts: StaffChallengeAttempt[];
-};
+export type StaffChallengeAttemptListResponse =
+  | StaffChallengeAttempt[]
+  | {
+      attempts: StaffChallengeAttempt[];
+      [key: string]: unknown;
+    };
 
 export type ChallengeAttemptRejectRequest = {
   reason: string;

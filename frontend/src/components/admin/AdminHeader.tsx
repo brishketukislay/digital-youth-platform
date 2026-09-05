@@ -56,6 +56,11 @@ const titles: Record<
     description:
       "Create and monitor time-bound engagement challenges.",
   },
+  attempts: {
+    title: "Challenge attempts",
+    description:
+      "Review, verify and reject submitted challenge attempts.",
+  },
   players: {
     title: "Players",
     description:
