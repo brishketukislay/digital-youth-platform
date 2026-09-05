@@ -8,6 +8,7 @@ import { ChallengeAttemptReview } from "../../components/admin/challenges/Challe
 import { PointEconomy } from "../../lib/admin/PointEconomy";
 import type { AdminSection } from "../../components/admin/adminTypes";
 import AdminProgramme from "./AdminProgramme";
+import RewardsManager from "../../components/admin/RewardsManager";
 
 export default function AdminDashboard() {
   const [section, setSection] =
@@ -32,6 +33,10 @@ export default function AdminDashboard() {
 
       {section === "jackpot" && (
         <JackpotPage />
+      )}
+
+      {section === "rewards" && (
+        <RewardsManager />
       )}
 
       {section === "challenges" && (
