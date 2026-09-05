@@ -184,6 +184,9 @@ export type Player = {
   id: Id;
   gamertag: string;
   avatar: string;
+  active?: boolean;
+  suspended?: boolean;
+  public_visible?: boolean;
   xp: number;
   group_id: Id | null;
 };

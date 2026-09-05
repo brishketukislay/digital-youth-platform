@@ -90,6 +90,64 @@ def audit(
 
 
 # ============================================================
+# AUDIT LOG
+# ============================================================
+
+@router.get("/audit")
+def get_audit_logs(
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0,
+):
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+
+    total = (
+        db.query(AuditLog)
+        .count()
+    )
+
+    logs = (
+        db.query(AuditLog)
+        .order_by(
+            AuditLog.created_at.desc(),
+            AuditLog.id.desc(),
+        )
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "items": [
+            {
+                "id": log.id,
+                "user_id": log.user_id,
+                "action": log.action,
+                "entity_type": log.entity_type,
+                "entity_id": log.entity_id,
+                "details": log.details,
+                "ip_address": log.ip_address,
+                "user_agent": log.user_agent,
+                "created_at": log.created_at,
+                "username": (
+                    log.user.username
+                    if log.user
+                    else None
+                ),
+            }
+            for log in logs
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+# ============================================================
 # OVERVIEW
 # ============================================================
 

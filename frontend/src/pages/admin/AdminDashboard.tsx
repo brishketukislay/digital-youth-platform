@@ -14,6 +14,7 @@ import AdminPhases from "./AdminPhases";
 import RewardsManager from "../../components/admin/RewardsManager";
 import PhaseManager from "../../components/admin/phases/PhaseManager";
 import { AuditLogPanel } from "../../components/admin/audit/AuditLogPanel";
+import { PlayersPanel } from "../../components/admin/people/PlayersPanel";
 
 export default function AdminDashboard() {
   const [section, setSection] =
@@ -62,6 +63,10 @@ export default function AdminDashboard() {
 
       {section === "attempts" && (
         <ChallengeAttemptReview />
+      )}
+
+      {section === "players" && (
+        <PlayersPanel />
       )}
 
       {section === "audit" && (
