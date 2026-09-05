@@ -153,6 +153,25 @@ def overview(
 # PROGRAMME CONFIGURATION
 # ============================================================
 
+class ProgrammeSettingsRequest(BaseModel):
+    name: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    target_xp: int | None = None
+    group_name: str | None = None
+    active: bool | None = None
+
+
+class PhaseRequest(BaseModel):
+    name: str
+    description: str | None = None
+    colour: str | None = None
+    icon: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    active: bool | None = True
+
+
 class ProgrammeRequest(BaseModel):
     name: str = Field(
         ...,
@@ -378,6 +397,305 @@ def award_player_xp(
     return {
         "success": True,
         "transaction_id": transaction.id,
+    }
+
+
+
+
+
+
+class PhaseResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+    colour: str | None = None
+    icon: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    active: bool
+    programme_id: int
+
+
+@router.get("/phases")
+def get_phases(
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    phases = (
+        db.query(Phase)
+        .filter(
+            Phase.programme_id == programme.id,
+        )
+        .order_by(
+            Phase.start_date.asc(),
+            Phase.id.asc(),
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": phase.id,
+            "name": phase.name,
+            "description": phase.description,
+            "colour": phase.colour,
+            "icon": phase.icon,
+            "start_date": phase.start_date,
+            "end_date": phase.end_date,
+            "active": phase.active,
+            "programme_id": phase.programme_id,
+        }
+        for phase in phases
+    ]
+
+
+@router.post("/phases")
+def create_phase(
+    data: PhaseRequest,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    name = data.name.strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Phase name is required.",
+        )
+
+    if (
+        data.start_date is not None
+        and data.end_date is not None
+        and data.end_date < data.start_date
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Phase end date cannot be before start date.",
+        )
+
+    phase = Phase(
+        programme_id=programme.id,
+        name=name,
+        description=(
+            data.description.strip()
+            if data.description
+            else None
+        ),
+        colour=(
+            data.colour.strip()
+            if data.colour
+            else None
+        ),
+        icon=(
+            data.icon.strip()
+            if data.icon
+            else "★"
+        ),
+        start_date=data.start_date,
+        end_date=data.end_date,
+        active=False,
+    )
+
+    db.add(phase)
+    db.flush()
+
+    audit(
+        db,
+        user.id,
+        "phase.created",
+        (
+            f"phase_id={phase.id};"
+            f"name={phase.name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": phase.id,
+        "name": phase.name,
+    }
+
+
+@router.put("/phases/{phase_id}")
+def update_phase(
+    phase_id: int,
+    data: PhaseRequest,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    phase = (
+        db.query(Phase)
+        .filter(
+            Phase.id == phase_id,
+            Phase.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not phase:
+        raise HTTPException(
+            status_code=404,
+            detail="Phase not found.",
+        )
+
+    if (
+        data.start_date is not None
+        and data.end_date is not None
+        and data.end_date < data.start_date
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Phase end date cannot be before start date.",
+        )
+
+    phase.name = data.name.strip()
+    phase.description = (
+        data.description.strip()
+        if data.description
+        else None
+    )
+
+    if data.colour is not None:
+        phase.colour = data.colour.strip()
+
+    if data.icon is not None:
+        phase.icon = data.icon.strip() or "★"
+
+    phase.start_date = data.start_date
+    phase.end_date = data.end_date
+
+    if data.active is not None:
+        phase.active = data.active
+
+    audit(
+        db,
+        user.id,
+        "phase.updated",
+        (
+            f"phase_id={phase.id};"
+            f"name={phase.name};"
+            f"active={phase.active}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": phase.id,
+    }
+
+
+@router.delete("/phases/{phase_id}")
+def delete_phase(
+    phase_id: int,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    phase = (
+        db.query(Phase)
+        .filter(
+            Phase.id == phase_id,
+            Phase.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not phase:
+        raise HTTPException(
+            status_code=404,
+            detail="Phase not found.",
+        )
+
+    if phase.active:
+        raise HTTPException(
+            status_code=400,
+            detail="Active phase cannot be deleted. Activate another phase first.",
+        )
+
+    phase_name = phase.name
+
+    db.delete(phase)
+
+    audit(
+        db,
+        user.id,
+        "phase.deleted",
+        (
+            f"phase_id={phase_id};"
+            f"name={phase_name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": phase_id,
+    }
+
+
+@router.post("/phases/{phase_id}/activate")
+def activate_phase(
+    phase_id: int,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    phase = (
+        db.query(Phase)
+        .filter(
+            Phase.id == phase_id,
+            Phase.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not phase:
+        raise HTTPException(
+            status_code=404,
+            detail="Phase not found.",
+        )
+
+    db.query(Phase).filter(
+        Phase.programme_id == programme.id,
+    ).update(
+        {
+            Phase.active: False,
+        },
+        synchronize_session=False,
+    )
+
+    phase.active = True
+
+    programme.active_phase_id = phase.id
+
+    audit(
+        db,
+        user.id,
+        "phase.activated",
+        (
+            f"phase_id={phase.id};"
+            f"name={phase.name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": phase.id,
     }
 
 

@@ -439,6 +439,24 @@ export async function createPhase(
   );
 }
 
+export async function updatePhase(
+  id: Id,
+  data: PhaseRequest
+) {
+  return api.put<ApiSuccess>(
+    `/admin/phases/${id}`,
+    data
+  );
+}
+
+export async function activatePhase(
+  id: Id
+) {
+  return api.post<ApiSuccess>(
+    `/admin/phases/${id}/activate`
+  );
+}
+
 /* ============================================================
    POINT RULES
    ============================================================ */
