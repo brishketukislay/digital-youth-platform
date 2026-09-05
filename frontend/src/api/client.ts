@@ -257,6 +257,10 @@ export type Theme = {
   background: string;
   surface: string;
   text: string;
+  logo_url?: string | null;
+  font_family?: string | null;
+  active?: boolean;
+  selected?: boolean;
 };
 
 export type ThemeRequest = {
@@ -267,6 +271,8 @@ export type ThemeRequest = {
   background: string;
   surface: string;
   text: string;
+  logo_url?: string | null;
+  font_family?: string | null;
 };
 
 export async function getThemes() {

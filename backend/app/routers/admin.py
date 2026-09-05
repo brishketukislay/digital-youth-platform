@@ -1672,6 +1672,331 @@ def disable_jackpot_milestone(
 
 
 # ============================================================
+# THEMES
+# ============================================================
+
+class ThemeRequest(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+    )
+
+    primary: str = Field(
+        default="#18775B",
+        min_length=4,
+        max_length=20,
+    )
+
+    secondary: str = Field(
+        default="#0F513C",
+        min_length=4,
+        max_length=20,
+    )
+
+    accent: str = Field(
+        default="#43B98B",
+        min_length=4,
+        max_length=20,
+    )
+
+    background: str = Field(
+        default="#F3F7F5",
+        min_length=4,
+        max_length=20,
+    )
+
+    surface: str = Field(
+        default="#FFFFFF",
+        min_length=4,
+        max_length=20,
+    )
+
+    text: str = Field(
+        default="#17221E",
+        min_length=4,
+        max_length=20,
+    )
+
+    logo_url: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    font_family: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+
+def theme_response(
+    theme: Theme,
+    programme: Programme,
+):
+    return {
+        "id": theme.id,
+        "name": theme.name,
+        "primary": theme.primary,
+        "secondary": theme.secondary,
+        "accent": theme.accent,
+        "background": theme.background,
+        "surface": theme.surface,
+        "text": theme.text,
+        "logo_url": theme.logo_url,
+        "font_family": theme.font_family,
+        "active": theme.active,
+        "selected": (
+            theme.id == programme.active_theme_id
+        ),
+    }
+
+
+@router.get("/themes")
+def admin_themes(
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    themes = (
+        db.query(Theme)
+        .filter(
+            Theme.programme_id == programme.id
+        )
+        .order_by(
+            Theme.name.asc(),
+            Theme.id.asc(),
+        )
+        .all()
+    )
+
+    return [
+        theme_response(theme, programme)
+        for theme in themes
+    ]
+
+
+@router.post("/themes")
+def create_theme(
+    data: ThemeRequest,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    name = data.name.strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Theme name is required.",
+        )
+
+    duplicate = (
+        db.query(Theme)
+        .filter(
+            Theme.programme_id == programme.id,
+            Theme.name == name,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise HTTPException(
+            status_code=409,
+            detail="A theme with this name already exists.",
+        )
+
+    theme = Theme(
+        programme_id=programme.id,
+        name=name,
+        primary=data.primary.strip(),
+        secondary=data.secondary.strip(),
+        accent=data.accent.strip(),
+        background=data.background.strip(),
+        surface=data.surface.strip(),
+        text=data.text.strip(),
+        logo_url=(
+            data.logo_url.strip()
+            if data.logo_url
+            else None
+        ),
+        font_family=(
+            data.font_family.strip()
+            if data.font_family
+            else None
+        ),
+        active=True,
+    )
+
+    db.add(theme)
+    db.flush()
+
+    audit(
+        db,
+        user.id,
+        "theme.created",
+        (
+            f"id={theme.id};"
+            f"name={theme.name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": theme.id,
+    }
+
+
+@router.put("/themes/{theme_id}")
+def update_theme(
+    theme_id: int,
+    data: ThemeRequest,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    theme = (
+        db.query(Theme)
+        .filter(
+            Theme.id == theme_id,
+            Theme.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not theme:
+        raise HTTPException(
+            status_code=404,
+            detail="Theme not found.",
+        )
+
+    name = data.name.strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Theme name is required.",
+        )
+
+    duplicate = (
+        db.query(Theme)
+        .filter(
+            Theme.programme_id == programme.id,
+            Theme.name == name,
+            Theme.id != theme.id,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise HTTPException(
+            status_code=409,
+            detail="A theme with this name already exists.",
+        )
+
+    theme.name = name
+    theme.primary = data.primary.strip()
+    theme.secondary = data.secondary.strip()
+    theme.accent = data.accent.strip()
+    theme.background = data.background.strip()
+    theme.surface = data.surface.strip()
+    theme.text = data.text.strip()
+    theme.logo_url = (
+        data.logo_url.strip()
+        if data.logo_url
+        else None
+    )
+    theme.font_family = (
+        data.font_family.strip()
+        if data.font_family
+        else None
+    )
+
+    audit(
+        db,
+        user.id,
+        "theme.updated",
+        (
+            f"id={theme.id};"
+            f"name={theme.name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": theme.id,
+    }
+
+
+@router.post("/themes/{theme_id}/activate")
+def activate_theme(
+    theme_id: int,
+    user=Depends(
+        require_roles("admin")
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    theme = (
+        db.query(Theme)
+        .filter(
+            Theme.id == theme_id,
+            Theme.programme_id == programme.id,
+            Theme.active == True,
+        )
+        .first()
+    )
+
+    if not theme:
+        raise HTTPException(
+            status_code=404,
+            detail="Theme not found.",
+        )
+
+    db.query(Theme).filter(
+        Theme.programme_id == programme.id,
+    ).update(
+        {
+            Theme.active: False,
+        },
+        synchronize_session=False,
+    )
+
+    theme.active = True
+    programme.active_theme_id = theme.id
+
+    audit(
+        db,
+        user.id,
+        "theme.activated",
+        (
+            f"id={theme.id};"
+            f"name={theme.name}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": theme.id,
+    }
+
+
+# ============================================================
 # SIMPLE ADMIN DATA ENDPOINTS
 # ============================================================
 
