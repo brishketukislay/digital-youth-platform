@@ -19,6 +19,7 @@ from ..db.models import (
     GameMap,
     MapLocation,
     Phase,
+    PhaseLocation,
     PointRule,
     Reward,
     ProgrammeMilestone,
@@ -1748,6 +1749,428 @@ def theme_response(
         "selected": (
             theme.id == programme.active_theme_id
         ),
+    }
+
+
+@router.get("/maps")
+def admin_maps(
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    maps = (
+        db.query(GameMap)
+        .filter(GameMap.programme_id == programme.id)
+        .order_by(GameMap.name.asc(), GameMap.id.asc())
+        .all()
+    )
+
+    return [
+        {
+            "id": game_map.id,
+            "name": game_map.name,
+            "description": game_map.description,
+            "background_image": game_map.background_image,
+            "active": game_map.active,
+            "locations": [
+                {
+                    "id": location.id,
+                    "name": location.name,
+                    "description": location.description,
+                    "x": location.x,
+                    "y": location.y,
+                    "icon": location.icon,
+                    "active": location.active,
+                    "phases": [
+                        {
+                            "id": link.phase.id,
+                            "name": link.phase.name,
+                        }
+                        for link in location.phase_links
+                        if link.phase is not None
+                    ],
+                }
+                for location in game_map.locations
+            ],
+        }
+        for game_map in maps
+    ]
+
+
+class MapRequest(BaseModel):
+    name: str
+    description: str | None = None
+    background_image: str | None = None
+    active: bool = True
+
+
+class MapLocationRequest(BaseModel):
+    name: str
+    description: str | None = None
+    x: float = 0.5
+    y: float = 0.5
+    icon: str = "pin"
+    active: bool = True
+    phase_ids: list[int] = []
+
+
+@router.post("/maps")
+def create_map(
+    data: MapRequest,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    if not data.name.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Map name is required.",
+        )
+
+    game_map = GameMap(
+        programme_id=programme.id,
+        name=data.name.strip(),
+        description=data.description.strip() if data.description else None,
+        background_image=(
+            data.background_image.strip()
+            if data.background_image
+            else None
+        ),
+        active=data.active,
+    )
+
+    db.add(game_map)
+    db.commit()
+    db.refresh(game_map)
+
+    audit(
+        db,
+        user.id,
+        "map.created",
+        f"map_id={game_map.id};name={game_map.name}",
+    )
+    db.commit()
+
+    return {
+        "success": True,
+        "id": game_map.id,
+    }
+
+
+@router.put("/maps/{map_id}")
+def update_map(
+    map_id: int,
+    data: MapRequest,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    game_map = (
+        db.query(GameMap)
+        .filter(
+            GameMap.id == map_id,
+            GameMap.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not game_map:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found.",
+        )
+
+    if not data.name.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Map name is required.",
+        )
+
+    game_map.name = data.name.strip()
+    game_map.description = (
+        data.description.strip()
+        if data.description
+        else None
+    )
+    game_map.background_image = (
+        data.background_image.strip()
+        if data.background_image
+        else None
+    )
+    game_map.active = data.active
+
+    db.commit()
+
+    audit(
+        db,
+        user.id,
+        "map.updated",
+        f"map_id={game_map.id};name={game_map.name}",
+    )
+    db.commit()
+
+    return {
+        "success": True,
+        "id": game_map.id,
+    }
+
+
+@router.delete("/maps/{map_id}")
+def delete_map(
+    map_id: int,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    game_map = (
+        db.query(GameMap)
+        .filter(
+            GameMap.id == map_id,
+            GameMap.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not game_map:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found.",
+        )
+
+    db.delete(game_map)
+
+    audit(
+        db,
+        user.id,
+        "map.deleted",
+        f"map_id={map_id}",
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": map_id,
+    }
+
+
+@router.post("/maps/{map_id}/locations")
+def create_map_location(
+    map_id: int,
+    data: MapLocationRequest,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    game_map = (
+        db.query(GameMap)
+        .filter(
+            GameMap.id == map_id,
+            GameMap.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not game_map:
+        raise HTTPException(
+            status_code=404,
+            detail="Map not found.",
+        )
+
+    if not data.name.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Location name is required.",
+        )
+
+    if not 0 <= data.x <= 1 or not 0 <= data.y <= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Location coordinates must be between 0 and 1.",
+        )
+
+    location = MapLocation(
+        map_id=game_map.id,
+        name=data.name.strip(),
+        description=data.description.strip() if data.description else None,
+        x=data.x,
+        y=data.y,
+        icon=data.icon.strip() or "pin",
+        active=data.active,
+    )
+
+    db.add(location)
+    db.flush()
+
+    phases = (
+        db.query(Phase)
+        .filter(
+            Phase.programme_id == programme.id,
+            Phase.id.in_(data.phase_ids),
+        )
+        .all()
+        if data.phase_ids
+        else []
+    )
+
+    for phase in phases:
+        location.phase_links.append(
+            PhaseLocation(
+                phase_id=phase.id,
+                location_id=location.id,
+            )
+        )
+
+    audit(
+        db,
+        user.id,
+        "map.location.created",
+        f"map_id={map_id};location_id={location.id};name={location.name}",
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": location.id,
+    }
+
+
+@router.put("/maps/{map_id}/locations/{location_id}")
+def update_map_location(
+    map_id: int,
+    location_id: int,
+    data: MapLocationRequest,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    location = (
+        db.query(MapLocation)
+        .join(GameMap, GameMap.id == MapLocation.map_id)
+        .filter(
+            MapLocation.id == location_id,
+            MapLocation.map_id == map_id,
+            GameMap.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not location:
+        raise HTTPException(
+            status_code=404,
+            detail="Location not found.",
+        )
+
+    if not data.name.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Location name is required.",
+        )
+
+    if not 0 <= data.x <= 1 or not 0 <= data.y <= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Location coordinates must be between 0 and 1.",
+        )
+
+    location.name = data.name.strip()
+    location.description = (
+        data.description.strip()
+        if data.description
+        else None
+    )
+    location.x = data.x
+    location.y = data.y
+    location.icon = data.icon.strip() or "pin"
+    location.active = data.active
+
+    db.query(PhaseLocation).filter(
+        PhaseLocation.location_id == location.id,
+    ).delete(
+        synchronize_session=False,
+    )
+
+    phases = (
+        db.query(Phase)
+        .filter(
+            Phase.programme_id == programme.id,
+            Phase.id.in_(data.phase_ids),
+        )
+        .all()
+        if data.phase_ids
+        else []
+    )
+
+    for phase in phases:
+        db.add(
+            PhaseLocation(
+                phase_id=phase.id,
+                location_id=location.id,
+            )
+        )
+
+    audit(
+        db,
+        user.id,
+        "map.location.updated",
+        f"map_id={map_id};location_id={location.id};name={location.name}",
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": location.id,
+    }
+
+
+@router.delete("/maps/{map_id}/locations/{location_id}")
+def delete_map_location(
+    map_id: int,
+    location_id: int,
+    user=Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    location = (
+        db.query(MapLocation)
+        .join(GameMap, GameMap.id == MapLocation.map_id)
+        .filter(
+            MapLocation.id == location_id,
+            MapLocation.map_id == map_id,
+            GameMap.programme_id == programme.id,
+        )
+        .first()
+    )
+
+    if not location:
+        raise HTTPException(
+            status_code=404,
+            detail="Location not found.",
+        )
+
+    db.delete(location)
+
+    audit(
+        db,
+        user.id,
+        "map.location.deleted",
+        f"map_id={map_id};location_id={location_id}",
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": location_id,
     }
 
 
