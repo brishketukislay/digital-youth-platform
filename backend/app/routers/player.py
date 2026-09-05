@@ -251,8 +251,10 @@ def dashboard(
     # ------------------------------------------------------------
     # REWARDS
     #
-    # Automatically grant active rewards when the player reaches
-    # the configured XP threshold.
+    # Rewards are granted by the XP service when an XP transaction
+    # causes the player to cross a configured threshold.
+    #
+    # The dashboard only reads the resulting PlayerReward records.
     # ------------------------------------------------------------
 
     active_rewards = (
@@ -276,41 +278,16 @@ def dashboard(
         .all()
     )
 
-    granted_reward_ids = {
-        reward.reward_id
-        for reward in player_rewards
+    player_reward_by_id = {
+        player_reward.reward_id: player_reward
+        for player_reward in player_rewards
     }
-
-    for reward in active_rewards:
-        if (
-            reward.xp_threshold is not None
-            and player_total >= reward.xp_threshold
-            and reward.id not in granted_reward_ids
-        ):
-            player_reward = PlayerReward(
-                player_id=player.id,
-                reward_id=reward.id,
-                status="pending",
-            )
-
-            db.add(player_reward)
-            db.flush()
-
-            player_rewards.append(player_reward)
-            granted_reward_ids.add(reward.id)
-
-    db.commit()
 
     mystery_rewards = []
 
     for reward in active_rewards:
-        player_reward = next(
-            (
-                item
-                for item in player_rewards
-                if item.reward_id == reward.id
-            ),
-            None,
+        player_reward = player_reward_by_id.get(
+            reward.id
         )
 
         mystery_rewards.append({

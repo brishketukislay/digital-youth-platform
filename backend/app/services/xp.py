@@ -13,6 +13,8 @@ from ..db.models import (
     XPTransaction,
 )
 
+from .rewards import grant_eligible_rewards
+
 
 class XPError(Exception):
     """Base XP-domain exception."""
@@ -539,6 +541,26 @@ def award_xp(
             return existing
 
         raise
+
+    # ---------------------------------------------------------------
+    # REWARD THRESHOLDS
+    #
+    # Rewards are granted as part of the XP transaction flow rather
+    # than waiting for the player dashboard to be opened.
+    #
+    # This does not commit. The caller still owns the transaction.
+    # ---------------------------------------------------------------
+
+    lifetime_xp = player_xp(
+        db,
+        player.id,
+    )
+
+    grant_eligible_rewards(
+        db,
+        player=player,
+        lifetime_xp=lifetime_xp,
+    )
 
     return transaction
 
