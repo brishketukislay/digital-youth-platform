@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..core.config import settings
@@ -34,12 +34,45 @@ connect_args: dict[str, object] = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 
+    # Disable pysqlite's implicit transaction handling.
+    #
+    # SQLAlchemy will control BEGIN / COMMIT / ROLLBACK explicitly.
+    connect_args["isolation_level"] = None
+
 
 engine = create_engine(
     DATABASE_URL,
     connect_args=connect_args,
     future=True,
 )
+
+
+# ---------------------------------------------------------------------------
+# SQLite transaction control
+# ---------------------------------------------------------------------------
+#
+# pysqlite has historically tried to manage transactions itself. That can
+# interfere with SQLAlchemy's Session transaction boundaries, particularly
+# when using SQLite for application-level tests.
+#
+# Setting the DBAPI isolation_level to None disables that behaviour.
+# SQLAlchemy then owns the transaction boundary.
+#
+# Every SQLAlchemy transaction gets an explicit BEGIN.
+#
+
+if DATABASE_URL.startswith("sqlite"):
+
+    @event.listens_for(engine, "connect")
+    def _sqlite_disable_implicit_transactions(dbapi_connection, connection_record):
+        # Disable pysqlite's automatic BEGIN/COMMIT behaviour.
+        dbapi_connection.isolation_level = None
+
+    @event.listens_for(engine, "begin")
+    def _sqlite_explicit_begin(connection):
+        # SQLAlchemy Session.begin()/flush()/rollback() now operate against
+        # a real SQLite transaction.
+        connection.exec_driver_sql("BEGIN")
 
 
 # ---------------------------------------------------------------------------

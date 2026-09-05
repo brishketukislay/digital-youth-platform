@@ -325,6 +325,7 @@ def award_xp(
     reason: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    idempotency_key: str | None = None,
     reference: str | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
@@ -398,7 +399,45 @@ def award_xp(
             reference_id = parsed_id
 
     # ---------------------------------------------------------------
-    # Idempotency.
+    # Idempotency key.
+    #
+    # A supplied idempotency key represents the same logical request.
+    # Repeating the same key with the same payload returns the original
+    # transaction. Reusing it with different values is an error.
+    # ---------------------------------------------------------------
+
+    if idempotency_key is not None:
+        idempotency_key = idempotency_key.strip()
+
+        if not idempotency_key:
+            idempotency_key = None
+
+    if idempotency_key is not None:
+        existing = (
+            db.query(XPTransaction)
+            .filter(
+                XPTransaction.idempotency_key == idempotency_key,
+            )
+            .first()
+        )
+
+        if existing is not None:
+            if (
+                existing.programme_id != programme_id
+                or existing.player_id != player_id
+                or existing.amount != amount
+                or existing.group_amount != group_amount
+                or existing.transaction_type != transaction_type
+            ):
+                raise DuplicateXPTransactionError(
+                    "An XP transaction already exists for this "
+                    "idempotency key with different values."
+                )
+
+            return existing
+
+    # ---------------------------------------------------------------
+    # Business-event/reference idempotency.
     # ---------------------------------------------------------------
 
     if (
@@ -438,22 +477,40 @@ def award_xp(
         amount=amount,
         group_amount=group_amount,
         transaction_type=transaction_type,
+        idempotency_key=idempotency_key,
         reason=reason,
         reference_type=reference_type,
         reference_id=reference_id,
         created_by=created_by,
     )
 
-    db.add(transaction)
+    # ---------------------------------------------------------------
+    # Create transaction inside a savepoint.
+    #
+    # This allows a uniqueness race to be handled without rolling
+    # back the caller's entire database transaction.
+    # ---------------------------------------------------------------
 
     try:
-        db.flush()
-    except IntegrityError:
-        # A concurrent request may have created the same
-        # reference between our idempotency check and flush.
-        db.rollback()
+        with db.begin_nested():
+            db.add(transaction)
+            db.flush()
 
-        if (
+    except IntegrityError:
+        # Another request may have created the same idempotency key
+        # or reference between our lookup and flush.
+        existing = None
+
+        if idempotency_key is not None:
+            existing = (
+                db.query(XPTransaction)
+                .filter(
+                    XPTransaction.idempotency_key == idempotency_key,
+                )
+                .first()
+            )
+
+        if existing is None and (
             reference_type is not None
             and reference_id is not None
         ):
@@ -466,18 +523,20 @@ def award_xp(
                 .first()
             )
 
-            if existing is not None:
-                if (
-                    existing.player_id != player.id
-                    or existing.amount != amount
-                    or existing.group_amount != group_amount
-                ):
-                    raise DuplicateXPTransactionError(
-                        "An XP transaction already exists "
-                        "for this reference with different values."
-                    )
+        if existing is not None:
+            if (
+                existing.programme_id != programme_id
+                or existing.player_id != player.id
+                or existing.amount != amount
+                or existing.group_amount != group_amount
+                or existing.transaction_type != transaction_type
+            ):
+                raise DuplicateXPTransactionError(
+                    "An XP transaction already exists for this "
+                    "idempotency key/reference with different values."
+                )
 
-                return existing
+            return existing
 
         raise
 
