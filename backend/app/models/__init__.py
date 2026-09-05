@@ -1,108 +1,119 @@
-from .base import Base
+from app.db.base import Base
+"""
+Compatibility exports for the application's canonical SQLAlchemy models.
 
-from .user import User
-from .group import Group
-from .player import Player
-from .programme import Programme
-from .phase import Phase
+The authoritative model registry is app.db.models.
 
-from .map import GameMap
-from .map_location import MapLocation
+This module exists for compatibility with code that historically imported
+models from app.models.
+"""
 
-from .resource import Resource
-from .challenge import Challenge, ChallengeStatus
-from .challenge_attempt import ChallengeAttempt
+from app.db.models import (
+    AuditLog,
+    Attendance,
+    AttendanceSession,
+    Badge,
+    Challenge,
+    ChallengeAttempt,
+    CommunityAward,
+    ConductIncident,
+    ConductRule,
+    EngagementFlag,
+    FlashEvent,
+    GameDefinition,
+    GameMap,
+    GroupPenalty,
+    Kudos,
+    MapLocation,
+    Notification,
+    Phase,
+    PhaseLocation,
+    Player,
+    PlayerBadge,
+    PlayerReward,
+    PointRule,
+    Programme,
+    ProgrammeGame,
+    ProgrammeMilestone,
+    Resource,
+    Reward,
+    SkillMilestone,
+    SkillTree,
+    SystemSetting,
+    Theme,
+    User,
+    XPTransaction,
+    YouthGroup,
+)
 
-from .cohort import Cohort
-from .cohort_membership import CohortMembership
+# Compatibility aliases used by newer/older modules.
+Group = YouthGroup
 
-from .platform_config import PlatformConfig
-from .phase_activity import PhaseActivity
+# These are enum/value types, not SQLAlchemy model classes.
+#
+# Import them directly from gamification.py. This is safe because importing
+# the module itself would register duplicate ORM models, so we deliberately
+# obtain the enum definitions without importing the gamification module here.
+#
+# The canonical core XPTransaction uses a string transaction_type, so the
+# compatibility enum is defined locally.
+from enum import Enum
 
-from .skill_definition import SkillDefinition
-from .player_skill import PlayerSkill, PlayerSkillStatus
-from .player_skill_milestone import PlayerSkillMilestone
 
-from .skill_tree import SkillTree, SkillTreeStatus
-from .skill_tree_milestone import SkillTreeMilestone
-
-from .reward import Reward, RewardScope, RewardStatus, RewardType
-from .reward_claim import RewardClaim, RewardClaimStatus
-from .reward_milestone import MilestoneScope, RewardMilestone
-
-from .badge import Badge
-from .player_badge import PlayerBadge
-
-from .cosmetic import Cosmetic, CosmeticType
-from .player_cosmetic import PlayerCosmetic
-
-from .xp_transaction import XPTransaction, XPTransactionType
-from .player_xp_balance import PlayerXPBalance
-from .group_xp_balance import GroupXPBalance
-
-from .community_award import CommunityAward, CommunityAwardStatus
-from .community_award_category import CommunityAwardCategory
-
-from .session import SessionStatus, YouthSession
-from .attendance import Attendance, AttendanceStatus, CheckInMethod
-
-from .xp_rule import XPRule, XPRuleType
-from .programme_economy import ProgrammeEconomy
-
-from .theme import ProgrammeTheme
+class XPTransactionType(str, Enum):
+    ATTENDANCE = "attendance"
+    BEHAVIOUR = "behaviour"
+    REFLECTION = "reflection"
+    ACTIVITY = "activity"
+    CHALLENGE = "challenge"
+    CIVIC_ACTION = "civic_action"
+    COMMUNITY_AWARD = "community_award"
+    SKILL_MILESTONE = "skill_milestone"
+    BADGE = "badge"
+    BONUS = "bonus"
+    MULTIPLIER = "multiplier"
+    PENALTY = "penalty"
+    GROUP_PENALTY = "group_penalty"
+    ADMIN_ADJUSTMENT = "admin_adjustment"
+    SYSTEM = "system"
 
 
 __all__ = [
-    "Base",
-    "User",
-    "Group",
-    "Player",
-    "Programme",
-    "Phase",
-    "GameMap",
-    "MapLocation",
-    "Resource",
-    "Challenge",
-    "ChallengeStatus",
-    "ChallengeAttempt",
-    "Cohort",
-    "CohortMembership",
-    "PlatformConfig",
-    "PhaseActivity",
-    "SkillDefinition",
-    "PlayerSkill",
-    "PlayerSkillStatus",
-    "PlayerSkillMilestone",
-    "SkillTree",
-    "SkillTreeStatus",
-    "SkillTreeMilestone",
-    "Reward",
-    "RewardScope",
-    "RewardStatus",
-    "RewardType",
-    "RewardClaim",
-    "RewardClaimStatus",
-    "MilestoneScope",
-    "RewardMilestone",
+    "AuditLog",
+    "Attendance",
+    "AttendanceSession",
     "Badge",
+    "Challenge",
+    "ChallengeAttempt",
+    "CommunityAward",
+    "ConductIncident",
+    "ConductRule",
+    "EngagementFlag",
+    "FlashEvent",
+    "GameDefinition",
+    "GameMap",
+    "GroupPenalty",
+    "Kudos",
+    "MapLocation",
+    "Notification",
+    "Phase",
+    "PhaseLocation",
+    "Player",
     "PlayerBadge",
-    "Cosmetic",
-    "CosmeticType",
-    "PlayerCosmetic",
+    "PlayerReward",
+    "PointRule",
+    "Programme",
+    "ProgrammeGame",
+    "ProgrammeMilestone",
+    "Resource",
+    "Reward",
+    "SkillMilestone",
+    "SkillTree",
+    "SystemSetting",
+    "Theme",
+    "User",
     "XPTransaction",
     "XPTransactionType",
-    "PlayerXPBalance",
-    "GroupXPBalance",
-    "CommunityAward",
-    "CommunityAwardStatus",
-    "CommunityAwardCategory",
-    "SessionStatus",
-    "YouthSession",
-    "Attendance",
-    "AttendanceStatus",
-    "CheckInMethod",
-    "XPRule",
-    "XPRuleType",
-    "ProgrammeEconomy",
-    "ProgrammeTheme",
+    "YouthGroup",
+    "Group",
 ]

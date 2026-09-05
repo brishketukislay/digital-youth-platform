@@ -883,6 +883,16 @@ class XPTransaction(Base):
         index=True,
     )
 
+    # Idempotency key used by the XP service to prevent duplicate awards.
+    #
+    # Nullable for legacy transactions created before idempotency was added.
+    # The database already contains a unique partial index for non-null keys.
+    idempotency_key: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        index=False,
+    )
+
     reason: Mapped[Optional[str]] = mapped_column(
         String(500),
         nullable=True,
