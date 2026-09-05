@@ -82,7 +82,6 @@ def get_player_xp(
         )
         .filter(
             XPTransaction.player_id == player_id,
-            XPTransaction.status == "posted",
         )
         .scalar()
     )
@@ -116,7 +115,6 @@ def get_programme_xp(
         )
         .filter(
             YouthGroup.programme_id == programme_id,
-            XPTransaction.status == "posted",
         )
         .scalar()
     )
@@ -497,7 +495,6 @@ def get_high_risers(
             Player.active.is_(True),
             Player.public_visible.is_(True),
             XPTransaction.created_at >= since,
-            XPTransaction.status == "posted",
         )
         .group_by(
             Player.id,
