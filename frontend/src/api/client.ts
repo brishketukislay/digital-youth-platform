@@ -1282,3 +1282,42 @@ export async function disableJackpotMilestone(
     `/admin/jackpot/milestones/${id}`
   );
 }
+
+/**
+ * Generic authenticated API helper used by admin modules.
+ */
+export async function apiFetch<T = unknown>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    let detail = `Request failed with status ${response.status}`;
+
+    try {
+      const data = await response.json();
+
+      if (typeof data?.detail === "string") {
+        detail = data.detail;
+      }
+    } catch {
+      // Keep the default error message.
+    }
+
+    throw new Error(detail);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json() as Promise<T>;
+}

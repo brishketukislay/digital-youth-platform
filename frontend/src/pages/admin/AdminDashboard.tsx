@@ -8,6 +8,7 @@ import { ChallengeAttemptReview } from "../../components/admin/challenges/Challe
 import { PointEconomy } from "../../lib/admin/PointEconomy";
 import type { AdminSection } from "../../components/admin/adminTypes";
 import AdminProgramme from "./AdminProgramme";
+import AdminMap from "./AdminMap";
 import AdminThemes from "./AdminThemes";
 import AdminPhases from "./AdminPhases";
 import RewardsManager from "../../components/admin/RewardsManager";
@@ -36,6 +37,10 @@ export default function AdminDashboard() {
 
       {section === "phases" && (
         <AdminPhases />
+      )}
+
+      {section === "map" && (
+        <AdminMap />
       )}
 
       {section === "points" && (
