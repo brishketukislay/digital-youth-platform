@@ -1,4 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  getPointRules,
+  getProgramme,
+  updatePointRule,
+  type PointRule,
+} from "../../api/client";
 
 import {
   calculateProjection,
@@ -10,105 +17,106 @@ import { PointRuleTable } from "./PointRuleTable";
 import { PointRuleEditor } from "./PointRuleEditor";
 import { EconomyHealth } from "./EconomyHealth";
 
-const initialRules: PointRuleCalculation[] = [
-  {
-    id: "attendance",
-    name: "Attendance scans",
-    xpPerAward: 500,
-    awardsPerWeek: 15,
-    weeklyYield: 7500,
-    enabled: true,
-  },
-  {
-    id: "behaviour",
-    name: "Daily behaviour baseline",
-    xpPerAward: 1000,
-    awardsPerWeek: 15,
-    weeklyYield: 15000,
-    enabled: true,
-  },
-  {
-    id: "processing-chat",
-    name: "60-second processing chats",
-    xpPerAward: 1200,
-    awardsPerWeek: 15,
-    weeklyYield: 18000,
-    enabled: true,
-  },
-  {
-    id: "weekend-game",
-    name: "Time-bound game participation",
-    xpPerAward: 300,
-    awardsPerWeek: 15,
-    weeklyYield: 4500,
-    enabled: true,
-  },
-  {
-    id: "civic-action",
-    name: "Community nominations",
-    xpPerAward: 5000,
-    awardsPerWeek: 2,
-    weeklyYield: 10000,
-    enabled: true,
-  },
-  {
-    id: "skill-tree",
-    name: "Skill tree completion surge",
-    xpPerAward: 5000,
-    awardsPerWeek: 1,
-    weeklyYield: 5000,
-    enabled: true,
-  },
-  {
-    id: "loot-wheel",
-    name: "Loot wheel",
-    xpPerAward: 3500,
-    awardsPerWeek: 2,
-    weeklyYield: 7000,
-    enabled: true,
-  },
-  {
-    id: "elite-performance",
-    name: "Elite game performance",
-    xpPerAward: 1500,
-    awardsPerWeek: 1,
-    weeklyYield: 1500,
-    enabled: true,
-  },
-  {
-    id: "event-winner",
-    name: "Time-bound event winner",
-    xpPerAward: 5000,
-    awardsPerWeek: 1,
-    weeklyYield: 5000,
-    enabled: true,
-  },
-];
+function toCalculation(rule: PointRule): PointRuleCalculation {
+  return {
+    id: String(rule.id),
+    name: rule.name,
+    xpPerAward: Math.max(
+      0,
+      Number(rule.individual_xp || 0),
+    ),
+    awardsPerWeek: 0,
+    weeklyYield: 0,
+    enabled: Boolean(rule.enabled),
+  };
+}
 
 export function PointEconomy() {
-  const [rules, setRules] =
-    useState<PointRuleCalculation[]>(
-      initialRules,
-    );
-
+  const [rules, setRules] = useState<PointRule[]>([]);
   const [selectedRule, setSelectedRule] =
     useState<PointRuleCalculation | null>(null);
 
-  const [saving, setSaving] =
-    useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [programmeWeeks, setProgrammeWeeks] =
     useState(24);
 
-  const [currentXp, setCurrentXp] =
-    useState(0);
-
+  const [currentXp, setCurrentXp] = useState(0);
   const [targetXp, setTargetXp] =
     useState(1_500_000);
 
-  const weeklyYield = useMemo(
-    () => calculateWeeklyYield(rules),
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [rulesResponse, programmeResponse] =
+        await Promise.all([
+          getPointRules(),
+          getProgramme(),
+        ]);
+
+      setRules(rulesResponse.data);
+
+      setTargetXp(
+        Number(
+          programmeResponse.data.target_xp ||
+            1_500_000,
+        ),
+      );
+
+      if (
+        programmeResponse.data.start_date &&
+        programmeResponse.data.end_date
+      ) {
+        const start = new Date(
+          programmeResponse.data.start_date,
+        );
+
+        const end = new Date(
+          programmeResponse.data.end_date,
+        );
+
+        const millisecondsPerWeek =
+          7 * 24 * 60 * 60 * 1000;
+
+        const calculatedWeeks = Math.max(
+          1,
+          Math.ceil(
+            (end.getTime() - start.getTime()) /
+              millisecondsPerWeek,
+          ),
+        );
+
+        setProgrammeWeeks(
+          Math.min(104, calculatedWeeks),
+        );
+      }
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "Unable to load the point economy. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const calculations = useMemo(
+    () => rules.map(toCalculation),
     [rules],
+  );
+
+  const weeklyYield = useMemo(
+    () => calculateWeeklyYield(calculations),
+    [calculations],
   );
 
   const projection = useMemo(
@@ -127,55 +135,99 @@ export function PointEconomy() {
     ],
   );
 
+  const selectedBackendRule =
+    selectedRule
+      ? rules.find(
+          (rule) =>
+            String(rule.id) === selectedRule.id,
+        )
+      : null;
+
   const saveRule = async (
     values: Pick<
       PointRuleCalculation,
       "xpPerAward" | "awardsPerWeek" | "enabled"
     >,
   ) => {
-    if (!selectedRule) {
+    if (!selectedBackendRule) {
       return;
     }
 
     setSaving(true);
+    setError(null);
 
     try {
-      /*
-       * Replace this local update with the existing backend
-       * point-rule mutation once wired to the project API.
-       *
-       * The UI deliberately keeps the mutation boundary here,
-       * rather than putting API calls into PointRuleEditor.
-       */
-      setRules((current) =>
-        current.map((rule) => {
-          if (rule.id !== selectedRule.id) {
-            return rule;
-          }
+      await updatePointRule(
+        selectedBackendRule.id,
+        {
+          name: selectedBackendRule.name,
+          code: selectedBackendRule.code,
+          individual_xp:
+            values.xpPerAward,
+          group_xp:
+            selectedBackendRule.group_xp,
+          enabled: values.enabled,
+        },
+      );
 
-          return {
-            ...rule,
-            ...values,
-            weeklyYield:
-              values.xpPerAward *
-              values.awardsPerWeek,
-          };
-        }),
+      setRules((current) =>
+        current.map((rule) =>
+          rule.id === selectedBackendRule.id
+            ? {
+                ...rule,
+                individual_xp:
+                  values.xpPerAward,
+                enabled:
+                  values.enabled,
+              }
+            : rule,
+        ),
       );
 
       setSelectedRule(null);
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "The point rule could not be saved.",
+      );
     } finally {
       setSaving(false);
     }
   };
 
+  const openEditor = (
+    rule: PointRuleCalculation,
+  ) => {
+    setSelectedRule(rule);
+  };
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 text-sm text-slate-400">
+        Loading point economy…
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
+      {error && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300"
+        >
+          {error}
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
           label="Weekly yield"
-          value={`${weeklyYield.toLocaleString("en-GB")} XP`}
-          description="Configured predictable weekly economy."
+          value={`${weeklyYield.toLocaleString(
+            "en-GB",
+          )} XP`}
+          description="Configured individual XP baseline."
         />
 
         <Metric
@@ -185,9 +237,19 @@ export function PointEconomy() {
         />
 
         <Metric
+          label="Current XP"
+          value={`${currentXp.toLocaleString(
+            "en-GB",
+          )} XP`}
+          description="Current collective score."
+        />
+
+        <Metric
           label="Jackpot target"
-          value={`${targetXp.toLocaleString("en-GB")} XP`}
-          description="Current collective target."
+          value={`${targetXp.toLocaleString(
+            "en-GB",
+          )} XP`}
+          description="Configured collective target."
         />
       </div>
 
@@ -203,12 +265,13 @@ export function PointEconomy() {
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Adjust the planning assumptions to see whether
-              the configured economy can reach the jackpot.
+              This is a planning tool. Actual XP is
+              always awarded and validated by the
+              backend.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <label className="block">
               <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Weeks
@@ -221,10 +284,39 @@ export function PointEconomy() {
                 value={programmeWeeks}
                 onChange={(event) =>
                   setProgrammeWeeks(
-                    Number(event.target.value),
+                    Math.max(
+                      1,
+                      Number(
+                        event.target.value,
+                      ) || 1,
+                    ),
                   )
                 }
-                className="w-28 rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400/50"
+                className="w-24 rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400/50"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Current XP
+              </span>
+
+              <input
+                type="number"
+                min={0}
+                step={1000}
+                value={currentXp}
+                onChange={(event) =>
+                  setCurrentXp(
+                    Math.max(
+                      0,
+                      Number(
+                        event.target.value,
+                      ) || 0,
+                    ),
+                  )
+                }
+                className="w-32 rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400/50"
               />
             </label>
 
@@ -235,12 +327,17 @@ export function PointEconomy() {
 
               <input
                 type="number"
-                min={0}
+                min={1}
                 step={1000}
                 value={targetXp}
                 onChange={(event) =>
                   setTargetXp(
-                    Number(event.target.value),
+                    Math.max(
+                      1,
+                      Number(
+                        event.target.value,
+                      ) || 1,
+                    ),
                   )
                 }
                 className="w-36 rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400/50"
@@ -263,15 +360,22 @@ export function PointEconomy() {
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Configure the baseline XP economy. Actual
-            awards should always be validated server-side.
+            These values are stored in the programme
+            database. Changing a rule affects future
+            awards and does not rewrite historical XP.
           </p>
         </div>
 
-        <PointRuleTable
-          rules={rules}
-          onEdit={setSelectedRule}
-        />
+        {calculations.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 text-sm text-slate-400">
+            No point rules have been configured yet.
+          </div>
+        ) : (
+          <PointRuleTable
+            rules={calculations}
+            onEdit={openEditor}
+          />
+        )}
       </section>
 
       <PointRuleEditor

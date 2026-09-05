@@ -447,16 +447,20 @@ export type PointRule = {
   id: Id;
   name: string;
   code: string;
+  description?: string | null;
   individual_xp: number;
   group_xp: number;
+  weekly_cap?: number | null;
   enabled: boolean;
 };
 
 export type PointRuleRequest = {
   name: string;
   code: string;
+  description?: string | null;
   individual_xp: number;
   group_xp: number;
+  weekly_cap?: number | null;
   enabled?: boolean;
 };
 

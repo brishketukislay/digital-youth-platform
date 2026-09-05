@@ -993,6 +993,11 @@ class PointRule(Base, TimestampMixin):
         Integer,
         nullable=True,
     )
+    awards_per_week: Mapped[float] = mapped_column(
+        Float,
+        default=0.0,
+        nullable=False,
+    )
 
     enabled: Mapped[bool] = mapped_column(
         Boolean,
