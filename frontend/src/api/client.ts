@@ -959,6 +959,26 @@ export async function updateChallenge(
   );
 }
 
+export async function enableChallenge(
+  challengeId: Id
+) {
+  return api.post<{
+    success: boolean;
+    id: Id;
+    active: boolean;
+  }>(`/challenges/staff/${challengeId}/enable`);
+}
+
+export async function disableChallenge(
+  challengeId: Id
+) {
+  return api.post<{
+    success: boolean;
+    id: Id;
+    active: boolean;
+  }>(`/challenges/staff/${challengeId}/disable`);
+}
+
 /* ============================================================
    RESOURCES
    ============================================================ */
