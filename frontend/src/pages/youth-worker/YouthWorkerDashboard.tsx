@@ -23,6 +23,8 @@ rejectChallengeAttempt,
 type StaffChallengeAttempt,
 } from "../../api/client";
 
+const MAX_MANUAL_XP = 5000;
+
 function formatXP(value: number) {
   return new Intl.NumberFormat("en-GB").format(value);
 }
@@ -232,6 +234,7 @@ export default function YouthWorkerDashboard() {
         : Number(selectedPlayerId);
 
     const amount = Number(xpAmount);
+    const reason = xpReason.trim();
 
     if (!playerId) {
       setActionError(
@@ -240,16 +243,35 @@ export default function YouthWorkerDashboard() {
       return;
     }
 
-    if (!Number.isInteger(amount) || amount === 0) {
+    if (
+      !Number.isInteger(amount) ||
+      amount <= 0
+    ) {
       setActionError(
-        "Enter a whole-number XP amount other than zero.",
+        "Enter a whole-number XP amount greater than zero.",
       );
       return;
     }
 
-    if (!xpReason.trim()) {
+    if (amount > MAX_MANUAL_XP) {
+      setActionError(
+        `Manual XP awards cannot exceed ${formatXP(
+          MAX_MANUAL_XP,
+        )} XP.`,
+      );
+      return;
+    }
+
+    if (!reason) {
       setActionError(
         "Enter a reason for the XP award.",
+      );
+      return;
+    }
+
+    if (reason.length > 300) {
+      setActionError(
+        "The XP reason must be 300 characters or fewer.",
       );
       return;
     }
@@ -261,7 +283,7 @@ export default function YouthWorkerDashboard() {
       await awardXP(
         playerId,
         amount,
-        xpReason.trim(),
+        reason,
       );
 
       setModal(null);
