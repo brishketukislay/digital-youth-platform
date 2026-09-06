@@ -1,0 +1,16 @@
+export type AdminSection =
+  | "overview"
+  | "programme"
+  | "phases"
+  | "themes"
+  | "map"
+  | "points"
+  | "jackpot"
+  | "rewards"
+  | "reward-games"
+  | "challenges"
+  | "attempts"
+  | "players"
+  | "community"
+  | "attendance"
+  | "audit";

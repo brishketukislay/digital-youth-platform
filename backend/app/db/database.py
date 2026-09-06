@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from pathlib import Path
+import sqlite3
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
@@ -33,6 +34,10 @@ connect_args: dict[str, object] = {}
 
 if DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
+
+    # Give SQLite time to wait for another transaction to finish
+    # instead of immediately raising "database is locked".
+    connect_args["timeout"] = 30
 
     # Disable pysqlite's implicit transaction handling.
     #
@@ -67,6 +72,17 @@ if DATABASE_URL.startswith("sqlite"):
     def _sqlite_disable_implicit_transactions(dbapi_connection, connection_record):
         # Disable pysqlite's automatic BEGIN/COMMIT behaviour.
         dbapi_connection.isolation_level = None
+
+        # Improve SQLite behaviour when the development server has
+        # several concurrent requests.
+        cursor = dbapi_connection.cursor()
+
+        try:
+            cursor.execute("PRAGMA busy_timeout = 30000")
+            cursor.execute("PRAGMA journal_mode = WAL")
+            cursor.execute("PRAGMA synchronous = NORMAL")
+        finally:
+            cursor.close()
 
     @event.listens_for(engine, "begin")
     def _sqlite_explicit_begin(connection):

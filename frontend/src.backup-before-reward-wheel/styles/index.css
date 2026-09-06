@@ -1,0 +1,67 @@
+@import "./variables.css";
+@import "./reset.css";
+@import "./typography.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./navigation.css";
+@import "./game.css";
+@import "./player.css";
+@import "./youth-worker.css";
+@import "./admin.css";
+@import "./public.css";
+@import "./map.css";
+@import "./forms.css";
+@import "./animations.css";
+@import "./responsive.css";
+
+
+/* =========================================================
+   FINAL REFERENCE DESIGN NORMALISATION
+   ========================================================= */
+
+html,
+body,
+#root {
+  background: #f3f7f5 !important;
+  color: #15211d;
+}
+
+/* Remove legacy neon/gaming visual treatment */
+
+[class*="glow"],
+[class*="neon"] {
+  text-shadow: none !important;
+}
+
+[class*="glass"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Don't let old gradients overpower the reference */
+
+.card,
+.stat,
+.dashboard-card,
+.panel,
+.section-card {
+  background-color: #ffffff;
+}
+
+/* Consistent focus state */
+
+:focus-visible {
+  outline: 2px solid #43b98b;
+  outline-offset: 2px;
+}
+
+/* Accessible but subtle selection */
+
+::selection {
+  background: #c9f0df;
+  color: #083b2d;
+}
+@import "./dyp-modern.css";
+
+/* DYP modern dashboard visual system */
+@import "./dyp-modern-dashboard.css";
