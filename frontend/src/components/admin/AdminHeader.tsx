@@ -81,6 +81,11 @@ const titles: Record<
     description:
       "Manage session check-ins and attendance rewards.",
   },
+  "reward-games": {
+    title: "Reward Games",
+    description:
+      "Configure scratch cards and spin-the-wheel rewards for young people.",
+  },
 };
 
 export function AdminHeader({

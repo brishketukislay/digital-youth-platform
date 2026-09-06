@@ -81,3 +81,17 @@ from .xp_balance import (
     GroupXPBalance,
     PlayerXPBalance,
 )
+
+from .reward_game import (
+    PlayerRewardGame,
+    RewardGame,
+    RewardGamePlayStatus,
+    RewardGameType,
+)
+
+__all__ += [
+    "PlayerRewardGame",
+    "RewardGame",
+    "RewardGamePlayStatus",
+    "RewardGameType",
+]

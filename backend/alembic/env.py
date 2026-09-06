@@ -19,6 +19,50 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+# Tables intentionally maintained outside SQLAlchemy's declarative metadata.
+#
+# recognition_tokens is currently accessed by app/routers/recognition.py using
+# raw SQL, so Alembic must not interpret its absence from Base.metadata as a
+# request to DROP the table.
+#
+# transaction_debug_test is a local/debug table and is likewise excluded from
+# Alembic's schema comparison.
+LEGACY_ALEMBIC_TABLES = {
+    "recognition_tokens",
+    "transaction_debug_test",
+}
+
+
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and reflected and name in LEGACY_ALEMBIC_TABLES:
+        return False
+
+    return True
+
+
+def compare_type(context, inspected_column, metadata_column, inspected_type, metadata_type):
+    """
+    SQLite stores SQLAlchemy Enum(native_enum=False) values as VARCHAR.
+
+    The application intentionally models these values as Python enums, but
+    that should not produce a migration every time Alembic compares the
+    SQLite VARCHAR representation with the SQLAlchemy Enum representation.
+    """
+    if (
+        inspected_column.name == "game_type"
+        and inspected_column.table.name == "reward_games"
+    ):
+        return False
+
+    if (
+        inspected_column.name == "status"
+        and inspected_column.table.name == "player_reward_games"
+    ):
+        return False
+
+    return None
+
+
 def run_migrations_offline() -> None:
     """Run migrations without a database connection."""
 
@@ -31,8 +75,9 @@ def run_migrations_offline() -> None:
         dialect_opts={
             "paramstyle": "named",
         },
-        compare_type=True,
+        compare_type=compare_type,
         compare_server_default=True,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -55,8 +100,9 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            compare_type=True,
+            compare_type=compare_type,
             compare_server_default=True,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

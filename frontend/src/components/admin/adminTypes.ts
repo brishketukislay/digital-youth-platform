@@ -7,6 +7,7 @@ export type AdminSection =
   | "points"
   | "jackpot"
   | "rewards"
+  | "reward-games"
   | "challenges"
   | "attempts"
   | "players"

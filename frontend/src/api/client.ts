@@ -1834,3 +1834,114 @@ export async function apiFetch<T = unknown>(
 
   return response.json() as Promise<T>;
 }
+
+/* ============================================================
+   REWARD GAMES — SCRATCH CARDS / SPIN WHEELS
+   ============================================================ */
+
+export type RewardGameType =
+  | "scratch"
+  | "wheel";
+
+export type RewardGameState =
+  | "available"
+  | "upcoming"
+  | "inactive";
+
+export type PlayerRewardGame = {
+  id: Id;
+  name: string;
+  description: string | null;
+  game_type: RewardGameType;
+  prize_values: number[];
+  starts_at: string | null;
+  ends_at: string | null;
+  active: boolean;
+  show_upcoming: boolean;
+  state: RewardGameState;
+  play_id: Id;
+};
+
+export type PlayerRewardGamesResponse = {
+  available: PlayerRewardGame[];
+  upcoming: PlayerRewardGame[];
+};
+
+export type RewardGamePlayResponse = {
+  success: boolean;
+  play_id: Id;
+  game_id: Id;
+  game_type: RewardGameType;
+  awarded_xp: number;
+  player_total_xp: number;
+};
+
+export async function getPlayerRewardGames() {
+  return api.get<PlayerRewardGamesResponse>(
+    "/reward-games/player",
+  );
+}
+
+export async function playRewardGame(
+  playId: Id,
+) {
+  return api.post<RewardGamePlayResponse>(
+    `/reward-games/${playId}/play`,
+  );
+}
+
+export type AdminRewardGame = {
+  id: Id;
+  name: string;
+  description: string | null;
+  game_type: RewardGameType;
+  prize_values: number[];
+  starts_at: string | null;
+  ends_at: string | null;
+  active: boolean;
+  show_upcoming: boolean;
+  state: RewardGameState;
+  available_entitlements: number;
+  played_entitlements: number;
+};
+
+export type RewardGameCreateRequest = {
+  name: string;
+  description?: string | null;
+  game_type: RewardGameType;
+  prize_values: number[];
+  starts_at?: string | null;
+  ends_at?: string | null;
+  active?: boolean;
+  show_upcoming?: boolean;
+};
+
+export async function getAdminRewardGames() {
+  return api.get<AdminRewardGame[]>(
+    "/reward-games/admin",
+  );
+}
+
+export async function createAdminRewardGame(
+  payload: RewardGameCreateRequest,
+) {
+  return api.post<AdminRewardGame>(
+    "/reward-games/admin",
+    payload,
+  );
+}
+
+export async function grantRewardGame(
+  gameId: Id,
+  playerId: Id,
+) {
+  return api.post<{
+    success: boolean;
+    play_id: Id;
+  }>(
+    `/reward-games/admin/${gameId}/grant`,
+    {
+      player_id: playerId,
+    },
+  );
+}

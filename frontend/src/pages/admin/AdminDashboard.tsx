@@ -12,6 +12,7 @@ import AdminMap from "./AdminMap";
 import AdminThemes from "./AdminThemes";
 import AdminPhases from "./AdminPhases";
 import RewardsManager from "../../components/admin/RewardsManager";
+import RewardGamesManager from "../../components/admin/RewardGamesManager";
 import PhaseManager from "../../components/admin/phases/PhaseManager";
 import { AuditLogPanel } from "../../components/admin/audit/AuditLogPanel";
 import { PlayersPanel } from "../../components/admin/people/PlayersPanel";
@@ -55,6 +56,10 @@ export default function AdminDashboard() {
 
       {section === "rewards" && (
         <RewardsManager />
+      )}
+
+      {section === "reward-games" && (
+        <RewardGamesManager />
       )}
 
       {section === "challenges" && (

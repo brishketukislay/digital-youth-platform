@@ -26,6 +26,7 @@ import {
 } from "../components/player";
 
 import RecognitionQR from "../components/player/RecognitionQR";
+import RewardGames from "../components/player/RewardGames";
 
 /* -------------------------------------------------------------------------- */
 /* Player Dashboard                                                           */
@@ -311,6 +312,12 @@ export default function PlayerDashboard() {
 
         <Challenges
           data={data}
+        />
+
+        <RewardGames
+          onXpAwarded={() =>
+            void loadDashboard(true)
+          }
         />
 
         <GameMap

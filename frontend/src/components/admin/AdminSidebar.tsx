@@ -66,6 +66,12 @@ const navigation: NavigationItem[] = [
     group: "Scoring",
   },
   {
+    id: "reward-games",
+    label: "Scratch & Wheel",
+    icon: "🎁",
+    group: "Scoring",
+  },
+  {
     id: "challenges",
     label: "Challenges",
     icon: "⚡",

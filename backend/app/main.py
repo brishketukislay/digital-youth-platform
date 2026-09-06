@@ -16,6 +16,7 @@ from .routers import (
     player,
     public,
     recognition,
+    reward_games,
 )
 
 app = FastAPI(
@@ -43,6 +44,7 @@ app.include_router(public.router)
 app.include_router(gamification.router)
 app.include_router(challenges.router)
 app.include_router(recognition.router)
+app.include_router(reward_games.router)
 
 
 @app.get("/api/health")
