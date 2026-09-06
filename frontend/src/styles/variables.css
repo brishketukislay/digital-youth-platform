@@ -1,96 +1,96 @@
 :root {
   /* =========================================================
-     DIGITAL YOUTH PLATFORM — DESIGN TOKENS
+     DIGITAL YOUTH PLATFORM
+     DESIGN SYSTEM — PHASE 5
+     Based on sample2.html visual language
      ========================================================= */
 
   /* Backgrounds */
-  --bg: #07111f;
-  --bg-deep: #040b14;
-  --surface: #0b1828;
-  --surface-2: #102238;
-  --surface-3: #162c45;
-  --surface-hover: #193650;
+  --bg: #f3f7f5;
+  --bg-deep: #edf3f0;
+
+  /* Surfaces */
+  --surface: #ffffff;
+  --surface-2: #f5f8f6;
+  --surface-3: #eef5f1;
+  --surface-hover: #f1f7f4;
 
   /* Brand */
-  --primary: #8cff4f;
-  --primary-bright: #a8ff78;
-  --primary-dark: #58c92b;
-  --primary-glow: rgba(140, 255, 79, 0.25);
+  --primary: #12634c;
+  --primary-bright: #43b98b;
+  --primary-dark: #083b2d;
+  --primary-glow: rgba(67, 185, 139, 0.12);
 
-  /* Accent colours */
-  --purple: #9b6cff;
-  --purple-bright: #b18aff;
-  --blue: #4db8ff;
-  --cyan: #4de8e8;
-  --yellow: #ffd84d;
-  --orange: #ff9d4d;
-  --red: #ff5c6c;
-  --pink: #ff70c8;
+  /* Green scale */
+  --green-950: #06291e;
+  --green-900: #083b2d;
+  --green-800: #0b503d;
+  --green-700: #12634c;
+  --green-600: #18775b;
+  --green-500: #22966e;
+  --green-400: #43b98b;
+  --green-300: #83d8b5;
+  --green-200: #c9f0df;
+  --green-100: #eaf8f2;
 
   /* Text */
-  --text: #f5f8fb;
-  --text-secondary: #c2cfdb;
-  --text-muted: #91a4b8;
-  --text-dim: #61768b;
-  --text-dark: #07111f;
-
-  /* Status */
-  --success: var(--primary);
-  --warning: var(--yellow);
-  --danger: var(--red);
-  --info: var(--blue);
+  --text: #15211d;
+  --text-primary: #15211d;
+  --text-secondary: #68766f;
+  --text-muted: #94a29b;
+  --text-inverse: #ffffff;
 
   /* Borders */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.14);
-  --border-primary: rgba(140, 255, 79, 0.3);
+  --border: #dfe8e3;
+  --border-strong: #cbd9d2;
+  --line: #dfe8e3;
 
-  /* Gradients */
-  --gradient-primary:
-    linear-gradient(135deg, #8cff4f 0%, #4fcf31 100%);
+  /* Status */
+  --success: #22966e;
+  --success-bg: #eaf8f2;
 
-  --gradient-purple:
-    linear-gradient(135deg, #b18aff 0%, #7652dc 100%);
+  --warning: #d18b27;
+  --warning-bg: #fff6e5;
 
-  --gradient-blue:
-    linear-gradient(135deg, #4db8ff 0%, #347edb 100%);
+  --danger: #b84b4b;
+  --danger-bg: #fceeee;
 
-  --gradient-gold:
-    linear-gradient(135deg, #ffe77a 0%, #f2ae25 100%);
+  --info: #3f6f9f;
+  --info-bg: #edf4fb;
 
-  --gradient-danger:
-    linear-gradient(135deg, #ff6978 0%, #d83d4e 100%);
+  /* Legacy aliases.
+     These prevent existing components from breaking while
+     we migrate them to the new visual system. */
 
-  --gradient-surface:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.015)
-    );
+  --purple: #12634c;
+  --purple-bright: #22966e;
+
+  --blue: #3f6f9f;
+  --blue-bright: #5c8bb9;
+
+  --cyan: #22966e;
+  --cyan-bright: #43b98b;
+
+  --yellow: #d18b27;
+  --orange: #d18b27;
+
+  --pink: #b84b4b;
+  --red: #b84b4b;
 
   /* Radius */
-  --radius-xs: 5px;
+  --radius-xs: 6px;
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-pill: 999px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius: 18px;
 
   /* Shadows */
-  --shadow-sm:
-    0 4px 12px rgba(0, 0, 0, 0.18);
-
-  --shadow-md:
-    0 10px 30px rgba(0, 0, 0, 0.25);
-
-  --shadow-lg:
-    0 20px 60px rgba(0, 0, 0, 0.35);
-
-  --shadow-primary:
-    0 0 30px rgba(140, 255, 79, 0.12);
-
-  --shadow-purple:
-    0 0 30px rgba(155, 108, 255, 0.15);
+  --shadow-xs: 0 1px 2px rgba(9, 55, 39, 0.04);
+  --shadow-sm: 0 4px 12px rgba(9, 55, 39, 0.06);
+  --shadow-md: 0 8px 24px rgba(9, 55, 39, 0.07);
+  --shadow-lg: 0 12px 35px rgba(9, 55, 39, 0.08);
+  --shadow: 0 12px 35px rgba(9, 55, 39, 0.08);
 
   /* Spacing */
   --space-1: 4px;
@@ -99,16 +99,15 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
-  --space-16: 64px;
 
   /* Layout */
-  --sidebar-width: 250px;
-  --sidebar-collapsed-width: 76px;
-  --topbar-height: 72px;
-  --content-max-width: 1440px;
+  --sidebar-width: 240px;
+  --topbar-height: 70px;
+  --content-max-width: 1600px;
 
   /* Typography */
   --font-sans:
@@ -119,40 +118,4 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-
-  --font-display:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    sans-serif;
-
-  /* Motion */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-
-  --transition-fast: 120ms var(--ease-standard);
-  --transition: 200ms var(--ease-standard);
-  --transition-slow: 350ms var(--ease-out);
-}
-
-/* =========================================================
-   LIGHT MODE
-   ========================================================= */
-
-[data-theme="light"] {
-  --bg: #f4f7fa;
-  --bg-deep: #e9eef3;
-  --surface: #ffffff;
-  --surface-2: #f5f8fb;
-  --surface-3: #eaf0f5;
-  --surface-hover: #e2eaf1;
-
-  --text: #102033;
-  --text-secondary: #3f5368;
-  --text-muted: #667d92;
-  --text-dim: #8ca0b3;
-  --text-dark: #ffffff;
-
-  --border: rgba(16, 32, 51, 0.09);
-  --border-light: rgba(16, 32, 51, 0.15);
 }
