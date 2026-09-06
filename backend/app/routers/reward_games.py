@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -26,18 +26,52 @@ router = APIRouter(
 )
 
 
+def normalise_datetime(value: datetime | None) -> datetime | None:
+    """
+    Normalise an incoming datetime to UTC and remove tzinfo before storing
+    it in the existing timezone-naive SQLAlchemy DateTime column.
+    """
+    if value is None:
+        return None
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    else:
+        value = value.astimezone(timezone.utc)
+
+    return value.replace(tzinfo=None)
+
+
+
+def comparison_datetime(value: datetime | None) -> datetime | None:
+    """
+    Convert database datetime values to timezone-aware UTC datetimes.
+
+    SQLite/SQLAlchemy may return DateTime columns without tzinfo, while
+    browser/API input may contain timezone-aware ISO timestamps.
+    """
+    if value is None:
+        return None
+
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)
+
+
+
 def now_utc() -> datetime:
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 def game_is_live(game: RewardGame, now: datetime) -> bool:
     if not game.active:
         return False
 
-    if game.starts_at and now < game.starts_at:
+    if game.starts_at and now < comparison_datetime(game.starts_at):
         return False
 
-    if game.ends_at and now >= game.ends_at:
+    if game.ends_at and now >= comparison_datetime(game.ends_at):
         return False
 
     return True
@@ -50,7 +84,7 @@ def game_is_upcoming(game: RewardGame, now: datetime) -> bool:
     if not game.show_upcoming:
         return False
 
-    if game.starts_at and now < game.starts_at:
+    if game.starts_at and now < comparison_datetime(game.starts_at):
         return True
 
     return False
