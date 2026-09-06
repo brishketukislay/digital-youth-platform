@@ -1019,6 +1019,76 @@ def apply_group_xp(
     return balance
 
 
+def _advance_active_skill_tree(
+    db: Session,
+    *,
+    player_id: int,
+    amount: int,
+) -> None:
+    """
+    Apply a player's XP transaction to their active skill tree.
+
+    Skill-tree XP is intentionally separate from lifetime/player XP.
+    Creating a new skill tree starts its progress from zero.
+
+    Negative XP can reduce current skill-tree progress, but never
+    marks a previously completed milestone as incomplete.
+    """
+
+    if amount == 0:
+        return
+
+    from ..db.models import SkillTree
+
+    tree = (
+        db.query(SkillTree)
+        .filter(
+            SkillTree.player_id == player_id,
+            SkillTree.active == True,
+            SkillTree.completed == False,
+        )
+        .order_by(
+            SkillTree.id.desc(),
+        )
+        .first()
+    )
+
+    if tree is None:
+        return
+
+    tree.current_xp = max(
+        0,
+        int(tree.current_xp or 0) + amount,
+    )
+
+    for milestone in sorted(
+        tree.milestones,
+        key=lambda item: (
+            item.required_xp,
+            item.id,
+        ),
+    ):
+        if (
+            not milestone.completed
+            and tree.current_xp >= milestone.required_xp
+        ):
+            milestone.completed = True
+            milestone.completed_at = datetime.utcnow()
+
+    if (
+        tree.milestones
+        and all(
+            milestone.completed
+            for milestone in tree.milestones
+        )
+    ):
+        tree.completed = True
+        tree.active = False
+        tree.completed_at = datetime.utcnow()
+
+    db.flush()
+
+
 def apply_xp_transaction(
     db: Session,
     transaction: XPTransaction,
@@ -1049,6 +1119,12 @@ def apply_xp_transaction(
         and transaction.amount != 0
     ):
         player_balance = apply_player_xp(
+            db,
+            player_id=transaction.player_id,
+            amount=transaction.amount,
+        )
+
+        _advance_active_skill_tree(
             db,
             player_id=transaction.player_id,
             amount=transaction.amount,
