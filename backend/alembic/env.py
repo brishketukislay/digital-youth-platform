@@ -37,6 +37,16 @@ def include_object(object, name, type_, reflected, compare_to):
     if type_ == "table" and reflected and name in LEGACY_ALEMBIC_TABLES:
         return False
 
+    # The idempotency index is intentionally database-managed.
+    # It is a unique partial index and is not represented in SQLAlchemy
+    # declarative metadata, so Alembic must not try to remove it.
+    if (
+        type_ == "index"
+        and reflected
+        and name == "ux_xp_transactions_idempotency_key"
+    ):
+        return False
+
     return True
 
 

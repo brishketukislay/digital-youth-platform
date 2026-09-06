@@ -1006,6 +1006,7 @@ class PointRule(Base, TimestampMixin):
     awards_per_week: Mapped[float] = mapped_column(
         Float,
         default=0.0,
+        server_default="0",
         nullable=False,
     )
 
@@ -1765,7 +1766,6 @@ class ChallengeAttempt(Base):
         String(100),
         unique=True,
         nullable=False,
-        index=True,
     )
 
     status: Mapped[str] = mapped_column(
