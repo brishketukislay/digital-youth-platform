@@ -40,8 +40,10 @@ export function AdminShell({
     try {
       await logout();
     } catch {
-      // Local authentication is cleared below
-      // even if the server logout fails.
+      /*
+       * Even if the server logout fails, clear the
+       * local authentication state.
+       */
     } finally {
       clear();
 
@@ -54,23 +56,25 @@ export function AdminShell({
   }
 
   return (
-    <div className="admin-proto-shell">
-      <AdminSidebar
-        activeSection={activeSection}
-        onSectionChange={onSectionChange}
-        onSignOut={handleSignOut}
-        signingOut={signingOut}
-      />
-
-      <main className="admin-proto-main">
-        <AdminHeader
+    <div className="min-h-screen bg-slate-950 text-white">
+      <div className="flex min-h-screen">
+        <AdminSidebar
           activeSection={activeSection}
+          onSectionChange={onSectionChange}
+          onSignOut={handleSignOut}
+          signingOut={signingOut}
         />
 
-        <div className="admin-proto-content">
-          {children}
-        </div>
-      </main>
+        <main className="min-w-0 flex-1">
+          <AdminHeader
+            activeSection={activeSection}
+          />
+
+          <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

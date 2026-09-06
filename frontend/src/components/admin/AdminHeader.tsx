@@ -12,107 +12,117 @@ const titles: Record<
   }
 > = {
   overview: {
-    title: "Programme overview",
+    title: "Admin Dashboard",
     description:
-      "Live view of the cohort, progress and programme health.",
+      "Programme operations, progress and configuration.",
   },
   programme: {
-    title: "Programme settings",
+    title: "Programme Configuration",
     description:
-      "Configure the active programme and its jackpot target.",
+      "Configure the active programme and its target.",
   },
   phases: {
-    title: "Phases",
+    title: "Programme Phases",
     description:
-      "Control the programme themes, activities and progression.",
+      "Control progression through the programme.",
   },
   themes: {
-    title: "Visual themes",
+    title: "Visual Themes",
     description:
-      "Configure the visual identity shown to young people.",
+      "Configure the identity shown to young people.",
   },
   map: {
-    title: "Game map",
+    title: "Game Map",
     description:
-      "Configure the Cumbernauld game world and locations.",
+      "Configure the programme map and locations.",
   },
   points: {
-    title: "Point economy",
+    title: "Point Economy",
     description:
       "Configure XP rules, yields and scoring behaviour.",
   },
   jackpot: {
-    title: "Jackpot tracker",
+    title: "Jackpot",
     description:
-      "Monitor collective progress against programme milestones.",
+      "Monitor collective progress and milestones.",
   },
   rewards: {
     title: "Rewards",
     description:
       "Configure physical and digital rewards.",
   },
+  "reward-games": {
+    title: "Reward Games",
+    description:
+      "Configure scratch cards and spin-the-wheel rewards.",
+  },
   challenges: {
     title: "Challenges",
     description:
-      "Create and monitor time-bound engagement challenges.",
+      "Create, schedule and manage engagement challenges.",
   },
   attempts: {
-    title: "Challenge attempts",
+    title: "Challenge Attempts",
     description:
-      "Review, verify and reject submitted challenge attempts.",
+      "Review and verify submitted challenge attempts.",
   },
   players: {
     title: "Players",
     description:
-      "Manage anonymous player accounts and individual progress.",
+      "Manage participant accounts and individual progress.",
   },
   community: {
-    title: "Community awards",
+    title: "Community Awards",
     description:
-      "Review and approve positive community nominations.",
+      "Review positive community recognition nominations.",
+  },
+  attendance: {
+    title: "Attendance",
+    description:
+      "Manage session attendance and rewards.",
   },
   audit: {
     title: "Audit Log",
     description:
       "Review administrative actions and system activity.",
   },
-  attendance: {
-    title: "Attendance",
-    description:
-      "Manage session check-ins and attendance rewards.",
-  },
-  "reward-games": {
-    title: "Reward Games",
-    description:
-      "Configure scratch cards and spin-the-wheel rewards for young people.",
-  },
 };
 
 export function AdminHeader({
   activeSection,
 }: AdminHeaderProps) {
-  const content = titles[activeSection];
+  const content =
+    titles[activeSection];
 
   return (
-    <header className="border-b border-white/10 bg-slate-950/80 backdrop-blur">
-      <div className="flex min-h-20 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            {content.title}
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-400">
-            {content.description}
-          </p>
+    <header className="admin-proto-topbar">
+      <div className="admin-proto-topbar__brand">
+        <div className="admin-proto-topbar__mark">
+          D
         </div>
 
-        <div className="hidden items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 sm:flex">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+        <div>
+          <strong>
+            Digital Youth Platform
+          </strong>
 
-          <span className="text-xs font-medium text-emerald-300">
-            System online
+          <span>
+            Staff Administration
           </span>
         </div>
+      </div>
+
+      <div className="admin-proto-topbar__centre">
+        <div className="admin-proto-topbar__eyebrow">
+          ADMINISTRATION
+        </div>
+
+        <strong>{content.title}</strong>
+      </div>
+
+      <div className="admin-proto-system-status">
+        <span />
+        System online
       </div>
     </header>
   );
