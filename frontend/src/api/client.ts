@@ -1070,29 +1070,224 @@ export type PlayerDashboard = {
   current_skill_tree?: PlayerSkillTree | null;
   currentSkillTree?: PlayerSkillTree | null;
 
-  current_phase?: unknown;
-  currentPhase?: unknown;
+  current_phase?: {
+    id: Id;
+    name: string;
+    description: string | null;
+    colour: string;
+    icon: string;
+  } | null;
+  currentPhase?: {
+    id: Id;
+    name: string;
+    description: string | null;
+    colour: string;
+    icon: string;
+  } | null;
 
-  recent_activity?: unknown[];
-  recentActivity?: unknown[];
-  activities?: unknown[];
-  activity?: unknown[];
+  recent_activity?: Array<{
+    id: string | number;
+    type: string;
+    title: string;
+    description?: string | null;
+    xp?: number;
+    created_at?: string | null;
+    occurred_at?: string | null;
+    timestamp?: string | null;
+    status?: string | null;
+    icon?: string | null;
+  }>;
+  recentActivity?: Array<{
+    id: string | number;
+    type: string;
+    title: string;
+    description?: string | null;
+    xp?: number;
+    created_at?: string | null;
+    occurred_at?: string | null;
+    timestamp?: string | null;
+    status?: string | null;
+    icon?: string | null;
+  }>;
+  activities?: Array<{
+    id: string | number;
+    type: string;
+    title: string;
+    description?: string | null;
+    xp?: number;
+    created_at?: string | null;
+    occurred_at?: string | null;
+    timestamp?: string | null;
+    status?: string | null;
+    icon?: string | null;
+  }>;
+  activity?: Array<{
+    id: string | number;
+    type: string;
+    title: string;
+    description?: string | null;
+    xp?: number;
+    created_at?: string | null;
+    occurred_at?: string | null;
+    timestamp?: string | null;
+    status?: string | null;
+    icon?: string | null;
+  }>;
 
-  mystery_rewards?: unknown[];
-  mysteryRewards?: unknown[];
-  mystery_prizes?: unknown[];
-  mysteryPrizes?: unknown[];
+  mystery_rewards?: Array<{
+    id?: string | number;
+    name?: string | null;
+    thresholdXP?: number;
+    threshold_xp?: number;
+    unlocked?: boolean;
+    claimed?: boolean;
+    icon?: string | null;
+    colour?: string | null;
+    rewardLabel?: string | null;
+    reward_label?: string | null;
+  }>;
+  mysteryRewards?: Array<{
+    id?: string | number;
+    name?: string | null;
+    thresholdXP?: number;
+    threshold_xp?: number;
+    unlocked?: boolean;
+    claimed?: boolean;
+    icon?: string | null;
+    colour?: string | null;
+    rewardLabel?: string | null;
+    reward_label?: string | null;
+  }>;
+  mystery_prizes?: Array<{
+    id?: string | number;
+    name?: string | null;
+    thresholdXP?: number;
+    threshold_xp?: number;
+    unlocked?: boolean;
+    claimed?: boolean;
+    icon?: string | null;
+    colour?: string | null;
+    rewardLabel?: string | null;
+    reward_label?: string | null;
+  }>;
+  mysteryPrizes?: Array<{
+    id?: string | number;
+    name?: string | null;
+    thresholdXP?: number;
+    threshold_xp?: number;
+    unlocked?: boolean;
+    claimed?: boolean;
+    icon?: string | null;
+    colour?: string | null;
+    rewardLabel?: string | null;
+    reward_label?: string | null;
+  }>;
 
-  resources?: unknown[];
-  resource_library?: unknown[];
-  resourceLibrary?: unknown[];
+  resources?: Array<{
+    id: string | number;
+    title: string;
+    description?: string | null;
+    type?: string | null;
+    category?: string | null;
+    url?: string | null;
+    href?: string | null;
+    thumbnail_url?: string | null;
+    thumbnailUrl?: string | null;
+    duration?: string | null;
+    duration_minutes?: number | null;
+    durationMinutes?: number | null;
+    phase_id?: string | number | null;
+    phaseId?: string | number | null;
+    phase_name?: string | null;
+    phaseName?: string | null;
+    unlocked?: boolean;
+    is_unlocked?: boolean;
+    isUnlocked?: boolean;
+    completed?: boolean;
+    is_completed?: boolean;
+    isCompleted?: boolean;
+    progress?: number;
+    icon?: string | null;
+  }>;
+
+  resource_library?: Array<{
+    id: string | number;
+    title: string;
+    description?: string | null;
+    type?: string | null;
+    category?: string | null;
+    url?: string | null;
+    href?: string | null;
+    thumbnail_url?: string | null;
+    thumbnailUrl?: string | null;
+    duration?: string | null;
+    duration_minutes?: number | null;
+    durationMinutes?: number | null;
+    phase_id?: string | number | null;
+    phaseId?: string | number | null;
+    phase_name?: string | null;
+    phaseName?: string | null;
+    unlocked?: boolean;
+    is_unlocked?: boolean;
+    isUnlocked?: boolean;
+    completed?: boolean;
+    is_completed?: boolean;
+    isCompleted?: boolean;
+    progress?: number;
+    icon?: string | null;
+  }>;
+
+  resourceLibrary?: Array<{
+    id: string | number;
+    title: string;
+    description?: string | null;
+    type?: string | null;
+    category?: string | null;
+    url?: string | null;
+    href?: string | null;
+    thumbnail_url?: string | null;
+    thumbnailUrl?: string | null;
+    duration?: string | null;
+    duration_minutes?: number | null;
+    durationMinutes?: number | null;
+    phase_id?: string | number | null;
+    phaseId?: string | number | null;
+    phase_name?: string | null;
+    phaseName?: string | null;
+    unlocked?: boolean;
+    is_unlocked?: boolean;
+    isUnlocked?: boolean;
+    completed?: boolean;
+    is_completed?: boolean;
+    isCompleted?: boolean;
+    progress?: number;
+    icon?: string | null;
+  }>;
 
   active_challenges?: PlayerChallenge[];
   activeChallenges?: PlayerChallenge[];
 
-  check_in?: unknown;
-  session_check_in?: unknown;
-  attendance?: unknown;
+  check_in?: {
+    available?: boolean;
+    is_available?: boolean;
+    checked_in?: boolean;
+    is_checked_in?: boolean;
+    xp?: number;
+    xp_awarded?: number;
+    message?: string | null;
+  };
+  session_check_in?: {
+    available?: boolean;
+    is_available?: boolean;
+    checked_in?: boolean;
+    is_checked_in?: boolean;
+    xp?: number;
+    xp_awarded?: number;
+    message?: string | null;
+  };
+  attendance?: {
+    weekly_percentage?: number;
+  };
 
   checked_in?: boolean;
   checkedIn?: boolean;

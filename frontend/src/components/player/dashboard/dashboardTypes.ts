@@ -375,11 +375,11 @@ export type PlayerDashboardViewData =
     /**
      * Current individual skill tree.
      */
-    current_skill_tree?: DashboardSkillTree;
-    currentSkillTree?: DashboardSkillTree;
+    current_skill_tree?: DashboardSkillTree | null;
+    currentSkillTree?: DashboardSkillTree | null;
 
-    skill_tree?: DashboardSkillTree;
-    skillTree?: DashboardSkillTree;
+    skill_tree?: DashboardSkillTree | null;
+    skillTree?: DashboardSkillTree | null;
 
     /**
      * Player's anonymous public identity.
