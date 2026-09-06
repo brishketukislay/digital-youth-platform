@@ -145,7 +145,7 @@ def dashboard(
     theme = (
         db.get(
             Theme,
-            programme.theme_id,
+            programme.active_theme_id,
         )
         if programme and programme.active_theme_id
         else None
