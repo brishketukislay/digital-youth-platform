@@ -308,7 +308,7 @@ function UserIdentity({
         }`}
         aria-hidden="true"
       >
-        {isPlayer ? "★" : "◆"}
+        {isPlayer ? "P" : "S"}
       </div>
 
       <div className="user-identity__copy">

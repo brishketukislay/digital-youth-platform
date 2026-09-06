@@ -235,7 +235,7 @@ export default function PlayerDashboard() {
               className="empty-state__icon"
               aria-hidden="true"
             >
-              👤
+              Profile
             </span>
 
             <strong>

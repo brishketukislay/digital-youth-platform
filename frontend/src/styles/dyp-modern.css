@@ -1,0 +1,1379 @@
+/*
+============================================================
+ DIGITAL YOUTH PLATFORM — MODERN UI SYSTEM
+ Visual direction: pol-scot/sample2.html
+ No gradients. No neon. No emoji UI.
+============================================================
+*/
+
+:root {
+  --dyp-green-950: #06291e;
+  --dyp-green-900: #083b2d;
+  --dyp-green-800: #0b503d;
+  --dyp-green-700: #12634c;
+  --dyp-green-600: #18775b;
+  --dyp-green-500: #22966e;
+  --dyp-green-400: #43b98b;
+  --dyp-green-300: #83d8b5;
+  --dyp-green-200: #c9f0df;
+  --dyp-green-100: #eaf8f2;
+
+  --dyp-bg: #f3f7f5;
+  --dyp-surface: #ffffff;
+  --dyp-surface-soft: #f5f8f6;
+
+  --dyp-text: #15211d;
+  --dyp-muted: #68766f;
+  --dyp-subtle: #94a29b;
+
+  --dyp-border: #dfe8e3;
+  --dyp-border-strong: #cbd9d2;
+
+  --dyp-warning: #d18b27;
+  --dyp-danger: #b84b4b;
+  --dyp-info: #3f6f9f;
+
+  --dyp-radius-sm: 10px;
+  --dyp-radius-md: 14px;
+  --dyp-radius-lg: 18px;
+  --dyp-radius-xl: 22px;
+
+  --dyp-shadow-sm:
+    0 3px 10px rgba(9, 55, 39, .045);
+
+  --dyp-shadow:
+    0 8px 24px rgba(9, 55, 39, .06);
+
+  --dyp-shadow-lg:
+    0 12px 35px rgba(9, 55, 39, .08);
+
+  --dyp-transition:
+    160ms cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ==========================================================
+   GLOBAL
+========================================================== */
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: var(--dyp-bg);
+}
+
+body {
+  margin: 0;
+
+  background: var(--dyp-bg) !important;
+
+  color: var(--dyp-text) !important;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* ==========================================================
+   KILL OLD GAMING VISUAL LANGUAGE
+========================================================== */
+
+[class*="glow"],
+[class*="neon"],
+[class*="jackpot"] {
+  text-shadow: none !important;
+}
+
+[class*="glass"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.card::before,
+.card::after {
+  display: none !important;
+}
+
+.player-dashboard::before,
+.player-dashboard::after {
+  display: none !important;
+}
+
+/* ==========================================================
+   APP BACKGROUND
+========================================================== */
+
+.app-shell,
+.app-content,
+.app-main,
+main,
+.page {
+  background: var(--dyp-bg);
+}
+
+/* ==========================================================
+   MAIN CONTENT
+========================================================== */
+
+.app-main-content,
+.app-main {
+  padding: 28px !important;
+}
+
+.player-dashboard,
+.dashboard,
+.admin-dashboard,
+.youth-worker-dashboard,
+.public-dashboard {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ==========================================================
+   TOP BAR
+========================================================== */
+
+.app-topbar {
+  min-height: 70px !important;
+
+  background: var(--dyp-green-950) !important;
+
+  border: 0 !important;
+
+  box-shadow: none !important;
+
+  color: white !important;
+
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.app-topbar * {
+  color: inherit;
+}
+
+.app-topbar button {
+  background: transparent !important;
+
+  border-color: rgba(255,255,255,.10) !important;
+
+  box-shadow: none !important;
+}
+
+.app-topbar button:hover {
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* ==========================================================
+   BRAND
+========================================================== */
+
+.brand {
+  color: white !important;
+}
+
+.brand-mark {
+  width: 34px !important;
+  height: 34px !important;
+
+  border-radius: 10px !important;
+
+  background: var(--dyp-green-400) !important;
+
+  color: var(--dyp-green-950) !important;
+
+  box-shadow: none !important;
+}
+
+.brand-copy strong {
+  color: white !important;
+
+  font-weight: 800 !important;
+
+  letter-spacing: -.03em !important;
+}
+
+.brand-copy small {
+  color: #9fc7b7 !important;
+
+  font-size: 10px !important;
+}
+
+/* ==========================================================
+   SIDEBAR
+========================================================== */
+
+.app-sidebar {
+  width: 240px !important;
+
+  background: #ffffff !important;
+
+  border-right: 1px solid var(--dyp-border) !important;
+
+  box-shadow: none !important;
+}
+
+.app-sidebar__brand {
+  height: 70px !important;
+
+  border-bottom: 1px solid var(--dyp-border) !important;
+
+  padding: 0 20px !important;
+}
+
+.app-sidebar__nav {
+  padding: 22px 14px !important;
+
+  gap: 4px !important;
+}
+
+.nav-section {
+  margin:
+    12px 10px
+    7px !important;
+
+  color: var(--dyp-subtle) !important;
+
+  font-size: 10px !important;
+
+  letter-spacing: .12em !important;
+}
+
+.nav-item {
+  min-height: 44px !important;
+
+  padding: 0 12px !important;
+
+  border: 0 !important;
+
+  border-radius: 11px !important;
+
+  background: transparent !important;
+
+  color: #596760 !important;
+
+  font-size: 13px !important;
+
+  font-weight: 700 !important;
+}
+
+.nav-item:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.nav-item.active {
+  background: var(--dyp-green-100) !important;
+
+  color: var(--dyp-green-800) !important;
+}
+
+.nav-item__icon {
+  color: currentColor !important;
+}
+
+.app-sidebar__footer {
+  border-top: 1px solid var(--dyp-border) !important;
+
+  padding: 14px !important;
+}
+
+.nav-user {
+  background: var(--dyp-surface-soft) !important;
+
+  border-radius: 11px !important;
+}
+
+/* ==========================================================
+   PAGE HEADERS
+========================================================== */
+
+.page-header {
+  margin-bottom: 24px !important;
+}
+
+.page-header h1 {
+  color: var(--dyp-text) !important;
+
+  font-size: 30px !important;
+
+  line-height: 1.05 !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -.045em !important;
+}
+
+.page-header p {
+  color: var(--dyp-muted) !important;
+
+  font-size: 14px !important;
+
+  line-height: 1.5 !important;
+}
+
+/* ==========================================================
+   ALL CARDS
+========================================================== */
+
+.card,
+.panel,
+.dashboard-card,
+.section-card,
+.stat-card,
+.metric-card {
+  position: relative;
+
+  background: var(--dyp-surface) !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-lg) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.card {
+  padding: 20px !important;
+}
+
+/* Don't let nested cards become enormous */
+
+.card .card {
+  box-shadow: var(--dyp-shadow-sm) !important;
+
+  border-radius: var(--dyp-radius-md) !important;
+}
+
+/* ==========================================================
+   CARD HEADERS
+========================================================== */
+
+.card-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 16px !important;
+}
+
+.card-header h2,
+.card-header h3,
+.card-title h2,
+.card-title h3,
+.card-title h4 {
+  margin: 0;
+
+  color: var(--dyp-text) !important;
+
+  font-size: 15px !important;
+
+  line-height: 1.25;
+
+  font-weight: 850 !important;
+
+  letter-spacing: -.02em;
+}
+
+.card-header p,
+.card-title p {
+  color: var(--dyp-muted) !important;
+
+  font-size: 12px !important;
+}
+
+/* ==========================================================
+   MODERN HOVER
+========================================================== */
+
+.card-hover {
+  transition:
+    transform var(--dyp-transition),
+    border-color var(--dyp-transition),
+    box-shadow var(--dyp-transition);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px) !important;
+
+  border-color: var(--dyp-border-strong) !important;
+
+  box-shadow: var(--dyp-shadow-lg) !important;
+
+  background: #fff !important;
+}
+
+/* ==========================================================
+   STAT CARDS
+========================================================== */
+
+.stat-card {
+  padding: 19px !important;
+
+  min-height: 125px;
+}
+
+.stat-card-label,
+.stat-label {
+  color: var(--dyp-muted) !important;
+
+  font-size: 11px !important;
+
+  font-weight: 750 !important;
+
+  letter-spacing: .01em !important;
+
+  text-transform: none !important;
+}
+
+.stat-card-value,
+.stat-value {
+  margin-top: 8px;
+
+  color: var(--dyp-green-900) !important;
+
+  font-size: 28px !important;
+
+  line-height: 1 !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -.05em !important;
+}
+
+.stat-card-meta,
+.stat-foot {
+  margin-top: 7px;
+
+  color: var(--dyp-green-700) !important;
+
+  font-size: 11px !important;
+
+  font-weight: 700 !important;
+}
+
+/* ==========================================================
+   ICON CONTAINERS
+========================================================== */
+
+.icon-box,
+.icon-container,
+.stat-icon,
+.card-icon,
+.feature-icon {
+  display: inline-flex;
+
+  width: 38px;
+  height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 38px;
+
+  border-radius: 11px;
+
+  background: var(--dyp-green-100);
+
+  color: var(--dyp-green-700);
+
+  box-shadow: none !important;
+}
+
+.icon-box svg,
+.icon-container svg,
+.stat-icon svg,
+.card-icon svg,
+.feature-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.btn,
+.button {
+  display: inline-flex;
+
+  min-height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 9px 14px !important;
+
+  border-radius: 10px !important;
+
+  font-size: 12px !important;
+
+  font-weight: 800 !important;
+
+  box-shadow: none !important;
+
+  transition:
+    background var(--dyp-transition),
+    border-color var(--dyp-transition),
+    color var(--dyp-transition),
+    transform var(--dyp-transition) !important;
+}
+
+.btn-primary,
+.button--primary {
+  background: var(--dyp-green-700) !important;
+
+  border: 1px solid var(--dyp-green-700) !important;
+
+  color: white !important;
+
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+.button--primary:hover {
+  background: var(--dyp-green-800) !important;
+
+  border-color: var(--dyp-green-800) !important;
+
+  transform: translateY(-1px);
+}
+
+.btn-secondary,
+.button--secondary {
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  color: var(--dyp-green-900) !important;
+}
+
+.btn-secondary:hover,
+.button--secondary:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  border-color: var(--dyp-border-strong) !important;
+}
+
+.btn-ghost,
+.button--ghost {
+  background: transparent !important;
+
+  color: var(--dyp-muted) !important;
+
+  border: 1px solid transparent !important;
+}
+
+.btn-ghost:hover,
+.button--ghost:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+/* ==========================================================
+   BADGES
+========================================================== */
+
+.badge {
+  min-height: 25px !important;
+
+  padding: 4px 9px !important;
+
+  border-radius: 999px !important;
+
+  border: 1px solid var(--dyp-green-200) !important;
+
+  background: var(--dyp-green-100) !important;
+
+  color: var(--dyp-green-800) !important;
+
+  font-size: 10px !important;
+
+  font-weight: 800 !important;
+
+  box-shadow: none !important;
+}
+
+.badge-purple,
+.badge-blue,
+.badge-gold,
+.badge-danger {
+  border-color: var(--dyp-border) !important;
+
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-muted) !important;
+}
+
+.badge-danger {
+  background: #faeeee !important;
+
+  color: #9c4141 !important;
+}
+
+/* ==========================================================
+   PROGRESS
+========================================================== */
+
+.progress-track,
+.progress {
+  overflow: hidden !important;
+
+  background: #e2ebe6 !important;
+
+  border-radius: 999px !important;
+
+  box-shadow: none !important;
+}
+
+.progress-track {
+  height: 10px !important;
+}
+
+.progress-lg .progress-track {
+  height: 12px !important;
+}
+
+.progress-xl .progress-track {
+  height: 14px !important;
+}
+
+.progress-fill,
+.progress > div {
+  background: var(--dyp-green-500) !important;
+
+  box-shadow: none !important;
+
+  border-radius: 999px !important;
+}
+
+.progress-fill::after {
+  display: none !important;
+}
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero,
+.player-hero,
+.dashboard-hero {
+  position: relative;
+
+  overflow: hidden;
+
+  background: var(--dyp-green-950) !important;
+
+  border: 0 !important;
+
+  border-radius: var(--dyp-radius-xl) !important;
+
+  color: white !important;
+
+  box-shadow: var(--dyp-shadow-lg) !important;
+}
+
+.hero::before,
+.hero::after,
+.player-hero::before,
+.player-hero::after,
+.dashboard-hero::before,
+.dashboard-hero::after {
+  display: none !important;
+}
+
+.hero h1,
+.player-hero h1,
+.dashboard-hero h1 {
+  color: white !important;
+
+  font-size: clamp(28px, 4vw, 38px) !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -.055em !important;
+}
+
+.hero p,
+.player-hero p,
+.dashboard-hero p {
+  color: #c2ded2 !important;
+
+  line-height: 1.6 !important;
+}
+
+.hero .progress,
+.player-hero .progress,
+.dashboard-hero .progress {
+  background: rgba(255,255,255,.13) !important;
+}
+
+.hero .progress > div,
+.player-hero .progress > div,
+.dashboard-hero .progress > div {
+  background: var(--dyp-green-300) !important;
+}
+
+/* ==========================================================
+   PLAYER DASHBOARD
+========================================================== */
+
+.player-dashboard {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.player-dashboard .grid {
+  gap: 18px;
+}
+
+.player-core-grid,
+.player-progression-grid {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(300px, .65fr) !important;
+}
+
+/* ==========================================================
+   PLAYER SECTIONS
+========================================================== */
+
+.player-dashboard section,
+.player-dashboard .card {
+  min-width: 0;
+}
+
+.player-dashboard h2,
+.player-dashboard h3,
+.player-dashboard h4 {
+  color: var(--dyp-text);
+}
+
+.player-dashboard .muted {
+  color: var(--dyp-muted) !important;
+}
+
+/* ==========================================================
+   SKILLS
+========================================================== */
+
+.skill-line {
+  background: #e1ebe6 !important;
+}
+
+.skill-line.done {
+  background: var(--dyp-green-500) !important;
+}
+
+/* ==========================================================
+   BADGES / REWARDS
+========================================================== */
+
+.badge-trophy,
+.badge-card,
+.reward-card {
+  background: var(--dyp-surface-soft) !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  box-shadow: none !important;
+
+  color: var(--dyp-green-800) !important;
+}
+
+.badge-trophy:hover,
+.badge-card:hover,
+.reward-card:hover {
+  background: var(--dyp-green-100) !important;
+
+  border-color: var(--dyp-green-200) !important;
+}
+
+/* ==========================================================
+   CHALLENGES
+========================================================== */
+
+.challenge-card,
+.challenge-item,
+.challenge-row {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-md) !important;
+
+  box-shadow: none !important;
+}
+
+.challenge-card:hover,
+.challenge-item:hover,
+.challenge-row:hover {
+  border-color: var(--dyp-green-300) !important;
+
+  background: var(--dyp-green-100) !important;
+}
+
+/* ==========================================================
+   LEADERBOARD
+========================================================== */
+
+.player-row {
+  min-height: 62px !important;
+
+  padding: 9px 12px !important;
+
+  border-radius: 12px !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.player-row:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  border-color: var(--dyp-border) !important;
+}
+
+.player-gamertag {
+  color: var(--dyp-text) !important;
+}
+
+.player-meta {
+  color: var(--dyp-muted) !important;
+}
+
+.player-xp {
+  color: var(--dyp-green-700) !important;
+}
+
+/* ==========================================================
+   TABLES
+========================================================== */
+
+.table-container {
+  overflow: hidden;
+
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-lg) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+.table th {
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-subtle) !important;
+
+  border-color: var(--dyp-border) !important;
+}
+
+.table td {
+  color: var(--dyp-text) !important;
+
+  border-color: var(--dyp-border) !important;
+}
+
+.table tbody tr:hover {
+  background: var(--dyp-surface-soft) !important;
+}
+
+/* ==========================================================
+   FORMS
+========================================================== */
+
+input,
+select,
+textarea {
+  min-height: 40px;
+
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: 10px !important;
+
+  color: var(--dyp-text) !important;
+
+  box-shadow: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dyp-subtle);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--dyp-green-400) !important;
+
+  outline: none !important;
+
+  box-shadow:
+    0 0 0 3px var(--dyp-green-100) !important;
+}
+
+/* ==========================================================
+   ALERTS
+========================================================== */
+
+.alert,
+.notice {
+  border-radius: var(--dyp-radius-md) !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  background: white !important;
+
+  box-shadow: none !important;
+}
+
+.notice--error,
+.alert-danger {
+  background: #faeeee !important;
+
+  border-color: #f0d0d0 !important;
+
+  color: #9c4141 !important;
+}
+
+/* ==========================================================
+   LOADING / EMPTY STATES
+========================================================== */
+
+.dashboard-loading,
+.dashboard-error,
+.app-loading,
+.app-error {
+  background: var(--dyp-bg) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.loading-orb,
+.dashboard-error__icon,
+.empty-state__icon {
+  display: inline-flex;
+
+  width: 44px;
+  height: 44px;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: var(--dyp-green-100);
+
+  color: var(--dyp-green-700);
+
+  box-shadow: none !important;
+
+  font-size: 0 !important;
+}
+
+.loading-orb::before {
+  content: "";
+
+  width: 18px;
+  height: 18px;
+
+  border: 2px solid var(--dyp-green-200);
+
+  border-top-color: var(--dyp-green-700);
+
+  border-radius: 50%;
+
+  animation: dyp-spin .8s linear infinite;
+}
+
+@keyframes dyp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================
+   MAP
+========================================================== */
+
+.map-card,
+.game-map,
+.map-container {
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-lg) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* ==========================================================
+   ADMIN
+========================================================== */
+
+.admin-dashboard,
+.admin-page,
+.admin-content {
+  color: var(--dyp-text);
+}
+
+.admin-dashboard .card,
+.admin-page .card,
+.admin-content .card {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* Admin dark panels should become intentional green panels */
+
+.admin-dashboard .bg-slate-900,
+.admin-dashboard .bg-slate-950,
+.admin-page .bg-slate-900,
+.admin-page .bg-slate-950 {
+  background: var(--dyp-green-950) !important;
+}
+
+.admin-dashboard [class*="bg-gradient"],
+.admin-page [class*="bg-gradient"] {
+  background-image: none !important;
+}
+
+/* ==========================================================
+   YOUTH WORKER
+========================================================== */
+
+.youth-worker-dashboard,
+.youth-worker-page {
+  color: var(--dyp-text);
+}
+
+.youth-worker-dashboard .card,
+.youth-worker-page .card {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* ==========================================================
+   PUBLIC
+========================================================== */
+
+.public-dashboard,
+.public-page {
+  background: var(--dyp-bg) !important;
+
+  color: var(--dyp-text);
+}
+
+.public-dashboard .card,
+.public-page .card {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* ==========================================================
+   LOGIN
+========================================================== */
+
+.login-page,
+.login,
+.auth-page {
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--dyp-green-950) 0,
+      var(--dyp-green-950) 35%,
+      var(--dyp-bg) 35%,
+      var(--dyp-bg) 100%
+    ) !important;
+}
+
+.login-card,
+.auth-card {
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: 18px !important;
+
+  box-shadow: var(--dyp-shadow-lg) !important;
+}
+
+/* ==========================================================
+   REMOVE DECORATIVE SYMBOLS FROM COMMON UI
+========================================================== */
+
+.loading-orb,
+.dashboard-error__icon {
+  font-size: 0 !important;
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 1100px) {
+  .player-core-grid,
+  .player-progression-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-main-content,
+  .app-main {
+    padding: 22px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    width: 240px !important;
+  }
+
+  .app-main-content,
+  .app-main {
+    padding: 18px !important;
+  }
+
+  .card {
+    padding: 18px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-main-content,
+  .app-main {
+    padding: 14px !important;
+  }
+
+  .card {
+    padding: 16px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .page-header h1 {
+    font-size: 26px !important;
+  }
+
+  .hero,
+  .player-hero,
+  .dashboard-hero {
+    border-radius: 16px !important;
+
+    padding: 22px !important;
+  }
+
+  .stat-card {
+    min-height: 110px;
+  }
+}
+
+/* ==========================================================
+   ACCESSIBILITY
+========================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--dyp-green-400) !important;
+
+  outline-offset: 2px !important;
+}
+
+::selection {
+  background: var(--dyp-green-200);
+
+  color: var(--dyp-green-950);
+}
+
+/* ==========================================================
+   REDUCED MOTION
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================
+   PLAYER DASHBOARD — COMPOSITION
+========================================================== */
+
+.player-dashboard {
+  max-width: 1600px;
+}
+
+.player-dashboard > .dashboard-sync {
+  margin: -6px 0 0;
+
+  padding: 8px 12px;
+
+  border-radius: 9px;
+
+  background: var(--dyp-green-100);
+
+  color: var(--dyp-green-800);
+
+  font-size: 11px;
+
+  font-weight: 750;
+}
+
+/*
+  Keep the hero visually dominant.
+*/
+
+.player-dashboard > :is(
+  .player-hero,
+  .hero,
+  [class*="hero"]
+) {
+  margin-bottom: 0;
+}
+
+/*
+  Progress should read as a compact dashboard metric,
+  not as another giant hero.
+*/
+
+.player-dashboard .group-progress,
+.player-dashboard [class*="group-progress"] {
+  min-height: 110px;
+}
+
+/*
+  Core cards:
+  primary content gets more width,
+  secondary metric gets less.
+*/
+
+.player-core-grid > *,
+.player-progression-grid > * {
+  min-width: 0;
+}
+
+/*
+  Make sections breathe.
+*/
+
+.player-dashboard > section,
+.player-dashboard > .card,
+.player-dashboard > [class*="section"] {
+  margin: 0;
+}
+
+/*
+  Buttons inside cards remain compact.
+*/
+
+.player-dashboard .btn,
+.player-dashboard .button {
+  min-height: 36px !important;
+}
+
+/*
+  Map is intentionally quieter than the main journey content.
+*/
+
+.player-dashboard [class*="map"] {
+  margin-top: 0;
+}
+
+/* ==========================================================
+   ADMIN / STAFF DASHBOARD GRID
+========================================================== */
+
+.admin-dashboard .grid,
+.youth-worker-dashboard .grid {
+  gap: 18px;
+}
+
+.admin-dashboard .grid-4,
+.youth-worker-dashboard .grid-4 {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+}
+
+.admin-dashboard .grid-3,
+.youth-worker-dashboard .grid-3 {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .admin-dashboard .grid-4,
+  .youth-worker-dashboard .grid-4 {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-dashboard .grid-3,
+  .youth-worker-dashboard .grid-3 {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-dashboard .grid-4,
+  .admin-dashboard .grid-3,
+  .youth-worker-dashboard .grid-4,
+  .youth-worker-dashboard .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
