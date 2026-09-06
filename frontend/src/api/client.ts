@@ -983,6 +983,23 @@ export type PlayerSkillTree = {
   milestones: SkillMilestone[];
 };
 
+export type CompletedSkillTree = {
+  id: Id;
+  player_id: Id;
+  name: string;
+  description: string | null;
+  xp: number;
+  active: boolean;
+  completed: boolean;
+  completed_at: string | null;
+  milestones: Array<
+    SkillMilestone & {
+      id: Id;
+      completed_at: string | null;
+    }
+  >;
+};
+
 export type PlayerDashboard = {
   player: {
     id: Id;
@@ -1032,6 +1049,8 @@ export type PlayerDashboard = {
   badges: PlayerBadge[];
 
   skill_tree: PlayerSkillTree | null;
+
+  completed_skill_trees?: CompletedSkillTree[];
 
   challenges: PlayerChallenge[];
 
