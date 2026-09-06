@@ -339,10 +339,11 @@ def award_xp(
     db: Session,
     *,
     programme_id: int,
-    player_id: int,
+    player_id: int | None,
     amount: int,
     group_amount: int = 0,
     transaction_type: str,
+    group_id: int | None = None,
     reason: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
@@ -372,10 +373,28 @@ def award_xp(
         reference_id=1
     """
 
-    amount = _validate_amount(
-        amount,
-        field_name="amount",
-    )
+    # Normal XP transactions must have a non-zero individual amount.
+    #
+    # The exception is a group-only transaction:
+    #
+    #     player_id=None
+    #     amount=0
+    #     group_amount != 0
+    #
+    # Exceptional group penalties use this form so that no individual
+    # player's XP is changed.
+
+    if amount == 0:
+        if player_id is not None or group_amount == 0:
+            raise InvalidXPAmountError(
+                "amount cannot be zero unless this is a "
+                "group-only transaction."
+            )
+    else:
+        amount = _validate_amount(
+            amount,
+            field_name="amount",
+        )
 
     if group_amount != 0:
         group_amount = _validate_amount(
@@ -395,10 +414,45 @@ def award_xp(
             "reason is required."
         )
 
-    player = _get_player(
-        db,
-        player_id,
-    )
+    player = None
+
+    if player_id is not None:
+        player = _get_player(
+            db,
+            player_id,
+        )
+
+        if group_id is None:
+            group_id = player.group_id
+
+    elif group_id is None:
+        raise XPError(
+            "Either player_id or group_id is required."
+        )
+
+    if player_id is None and amount != 0:
+        raise XPError(
+            "A group-only XP transaction cannot change individual XP."
+        )
+
+    # ---------------------------------------------------------------
+    # Validate group target when supplied.
+    # ---------------------------------------------------------------
+
+    if group_id is not None:
+        group = (
+            db.query(YouthGroup)
+            .filter(
+                YouthGroup.id == group_id,
+                YouthGroup.programme_id == programme_id,
+            )
+            .first()
+        )
+
+        if group is None:
+            raise GroupNotFoundError(
+                "Group not found in this programme."
+            )
 
     # ---------------------------------------------------------------
     # Backwards-compatible reference parsing.
@@ -446,6 +500,7 @@ def award_xp(
             if (
                 existing.programme_id != programme_id
                 or existing.player_id != player_id
+                or existing.group_id != group_id
                 or existing.amount != amount
                 or existing.group_amount != group_amount
                 or existing.transaction_type != transaction_type
@@ -476,7 +531,8 @@ def award_xp(
 
         if existing is not None:
             if (
-                existing.player_id != player.id
+                existing.player_id != player_id
+                or existing.group_id != group_id
                 or existing.amount != amount
                 or existing.group_amount != group_amount
             ):
@@ -494,7 +550,7 @@ def award_xp(
     transaction = XPTransaction(
         programme_id=programme_id,
         player_id=player_id,
-        group_id=player.group_id,
+        group_id=group_id,
         amount=amount,
         group_amount=group_amount,
         transaction_type=transaction_type,
@@ -549,7 +605,8 @@ def award_xp(
 
         if existing is not None:
             if (
-                existing.player_id != player.id
+                existing.player_id != player_id
+                or existing.group_id != group_id
                 or existing.amount != amount
                 or existing.group_amount != group_amount
             ):

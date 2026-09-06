@@ -2558,9 +2558,9 @@ class GroupPenalty(Base, TimestampMixin):
         index=True,
     )
 
-    group_id: Mapped[Optional[int]] = mapped_column(
+    group_id: Mapped[int] = mapped_column(
         ForeignKey("groups.id"),
-        nullable=True,
+        nullable=False,
     )
 
     reason: Mapped[str] = mapped_column(

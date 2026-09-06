@@ -18,6 +18,7 @@ from ..db.models import (
 
 from .xp import (
     award_xp,
+    group_xp,
     player_xp,
     programme_xp,
 )
@@ -180,14 +181,41 @@ def award_exceptional_group_penalty(
     db: Session,
     *,
     programme_id: int,
-    group_id: int | None,
+    group_id: int,
     amount: int,
     reason: str,
-    collective_complicity: bool,
-    severe_shared_impact: bool,
-    passive_group_endorsement: bool,
     approved_by: int,
+    collective_complicity: bool = False,
+    severe_shared_impact: bool = False,
+    passive_group_endorsement: bool = False,
 ) -> GroupPenalty:
+    """
+    Apply a collective group penalty.
+
+    Integrity rules:
+
+    - The target group must belong to the programme.
+    - The group must be active.
+    - At least one collective criterion must be satisfied.
+    - The penalty cannot exceed the programme-configured cap.
+    - The penalty cannot exceed the programme's current collective XP.
+    - No individual player loses XP.
+    - The XP ledger records:
+          amount=0
+          group_amount=-amount
+    - The ledger references the GroupPenalty.
+    - The operation is committed atomically by the caller.
+    """
+
+    if amount <= 0:
+        raise ValueError(
+            "Group penalty amount must be greater than zero."
+        )
+
+    if not reason or not reason.strip():
+        raise ValueError(
+            "A reason is required for a group penalty."
+        )
 
     if not (
         collective_complicity
@@ -195,86 +223,109 @@ def award_exceptional_group_penalty(
         or passive_group_endorsement
     ):
         raise ValueError(
-            "Exceptional group penalty requires at least "
-            "one collective criterion."
+            "A collective group penalty requires at least one "
+            "collective criterion."
         )
 
-    programme_xp = get_programme_xp(
-        db,
-        programme_id,
+    programme = (
+        db.query(Programme)
+        .filter(
+            Programme.id == programme_id,
+        )
+        .first()
     )
 
+    if programme is None:
+        raise ValueError(
+            "Programme not found."
+        )
+
+    group = (
+        db.query(YouthGroup)
+        .filter(
+            YouthGroup.id == group_id,
+            YouthGroup.programme_id == programme_id,
+        )
+        .first()
+    )
+
+    if group is None:
+        raise ValueError(
+            "Group not found in this programme."
+        )
+
+    # Respect the programme's configured maximum penalty.
     maximum_penalty = int(
-        JACKPOT_TARGET_XP
-        * MAX_GROUP_PENALTY_PERCENT
+        programme.target_xp
+        * programme.max_group_penalty_percent
         / 100
     )
 
-    amount = abs(int(amount))
-
     if amount > maximum_penalty:
         raise ValueError(
-            f"Group penalty cannot exceed "
-            f"{maximum_penalty:,} XP."
+            f"Group penalty exceeds the configured maximum "
+            f"of {maximum_penalty} XP."
         )
 
-    if amount > max(
-        programme_xp,
-        maximum_penalty,
-    ):
-        amount = min(
-            amount,
-            maximum_penalty,
+    current_group_xp = group_xp(
+        db,
+        programme_id=programme_id,
+    )
+
+    if amount > current_group_xp:
+        raise ValueError(
+            "Group penalty cannot exceed the programme's "
+            "current collective XP."
         )
+
+    # ---------------------------------------------------------------
+    # Create the penalty record first.
+    #
+    # The XP transaction uses the penalty ID as its stable business
+    # reference. The caller owns the surrounding transaction.
+    # ---------------------------------------------------------------
 
     penalty = GroupPenalty(
         programme_id=programme_id,
         group_id=group_id,
-        reason=reason,
+        amount=amount,
+        reason=reason.strip(),
+        approved_by=approved_by,
         collective_complicity=collective_complicity,
         severe_shared_impact=severe_shared_impact,
         passive_group_endorsement=passive_group_endorsement,
-        amount=amount,
-        approved_by=approved_by,
-        restorative_completed=False,
     )
 
     db.add(penalty)
     db.flush()
 
-    # The group penalty is represented by a negative XP transaction.
-    # We attach it to one participating player only for ledger/audit
-    # purposes; group_amount is what affects the collective pool.
+    # ---------------------------------------------------------------
+    # Award the collective XP loss exactly once.
+    #
+    # The stable idempotency key is tied to this persisted penalty,
+    # so retrying the XP operation cannot create another ledger entry.
+    # ---------------------------------------------------------------
 
-    participant = (
-        db.query(Player)
-        .filter(
-            Player.group_id == group_id,
-            Player.active.is_(True),
-        )
-        .first()
+    transaction = award_xp(
+        db,
+        programme_id=programme_id,
+        player_id=None,
+        group_id=group_id,
+        amount=0,
+        group_amount=-amount,
+        transaction_type="group_penalty",
+        reason=reason.strip(),
+        reference_type="group_penalty",
+        reference_id=penalty.id,
+        idempotency_key=f"group-penalty:{penalty.id}",
+        created_by=approved_by,
     )
 
-    if participant is not None:
-        award_xp(
-            db,
-            programme_id=programme_id,
-            player_id=participant.id,
-            amount=-amount,
-            group_amount=-amount,
-            transaction_type="group_penalty",
-            reason=reason,
-            reference_type="group_penalty",
-            reference_id=penalty.id,
-            created_by=approved_by,
-        )
+    penalty.xp_transaction_id = transaction.id
+
+    db.flush()
 
     return penalty
-
-
-# ============================================================
-# CONDUCT RULES
-# ============================================================
 
 def apply_tier_1_penalty(
     db: Session,

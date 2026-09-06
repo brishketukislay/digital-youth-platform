@@ -1,7 +1,7 @@
 """add XP transaction idempotency
 
 Revision ID: 20260906_xp_transaction_idempotency
-Revises: c9787fd3cc7d
+Revises: b2845a54aabf
 Create Date: 2026-09-06
 """
 
@@ -40,7 +40,7 @@ def upgrade() -> None:
     # Every non-NULL idempotency key must identify exactly one
     # logical XP transaction.
     op.create_index(
-        "uq_xp_transaction_idempotency_key",
+        "ux_xp_transactions_idempotency_key",
         "xp_transactions",
         ["idempotency_key"],
         unique=True,
@@ -51,7 +51,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_index(
-        "uq_xp_transaction_idempotency_key",
+        "ux_xp_transactions_idempotency_key",
         table_name="xp_transactions",
     )
 
