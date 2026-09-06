@@ -2,7 +2,11 @@ export type PointRuleCalculation = {
   id: string;
   name: string;
   xpPerAward: number;
+  groupXpPerAward: number;
   awardsPerWeek: number;
+  weeklyCap: number | null;
+  individualAwardCap: number | null;
+  groupAwardCap: number | null;
   weeklyYield: number;
   enabled: boolean;
 };

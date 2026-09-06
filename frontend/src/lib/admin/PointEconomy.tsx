@@ -18,20 +18,74 @@ import { PointRuleEditor } from "./PointRuleEditor";
 import { EconomyHealth } from "./EconomyHealth";
 
 function toCalculation(rule: PointRule): PointRuleCalculation {
+  const xpPerAward = Math.max(
+    0,
+    Number(rule.individual_xp || 0),
+  );
+
+  const groupXpPerAward = Math.max(
+    0,
+    Number(rule.group_xp || 0),
+  );
+
+  const awardsPerWeek = Math.max(
+    0,
+    Number(rule.awards_per_week || 0),
+  );
+
+  const individualAwardCap =
+    rule.individual_award_cap == null
+      ? null
+      : Math.max(
+          1,
+          Number(rule.individual_award_cap),
+        );
+
+  const groupAwardCap =
+    rule.group_award_cap == null
+      ? null
+      : Math.max(
+          1,
+          Number(rule.group_award_cap),
+        );
+
+  const weeklyCap =
+    rule.weekly_cap == null
+      ? null
+      : Math.max(
+          1,
+          Number(rule.weekly_cap),
+        );
+
+  const effectiveIndividualAward =
+    individualAwardCap === null
+      ? xpPerAward
+      : Math.min(
+          xpPerAward,
+          individualAwardCap,
+        );
+
+  const projectedWeeklyYield =
+    effectiveIndividualAward * awardsPerWeek;
+
+  const weeklyYield =
+    weeklyCap === null
+      ? projectedWeeklyYield
+      : Math.min(
+          projectedWeeklyYield,
+          weeklyCap,
+        );
+
   return {
     id: String(rule.id),
     name: rule.name,
-    xpPerAward: Math.max(
-      0,
-      Number(rule.individual_xp || 0),
-    ),
-    awardsPerWeek: Math.max(
-      0,
-      Number(rule.awards_per_week || 0),
-    ),
-    weeklyYield:
-      Math.max(0, Number(rule.individual_xp || 0)) *
-      Math.max(0, Number(rule.awards_per_week || 0)),
+    xpPerAward,
+    groupXpPerAward,
+    awardsPerWeek,
+    weeklyCap,
+    individualAwardCap,
+    groupAwardCap,
+    weeklyYield,
     enabled: Boolean(rule.enabled),
   };
 }
@@ -151,7 +205,13 @@ export function PointEconomy() {
   const saveRule = async (
     values: Pick<
       PointRuleCalculation,
-      "xpPerAward" | "awardsPerWeek" | "enabled"
+      | "xpPerAward"
+      | "groupXpPerAward"
+      | "awardsPerWeek"
+      | "weeklyCap"
+      | "individualAwardCap"
+      | "groupAwardCap"
+      | "enabled"
     >,
   ) => {
     if (!selectedBackendRule) {
@@ -172,11 +232,15 @@ export function PointEconomy() {
           individual_xp:
             values.xpPerAward,
           group_xp:
-            selectedBackendRule.group_xp,
+            values.groupXpPerAward,
           weekly_cap:
-            selectedBackendRule.weekly_cap ?? null,
+            values.weeklyCap,
           awards_per_week:
             values.awardsPerWeek,
+          individual_award_cap:
+            values.individualAwardCap,
+          group_award_cap:
+            values.groupAwardCap,
           enabled:
             values.enabled,
         },
@@ -189,8 +253,16 @@ export function PointEconomy() {
                 ...rule,
                 individual_xp:
                   values.xpPerAward,
+                group_xp:
+                  values.groupXpPerAward,
+                weekly_cap:
+                  values.weeklyCap,
                 awards_per_week:
                   values.awardsPerWeek,
+                individual_award_cap:
+                  values.individualAwardCap,
+                group_award_cap:
+                  values.groupAwardCap,
                 enabled:
                   values.enabled,
               }

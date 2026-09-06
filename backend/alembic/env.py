@@ -92,9 +92,6 @@ def compare_type(context, inspected_column, metadata_column, inspected_type, met
     return None
 
 
-
-
-
 def process_revision_directives(context, revision, directives):
     """
     Remove SQLite constraint operations that are already represented in the
@@ -181,7 +178,7 @@ def run_migrations_online() -> None:
             compare_type=compare_type,
             compare_server_default=False,
             include_object=include_object,
-        process_revision_directives=process_revision_directives,
+            process_revision_directives=process_revision_directives,
         )
 
         with context.begin_transaction():

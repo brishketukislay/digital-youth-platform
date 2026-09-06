@@ -882,6 +882,18 @@ class PointRuleRequest(BaseModel):
         le=100_000,
     )
 
+    individual_award_cap: int | None = Field(
+        default=None,
+        ge=1,
+        le=1_000_000,
+    )
+
+    group_award_cap: int | None = Field(
+        default=None,
+        ge=1,
+        le=1_000_000,
+    )
+
     enabled: bool = True
 
 
@@ -919,6 +931,12 @@ def get_point_rules(
             "weekly_cap": rule.weekly_cap,
             "awards_per_week": (
                 rule.awards_per_week
+            ),
+            "individual_award_cap": (
+                rule.individual_award_cap
+            ),
+            "group_award_cap": (
+                rule.group_award_cap
             ),
             "enabled": rule.enabled,
         }
@@ -983,6 +1001,12 @@ def create_point_rule(
         weekly_cap=data.weekly_cap,
         awards_per_week=(
             data.awards_per_week
+        ),
+        individual_award_cap=(
+            data.individual_award_cap
+        ),
+        group_award_cap=(
+            data.group_award_cap
         ),
         enabled=data.enabled,
     )
@@ -1084,6 +1108,10 @@ def update_point_rule(
         f"{rule.weekly_cap};"
         f"awards_per_week="
         f"{rule.awards_per_week};"
+        f"individual_award_cap="
+        f"{rule.individual_award_cap};"
+        f"group_award_cap="
+        f"{rule.group_award_cap};"
         f"enabled={rule.enabled}"
     )
 
@@ -1101,6 +1129,12 @@ def update_point_rule(
     rule.weekly_cap = data.weekly_cap
     rule.awards_per_week = (
         data.awards_per_week
+    )
+    rule.individual_award_cap = (
+        data.individual_award_cap
+    )
+    rule.group_award_cap = (
+        data.group_award_cap
     )
     rule.enabled = data.enabled
 
@@ -1121,6 +1155,10 @@ def update_point_rule(
             f"{rule.weekly_cap};"
             f"awards_per_week="
             f"{rule.awards_per_week};"
+            f"individual_award_cap="
+            f"{rule.individual_award_cap};"
+            f"group_award_cap="
+            f"{rule.group_award_cap};"
             f"enabled={rule.enabled}"
             f"]"
         ),
