@@ -946,16 +946,25 @@ class XPTransaction(Base):
 
 class PointRule(Base, TimestampMixin):
     """
-    Configurable XP rule.
+    Database-driven XP economy rule.
 
-    This is deliberately database-driven so staff/admins do not need
-    developers to change values such as:
+    Feature code identifies an action by ``code`` and delegates the
+    actual economy configuration to this table.
 
-        Attendance = 500
-        Community action = 5000
-        Elite challenge = 1500
+    Historical XP transactions are never recalculated when a rule changes.
+    A rule therefore controls future awards only.
 
-    A rule may be enabled/disabled from the admin interface.
+    The rule supports:
+
+    - player XP
+    - group XP
+    - enable/disable
+    - per-player weekly XP cap
+    - maximum awards per player per week
+    - optional per-award player XP cap
+    - optional per-award group XP cap
+
+    A value of NULL means "unlimited / not configured".
     """
 
     __tablename__ = "point_rules"
@@ -989,20 +998,22 @@ class PointRule(Base, TimestampMixin):
     individual_xp: Mapped[int] = mapped_column(
         Integer,
         default=0,
+        server_default="0",
         nullable=False,
     )
 
     group_xp: Mapped[int] = mapped_column(
         Integer,
         default=0,
+        server_default="0",
         nullable=False,
     )
 
-    # Optional weekly/global cap for this rule.
     weekly_cap: Mapped[Optional[int]] = mapped_column(
         Integer,
         nullable=True,
     )
+
     awards_per_week: Mapped[float] = mapped_column(
         Float,
         default=0.0,
@@ -1010,9 +1021,20 @@ class PointRule(Base, TimestampMixin):
         nullable=False,
     )
 
+    individual_award_cap: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    group_award_cap: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
     enabled: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
+        server_default="1",
         nullable=False,
     )
 
@@ -1021,6 +1043,34 @@ class PointRule(Base, TimestampMixin):
             "programme_id",
             "code",
             name="uq_programme_point_rule_code",
+        ),
+        CheckConstraint(
+            "individual_xp >= 0",
+            name="ck_point_rule_individual_xp_non_negative",
+        ),
+        CheckConstraint(
+            "group_xp >= 0",
+            name="ck_point_rule_group_xp_non_negative",
+        ),
+        CheckConstraint(
+            "weekly_cap IS NULL OR weekly_cap > 0",
+            name="ck_point_rule_weekly_cap_positive",
+        ),
+        CheckConstraint(
+            "awards_per_week >= 0",
+            name="ck_point_rule_awards_per_week_non_negative",
+        ),
+        CheckConstraint(
+            "individual_award_cap IS NULL OR individual_award_cap > 0",
+            name="ck_point_rule_individual_award_cap_positive",
+        ),
+        CheckConstraint(
+            "group_award_cap IS NULL OR group_award_cap > 0",
+            name="ck_point_rule_group_award_cap_positive",
+        ),
+        CheckConstraint(
+            "individual_xp > 0 OR group_xp > 0",
+            name="ck_point_rule_has_positive_reward",
         ),
     )
 

@@ -9,7 +9,10 @@ from ..db.models import (
     AttendanceSession,
     Player,
 )
-from .xp import award_xp
+from .xp_rules import XPRuleError, award_rule_xp
+
+
+ATTENDANCE_RULE_CODE = "attendance"
 
 
 def check_in(
@@ -20,10 +23,9 @@ def check_in(
     created_by: int | None = None,
 ) -> Attendance:
     """
-    Record one player attendance.
+    Record one player attendance and award configured attendance XP.
 
-    The database unique constraint on
-    (session_id, player_id) is the final duplicate safeguard.
+    The XP economy is resolved entirely from PointRule.
     """
 
     existing = (
@@ -67,18 +69,18 @@ def check_in(
     db.add(attendance)
     db.flush()
 
-    transaction = award_xp(
-        db,
-        programme_id=attendance_session.programme_id,
-        player_id=player.id,
-        amount=500,
-        group_amount=500,
-        transaction_type="attendance",
-        reason="Session attendance",
-        reference_type="attendance",
-        reference_id=attendance.id,
-        created_by=created_by,
-    )
+    try:
+        transaction = award_rule_xp(
+            db,
+            programme_id=attendance_session.programme_id,
+            player_id=player.id,
+            rule_code=ATTENDANCE_RULE_CODE,
+            reference_type="attendance",
+            reference_id=attendance.id,
+            created_by=created_by,
+        )
+    except XPRuleError as exc:
+        raise ValueError(str(exc)) from exc
 
     attendance.xp_awarded = transaction.amount
 

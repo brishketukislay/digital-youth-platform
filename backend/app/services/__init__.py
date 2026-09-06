@@ -45,3 +45,9 @@ __all__ = [
     "transaction_to_dict",
     "balance_from_transactions",
 ]
+from .xp_rules import award_rule_xp
+
+__all__ = [
+    *globals().get('__all__', []),
+    'award_rule_xp',
+]

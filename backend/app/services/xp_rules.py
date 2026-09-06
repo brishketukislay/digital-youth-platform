@@ -1,126 +1,277 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from datetime import datetime, timedelta
+
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from ..db.models import PointRule, XPTransaction
+from .xp import award_xp
 
 
-class XPError(ValueError):
-    """Raised when an XP operation violates a domain rule."""
-
-
-class XPSubject(str, Enum):
-    PLAYER = "player"
-    GROUP = "group"
-    COHORT = "cohort"
-
-
-@dataclass(frozen=True)
-class XPAward:
-    amount: int
-    reason: str
-    source_type: str
-    source_id: int | None = None
-    idempotency_key: str | None = None
+class XPRuleError(ValueError):
+    """Raised when an XP economy rule cannot be used."""
 
 
 @dataclass(frozen=True)
-class XPCap:
-    """
-    Optional cap applied to a calculated award.
+class ResolvedXPRule:
+    """Immutable economy configuration resolved for one operation."""
 
-    A cap is applied to the award amount, not the lifetime balance.
-    """
+    id: int
+    programme_id: int
+    code: str
+    name: str
+    individual_xp: int
+    group_xp: int
+    weekly_cap: int | None
+    awards_per_week: float
+    individual_award_cap: int | None
+    group_award_cap: int | None
 
-    maximum: int | None = None
+    def individual_amount(self) -> int:
+        amount = self.individual_xp
 
-    def apply(self, amount: int) -> int:
-        if amount < 0:
-            return amount
+        if self.individual_award_cap is not None:
+            amount = min(amount, self.individual_award_cap)
 
-        if self.maximum is None:
-            return amount
+        return amount
 
-        return min(amount, self.maximum)
+    def group_amount(self) -> int:
+        amount = self.group_xp
 
+        if self.group_award_cap is not None:
+            amount = min(amount, self.group_award_cap)
 
-def validate_amount(amount: int) -> None:
-    if not isinstance(amount, int):
-        raise XPError("XP amount must be an integer.")
-
-    if amount == 0:
-        raise XPError("XP transaction cannot be zero.")
-
-
-def validate_positive_award(amount: int) -> None:
-    validate_amount(amount)
-
-    if amount < 0:
-        raise XPError("Positive XP award cannot be negative.")
+        return amount
 
 
-def validate_penalty(amount: int) -> None:
-    validate_amount(amount)
-
-    if amount >= 0:
-        raise XPError("Penalty amount must be negative.")
-
-
-def calculate_multiplier(
-    amount: int,
-    multiplier: float,
+def get_rule(
+    db: Session,
     *,
-    maximum: int | None = None,
-) -> int:
-    """
-    Calculate a rounded XP award after applying a multiplier.
+    programme_id: int,
+    code: str,
+) -> ResolvedXPRule:
+    """Resolve an enabled PointRule for a programme."""
 
-    Example:
-        500 × 1.5 = 750
+    normalized_code = code.strip().lower()
 
-    Multipliers are intentionally calculated here rather than stored
-    as separate XP transactions.
-    """
-    if amount < 0:
-        raise XPError("Multipliers cannot be applied to negative awards.")
+    if not normalized_code:
+        raise XPRuleError("XP rule code cannot be empty.")
 
-    if multiplier <= 0:
-        raise XPError("Multiplier must be greater than zero.")
+    rule = (
+        db.query(PointRule)
+        .filter(
+            PointRule.programme_id == programme_id,
+            PointRule.code == normalized_code,
+        )
+        .first()
+    )
 
-    calculated = round(amount * multiplier)
-
-    if maximum is not None:
-        calculated = min(calculated, maximum)
-
-    return calculated
-
-
-def validate_cohort_penalty(
-    amount: int,
-    *,
-    current_xp: int,
-    target_xp: int,
-    maximum_percentage: float = 0.10,
-) -> None:
-    """
-    Validate the exceptional collective deduction rule.
-
-    A single deduction cannot exceed the configured percentage of the
-    cohort target.
-    """
-    validate_penalty(amount)
-
-    if target_xp <= 0:
-        raise XPError("Cohort target XP must be greater than zero.")
-
-    maximum_loss = int(target_xp * maximum_percentage)
-
-    if abs(amount) > maximum_loss:
-        raise XPError(
-            f"Cohort penalty cannot exceed {maximum_loss:,} XP."
+    if rule is None:
+        raise XPRuleError(
+            f"No XP rule is configured for '{normalized_code}'."
         )
 
-    # Do not allow the collective balance to become negative.
-    if current_xp + amount < 0:
-        raise XPError(
-            "Cohort XP cannot become negative."
+    if not rule.enabled:
+        raise XPRuleError(
+            f"The XP rule '{normalized_code}' is disabled."
         )
+
+    if rule.individual_xp <= 0 and rule.group_xp <= 0:
+        raise XPRuleError(
+            f"The XP rule '{normalized_code}' has no positive reward."
+        )
+
+    return ResolvedXPRule(
+        id=rule.id,
+        programme_id=rule.programme_id,
+        code=rule.code,
+        name=rule.name,
+        individual_xp=rule.individual_xp,
+        group_xp=rule.group_xp,
+        weekly_cap=rule.weekly_cap,
+        awards_per_week=float(rule.awards_per_week or 0),
+        individual_award_cap=rule.individual_award_cap,
+        group_award_cap=rule.group_award_cap,
+    )
+
+
+def _week_start(now: datetime) -> datetime:
+    """Return Monday 00:00 for the UTC week containing ``now``."""
+
+    current = now.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+    return current - timedelta(days=current.weekday())
+
+
+def weekly_rule_usage(
+    db: Session,
+    *,
+    rule: ResolvedXPRule,
+    player_id: int,
+    now: datetime | None = None,
+) -> tuple[int, int]:
+    """
+    Return:
+
+        (positive individual XP awarded this week, award count)
+
+    Usage is calculated from the immutable XP ledger.
+    """
+
+    current_time = now or datetime.utcnow()
+    start = _week_start(current_time)
+
+    row = (
+        db.query(
+            func.coalesce(func.sum(XPTransaction.amount), 0),
+            func.count(XPTransaction.id),
+        )
+        .filter(
+            XPTransaction.programme_id == rule.programme_id,
+            XPTransaction.player_id == player_id,
+            XPTransaction.transaction_type == rule.code,
+            XPTransaction.created_at >= start,
+            XPTransaction.created_at < current_time,
+            XPTransaction.amount > 0,
+        )
+        .one()
+    )
+
+    return int(row[0] or 0), int(row[1] or 0)
+
+
+def apply_rule_limits(
+    db: Session,
+    *,
+    rule: ResolvedXPRule,
+    player_id: int,
+    individual_amount: int,
+    group_amount: int,
+    now: datetime | None = None,
+) -> tuple[int, int]:
+    """
+    Apply all configured limits to one future award.
+
+    Weekly XP cap applies to the player's individual XP ledger amount.
+    Group XP is deliberately not counted against the player's personal cap.
+
+    The operation either produces a positive individual award or a positive
+    group award. A completely zero result is rejected.
+    """
+
+    if not isinstance(individual_amount, int):
+        raise XPRuleError("Individual XP must be an integer.")
+
+    if not isinstance(group_amount, int):
+        raise XPRuleError("Group XP must be an integer.")
+
+    if individual_amount < 0:
+        raise XPRuleError("Individual XP cannot be negative.")
+
+    if group_amount < 0:
+        raise XPRuleError("Group XP cannot be negative.")
+
+    if rule.individual_award_cap is not None:
+        individual_amount = min(
+            individual_amount,
+            rule.individual_award_cap,
+        )
+
+    if rule.group_award_cap is not None:
+        group_amount = min(
+            group_amount,
+            rule.group_award_cap,
+        )
+
+    used_xp, award_count = weekly_rule_usage(
+        db,
+        rule=rule,
+        player_id=player_id,
+        now=now,
+    )
+
+    if (
+        rule.awards_per_week > 0
+        and award_count >= rule.awards_per_week
+    ):
+        raise XPRuleError(
+            f"XP rule '{rule.code}' has reached its weekly award limit."
+        )
+
+    if rule.weekly_cap is not None:
+        remaining = rule.weekly_cap - used_xp
+
+        if remaining <= 0:
+            raise XPRuleError(
+                f"XP rule '{rule.code}' has reached its weekly XP cap."
+            )
+
+        individual_amount = min(
+            individual_amount,
+            remaining,
+        )
+
+    if individual_amount == 0 and group_amount == 0:
+        raise XPRuleError(
+            f"XP rule '{rule.code}' produced no award after limits."
+        )
+
+    return individual_amount, group_amount
+
+
+def award_rule_xp(
+    db: Session,
+    *,
+    programme_id: int,
+    player_id: int,
+    rule_code: str,
+    transaction_type: str | None = None,
+    reason: str | None = None,
+    reference_type: str | None = None,
+    reference_id: int | None = None,
+    idempotency_key: str | None = None,
+    created_by: int | None = None,
+) -> XPTransaction:
+    """
+    Award XP entirely from a configured PointRule.
+
+    This is the preferred operation for feature code.
+
+    Feature services identify *what happened* using ``rule_code``.
+    They do not provide XP amounts.
+    """
+
+    rule = get_rule(
+        db,
+        programme_id=programme_id,
+        code=rule_code,
+    )
+
+    individual_amount, group_amount = apply_rule_limits(
+        db,
+        rule=rule,
+        player_id=player_id,
+        individual_amount=rule.individual_amount(),
+        group_amount=rule.group_amount(),
+    )
+
+    return award_xp(
+        db,
+        programme_id=programme_id,
+        player_id=player_id,
+        amount=individual_amount,
+        group_amount=group_amount,
+        transaction_type=transaction_type or rule.code,
+        reason=reason or rule.name,
+        reference_type=reference_type,
+        reference_id=reference_id,
+        idempotency_key=idempotency_key,
+        created_by=created_by,
+    )
