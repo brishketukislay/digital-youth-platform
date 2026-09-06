@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .database import Base, engine
+from .routers.xp_operations import router as xp_operations_router
 from .routers import (
     admin,
     attendance,
@@ -21,6 +22,7 @@ app = FastAPI(
     version="2.0.0",
 )
 
+app.include_router(xp_operations_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

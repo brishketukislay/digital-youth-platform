@@ -25,8 +25,13 @@ function toCalculation(rule: PointRule): PointRuleCalculation {
       0,
       Number(rule.individual_xp || 0),
     ),
-    awardsPerWeek: 0,
-    weeklyYield: 0,
+    awardsPerWeek: Math.max(
+      0,
+      Number(rule.awards_per_week || 0),
+    ),
+    weeklyYield:
+      Math.max(0, Number(rule.individual_xp || 0)) *
+      Math.max(0, Number(rule.awards_per_week || 0)),
     enabled: Boolean(rule.enabled),
   };
 }
