@@ -110,3 +110,28 @@ def add_xp_transaction_idempotency_key(
 def run_migrations(engine: Engine) -> None:
     add_xp_transaction_group_id(engine)
     add_xp_transaction_idempotency_key(engine)
+    create_xp_balance_tables(engine)
+
+
+def create_xp_balance_tables(engine: Engine) -> None:
+    """
+    Create XP balance projection tables for existing databases.
+
+    These tables are derived from the XP transaction ledger and are safe
+    to create when upgrading an existing pilot database.
+    """
+
+    from .db.models.xp_balance import (
+        GroupXPBalance,
+        PlayerXPBalance,
+    )
+
+    PlayerXPBalance.__table__.create(
+        bind=engine,
+        checkfirst=True,
+    )
+
+    GroupXPBalance.__table__.create(
+        bind=engine,
+        checkfirst=True,
+    )

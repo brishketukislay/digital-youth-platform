@@ -73,4 +73,11 @@ __all__ = [
     "User",
     "XPTransaction",
     "YouthGroup",
+    "GroupXPBalance",
+    "PlayerXPBalance",
 ]
+
+from .xp_balance import (
+    GroupXPBalance,
+    PlayerXPBalance,
+)

@@ -1,38 +1,36 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from ..auth import require_roles
-from ..db.database import get_db
-from ..db.models import Player, Programme
-from ..services.xp import (
+from app.db.database import get_db
+from app.db.models.core import Player, XPTransaction
+from app.services.xp import (
     DuplicateXPTransactionError,
+    GroupNotFoundError,
     InvalidXPAmountError,
     PlayerNotFoundError,
     XPError,
     award_xp,
     get_player_balance,
     programme_xp,
-    transactions_for_player,
-    transaction_to_dict,
 )
 
 
 router = APIRouter(
     prefix="/api/xp",
-    tags=["XP Operations"],
+    tags=["XP"],
 )
 
 
 # ============================================================
-# REQUEST MODELS
+# REQUEST / RESPONSE MODELS
 # ============================================================
 
-
 class XPAwardRequest(BaseModel):
-    player_id: int = Field(..., ge=1)
+    programme_id: int | None = None
+    player_id: int = Field(..., gt=0)
 
     amount: int = Field(
         ...,
@@ -40,54 +38,59 @@ class XPAwardRequest(BaseModel):
         le=50_000,
     )
 
-    reason: str = Field(
-        ...,
-        min_length=3,
-        max_length=500,
-    )
-
-    transaction_type: str = Field(
-        default="staff_award",
-        min_length=1,
-        max_length=100,
-    )
-
     group_amount: int = Field(
-        default=0,
+        0,
         ge=-50_000,
         le=50_000,
     )
 
-    reference_type: str | None = Field(
-        default=None,
+    transaction_type: str = Field(
+        ...,
         min_length=1,
         max_length=100,
     )
 
-    reference_id: int | None = Field(
-        default=None,
-        ge=1,
+    reason: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
     )
 
+    reference_type: str | None = Field(
+        None,
+        max_length=100,
+    )
+
+    reference_id: int | None = None
+
     idempotency_key: str | None = Field(
-        default=None,
-        min_length=1,
+        None,
         max_length=255,
     )
+
+    created_by: int | None = None
 
 
 # ============================================================
 # HELPERS
 # ============================================================
 
-
-def get_active_programme(
+def get_active_programme_id(
     db: Session,
-) -> Programme:
+) -> int:
+    """
+    Resolve the active programme.
+
+    Kept local to the XP API so callers do not need to know
+    how the project's active programme is selected.
+    """
+
+    from app.db.models.core import Programme
+
     programme = (
         db.query(Programme)
         .filter(
-            Programme.active.is_(True),
+            Programme.active == True,
         )
         .first()
     )
@@ -98,18 +101,56 @@ def get_active_programme(
             detail="No active programme configured.",
         )
 
-    return programme
+    return programme.id
 
 
-def get_active_player(
-    db: Session,
-    player_id: int,
-) -> Player:
+def transaction_response(
+    transaction: XPTransaction,
+) -> dict:
+    return {
+        "id": transaction.id,
+        "programme_id": transaction.programme_id,
+        "player_id": transaction.player_id,
+        "group_id": transaction.group_id,
+        "amount": transaction.amount,
+        "group_amount": transaction.group_amount,
+        "transaction_type": transaction.transaction_type,
+        "idempotency_key": transaction.idempotency_key,
+        "reason": transaction.reason,
+        "reference_type": transaction.reference_type,
+        "reference_id": transaction.reference_id,
+        "created_by": transaction.created_by,
+        "created_at": transaction.created_at,
+    }
+
+
+# ============================================================
+# AWARD XP
+# ============================================================
+
+@router.post("/awards")
+def create_xp_award(
+    payload: XPAwardRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Create an XP ledger transaction through the existing
+    XP domain service.
+
+    This endpoint deliberately contains no XP business logic.
+    """
+
+    if payload.amount == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="amount cannot be zero.",
+        )
+
     player = (
         db.query(Player)
         .filter(
-            Player.id == player_id,
-            Player.active.is_(True),
+            Player.id == payload.player_id,
+            Player.active == True,
         )
         .first()
     )
@@ -120,59 +161,27 @@ def get_active_player(
             detail="Player not found.",
         )
 
-    if player.suspended:
-        raise HTTPException(
-            status_code=400,
-            detail="Player is suspended.",
-        )
-
-    return player
-
-
-# ============================================================
-# AWARD XP
-# ============================================================
-
-
-@router.post("/awards")
-def create_xp_award(
-    payload: XPAwardRequest,
-    user=Depends(
-        require_roles(
-            "admin",
-            "youth_worker",
-        )
-    ),
-    db: Session = Depends(get_db),
-):
-    """
-    Create an XP ledger transaction.
-
-    The endpoint delegates all XP business rules to services.xp.award_xp().
-    """
-
-    programme = get_active_programme(db)
-    player = get_active_player(
-        db,
-        payload.player_id,
+    programme_id = (
+        payload.programme_id
+        if payload.programme_id is not None
+        else get_active_programme_id(db)
     )
 
-    if payload.reference_type is not None and payload.reference_id is None:
+    # Ensure the player belongs to the requested programme.
+    if (
+        getattr(player, "programme_id", programme_id)
+        != programme_id
+        and getattr(player, "programme_id", None) is not None
+    ):
         raise HTTPException(
             status_code=400,
-            detail="reference_id is required when reference_type is provided.",
-        )
-
-    if payload.reference_id is not None and payload.reference_type is None:
-        raise HTTPException(
-            status_code=400,
-            detail="reference_type is required when reference_id is provided.",
+            detail="Player does not belong to the requested programme.",
         )
 
     try:
         transaction = award_xp(
             db,
-            programme_id=programme.id,
+            programme_id=programme_id,
             player_id=player.id,
             amount=payload.amount,
             group_amount=payload.group_amount,
@@ -181,45 +190,55 @@ def create_xp_award(
             reference_type=payload.reference_type,
             reference_id=payload.reference_id,
             idempotency_key=payload.idempotency_key,
-            created_by=user.id,
+            created_by=payload.created_by,
         )
 
         db.commit()
         db.refresh(transaction)
 
-    except (
-        InvalidXPAmountError,
-        DuplicateXPTransactionError,
-        PlayerNotFoundError,
-        XPError,
-        ValueError,
-    ) as exc:
+    except PlayerNotFoundError as exc:
         db.rollback()
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
 
+    except GroupNotFoundError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    except InvalidXPAmountError as exc:
+        db.rollback()
         raise HTTPException(
             status_code=400,
             detail=str(exc),
         ) from exc
 
+    except DuplicateXPTransactionError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+    except XPError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    except Exception:
+        db.rollback()
+        raise
+
     return {
         "success": True,
-        "transaction": transaction_to_dict(
+        "transaction": transaction_response(
             transaction,
-        ),
-        "balance": {
-            "player_id": player.id,
-            "lifetime_xp": get_player_balance(
-                db,
-                player.id,
-            ).lifetime_xp,
-            "current_xp": get_player_balance(
-                db,
-                player.id,
-            ).current_xp,
-        },
-        "programme_xp": programme_xp(
-            db,
-            programme.id,
         ),
     }
 
@@ -228,95 +247,100 @@ def create_xp_award(
 # PLAYER BALANCE
 # ============================================================
 
-
 @router.get("/players/{player_id}/balance")
 def get_xp_balance(
     player_id: int,
-    user=Depends(
-        require_roles(
-            "admin",
-            "youth_worker",
-        )
-    ),
     db: Session = Depends(get_db),
 ):
-    player = get_active_player(
+    player = (
+        db.query(Player)
+        .filter(
+            Player.id == player_id,
+            Player.active == True,
+        )
+        .first()
+    )
+
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found.",
+        )
+
+    balance = get_player_balance(
         db,
         player_id,
     )
 
-    balance = get_player_balance(
-        db,
-        player.id,
-    )
-
-    programme = get_active_programme(db)
-
     return {
         "player_id": balance.player_id,
-        "lifetime_xp": balance.lifetime_xp,
         "current_xp": balance.current_xp,
-        "programme_xp": programme_xp(
-            db,
-            programme.id,
-        ),
+        "lifetime_xp": balance.lifetime_xp,
     }
 
 
 # ============================================================
-# PLAYER XP HISTORY
+# PLAYER TRANSACTION HISTORY
 # ============================================================
 
-
 @router.get("/players/{player_id}/transactions")
-def get_xp_transactions(
+def get_player_transactions(
     player_id: int,
-    limit: int = 50,
-    offset: int = 0,
-    user=Depends(
-        require_roles(
-            "admin",
-            "youth_worker",
-        )
+    limit: int = Query(
+        50,
+        ge=1,
+        le=100,
+    ),
+    offset: int = Query(
+        0,
+        ge=0,
     ),
     db: Session = Depends(get_db),
 ):
-    get_active_player(
-        db,
-        player_id,
+    player = (
+        db.query(Player)
+        .filter(
+            Player.id == player_id,
+            Player.active == True,
+        )
+        .first()
     )
 
-    limit = max(
-        1,
-        min(limit, 100),
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found.",
+        )
+
+    query = (
+        db.query(XPTransaction)
+        .filter(
+            XPTransaction.player_id == player_id,
+        )
+        .order_by(
+            XPTransaction.created_at.desc(),
+            XPTransaction.id.desc(),
+        )
     )
 
-    offset = max(
-        0,
-        offset,
+    total = query.count()
+
+    transactions = (
+        query
+        .offset(offset)
+        .limit(limit)
+        .all()
     )
-
-    transactions = transactions_for_player(
-        db,
-        player_id,
-    )
-
-    total = len(transactions)
-
-    items = transactions[
-        offset:offset + limit
-    ]
 
     return {
-        "items": [
-            transaction_to_dict(
-                transaction,
-            )
-            for transaction in items
-        ],
+        "player_id": player_id,
         "total": total,
         "limit": limit,
         "offset": offset,
+        "items": [
+            transaction_response(transaction)
+            for transaction in transactions
+        ],
     }
 
 
@@ -324,25 +348,23 @@ def get_xp_transactions(
 # PROGRAMME XP
 # ============================================================
 
-
 @router.get("/programme")
-def get_programme_xp_balance(
-    user=Depends(
-        require_roles(
-            "admin",
-            "youth_worker",
-        )
-    ),
+def get_programme_xp(
+    programme_id: int | None = None,
     db: Session = Depends(get_db),
 ):
-    programme = get_active_programme(db)
+    resolved_programme_id = (
+        programme_id
+        if programme_id is not None
+        else get_active_programme_id(db)
+    )
+
+    xp = programme_xp(
+        db,
+        resolved_programme_id,
+    )
 
     return {
-        "programme_id": programme.id,
-        "programme": programme.name,
-        "xp": programme_xp(
-            db,
-            programme.id,
-        ),
-        "target_xp": programme.target_xp or 0,
+        "programme_id": resolved_programme_id,
+        "xp": xp,
     }

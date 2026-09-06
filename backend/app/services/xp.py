@@ -493,14 +493,16 @@ def award_xp(
     # back the caller's entire database transaction.
     # ---------------------------------------------------------------
 
-    try:
-        with db.begin_nested():
-            db.add(transaction)
-            db.flush()
+    savepoint = db.begin_nested()
 
-    except IntegrityError:
-        # Another request may have created the same idempotency key
-        # or reference between our lookup and flush.
+    try:
+        db.add(transaction)
+        db.flush()
+        savepoint.commit()
+
+    except IntegrityError as exc:
+        savepoint.rollback()
+
         existing = None
 
         if idempotency_key is not None:
@@ -512,8 +514,9 @@ def award_xp(
                 .first()
             )
 
-        if existing is None and (
-            reference_type is not None
+        if (
+            existing is None
+            and reference_type is not None
             and reference_id is not None
         ):
             existing = (
@@ -527,39 +530,32 @@ def award_xp(
 
         if existing is not None:
             if (
-                existing.programme_id != programme_id
-                or existing.player_id != player.id
+                existing.player_id != player.id
                 or existing.amount != amount
                 or existing.group_amount != group_amount
-                or existing.transaction_type != transaction_type
             ):
                 raise DuplicateXPTransactionError(
-                    "An XP transaction already exists for this "
-                    "idempotency key/reference with different values."
-                )
+                    "An XP transaction already exists with "
+                    "different values."
+                ) from exc
 
             return existing
 
         raise
 
     # ---------------------------------------------------------------
-    # REWARD THRESHOLDS
+    # Materialised XP projections.
     #
-    # Rewards are granted as part of the XP transaction flow rather
-    # than waiting for the player dashboard to be opened.
+    # The projection happens in the caller's transaction.
+    # No commit occurs here.
     #
-    # This does not commit. The caller still owns the transaction.
+    # If either projection fails, the caller can roll back the entire
+    # operation, keeping the ledger and balances consistent.
     # ---------------------------------------------------------------
 
-    lifetime_xp = player_xp(
+    apply_xp_transaction(
         db,
-        player.id,
-    )
-
-    grant_eligible_rewards(
-        db,
-        player=player,
-        lifetime_xp=lifetime_xp,
+        transaction,
     )
 
     return transaction
@@ -887,3 +883,156 @@ def transaction_to_dict(
         "created_by": transaction.created_by,
         "created_at": transaction.created_at,
     }
+
+
+# ============================================================
+
+# ============================================================
+
+def apply_player_xp(
+    db: Session,
+    *,
+    player_id: int,
+    amount: int,
+) -> "PlayerXPBalance":
+    """
+    Apply an XP ledger change to the player's materialised balance.
+
+    The XP transaction ledger remains the source of truth.
+
+    Positive amounts:
+        current_xp += amount
+        lifetime_xp += amount
+
+    Negative amounts:
+        current_xp += amount
+        lifetime_xp_removed += abs(amount)
+
+    This function does not commit.
+    """
+
+    from ..db.models.xp_balance import PlayerXPBalance
+
+    balance = (
+        db.query(PlayerXPBalance)
+        .filter(
+            PlayerXPBalance.player_id == player_id,
+        )
+        .first()
+    )
+
+    if balance is None:
+        balance = PlayerXPBalance(
+            player_id=player_id,
+            current_xp=0,
+            lifetime_xp=0,
+            lifetime_xp_removed=0,
+        )
+
+        db.add(balance)
+        db.flush()
+
+    balance.current_xp += amount
+
+    if amount > 0:
+        balance.lifetime_xp += amount
+    elif amount < 0:
+        balance.lifetime_xp_removed += abs(amount)
+
+    db.flush()
+
+    return balance
+
+
+def apply_group_xp(
+    db: Session,
+    *,
+    programme_id: int,
+    amount: int,
+) -> "GroupXPBalance":
+    """
+    Apply a collective XP change to the programme-wide group balance.
+
+    Positive amounts increase the collective balance and lifetime awarded.
+
+    Negative amounts reduce the current balance and increase lifetime
+    removed.
+
+    This function does not commit.
+    """
+
+    from ..db.models.xp_balance import GroupXPBalance
+
+    balance = (
+        db.query(GroupXPBalance)
+        .filter(
+            GroupXPBalance.programme_id == programme_id,
+        )
+        .first()
+    )
+
+    if balance is None:
+        balance = GroupXPBalance(
+            programme_id=programme_id,
+            current_xp=0,
+            lifetime_xp_awarded=0,
+            lifetime_xp_removed=0,
+        )
+
+        db.add(balance)
+        db.flush()
+
+    balance.current_xp += amount
+
+    if amount > 0:
+        balance.lifetime_xp_awarded += amount
+    elif amount < 0:
+        balance.lifetime_xp_removed += abs(amount)
+
+    db.flush()
+
+    return balance
+
+
+def apply_xp_transaction(
+    db: Session,
+    transaction: XPTransaction,
+) -> tuple["PlayerXPBalance", "GroupXPBalance | None"]:
+    """
+    Apply one persisted XP transaction to all materialised balances.
+
+    The caller owns the transaction boundary.
+
+    No commit is performed here.
+
+    A transaction is applied to:
+
+        1. player balance
+        2. programme-wide collective balance
+
+    The collective balance uses XPTransaction.group_amount rather than
+    XPTransaction.amount.
+    """
+
+    player_balance = apply_player_xp(
+        db,
+        player_id=transaction.player_id,
+        amount=transaction.amount,
+    )
+
+    group_balance = None
+
+    if (
+        transaction.programme_id is not None
+        and transaction.group_amount != 0
+    ):
+        group_balance = apply_group_xp(
+            db,
+            programme_id=transaction.programme_id,
+            amount=transaction.group_amount,
+        )
+
+    return (
+        player_balance,
+        group_balance,
+    )
