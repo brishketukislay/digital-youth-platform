@@ -12,6 +12,7 @@ from ..db.database import get_db
 from ..db.models import (
     Player,
     PlayerRewardGame,
+    Programme,
     RewardGame,
     RewardGamePlayStatus,
     RewardGameType,
@@ -473,10 +474,11 @@ def create_reward_game(
         )
 
     programme = (
-        db.query(RewardGame.programme_id)
+        db.query(Programme)
         .filter(
-            RewardGame.active.is_(True)
+            Programme.active.is_(True)
         )
+        .order_by(Programme.id.asc())
         .first()
     )
 
@@ -491,7 +493,7 @@ def create_reward_game(
     )
 
     game = RewardGame(
-        programme_id=programme[0],
+        programme_id=programme.id,
         name=data.name.strip(),
         description=(
             data.description.strip()
