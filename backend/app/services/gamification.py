@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..db.models import (
@@ -15,6 +14,12 @@ from ..db.models import (
     XPTransaction,
     GroupPenalty,
     ConductIncident,
+)
+
+from .xp import (
+    award_xp,
+    player_xp,
+    programme_xp,
 )
 
 
@@ -73,53 +78,24 @@ def get_player_xp(
     db: Session,
     player_id: int,
 ) -> int:
-    value = (
-        db.query(
-            func.coalesce(
-                func.sum(XPTransaction.amount),
-                0,
-            )
-        )
-        .filter(
-            XPTransaction.player_id == player_id,
-        )
-        .scalar()
-    )
+    """Compatibility wrapper around the canonical XP service."""
 
-    return int(value or 0)
+    return player_xp(
+        db,
+        player_id,
+    )
 
 
 def get_programme_xp(
     db: Session,
     programme_id: int,
 ) -> int:
-    """
-    Programme-wide jackpot.
+    """Compatibility wrapper around the canonical XP service."""
 
-    Individual XP penalties are NOT included here.
-
-    Only transactions carrying a positive group_amount contribute
-    to the collective pool.
-    """
-
-    value = (
-        db.query(
-            func.coalesce(
-                func.sum(XPTransaction.group_amount),
-                0,
-            )
-        )
-        .join(
-            YouthGroup,
-            YouthGroup.id == XPTransaction.group_id,
-        )
-        .filter(
-            YouthGroup.programme_id == programme_id,
-        )
-        .scalar()
+    return programme_xp(
+        db,
+        programme_id,
     )
-
-    return int(value or 0)
 
 
 # ============================================================
@@ -157,121 +133,6 @@ def transaction_exists(
 
 
 # ============================================================
-# CORE XP AWARD
-# ============================================================
-
-def award_xp(
-    db: Session,
-    *,
-    programme_id: int,
-    player_id: int,
-    individual_xp: int,
-    group_xp: int = 0,
-    source_type: str,
-    reason: str,
-    reference_type: str | None = None,
-    reference_id: int | None = None,
-    created_by: int | None = None,
-) -> XPResult:
-
-    if individual_xp == 0:
-        raise ValueError("XP amount cannot be zero.")
-
-    player = db.get(Player, player_id)
-
-    if player is None:
-        raise ValueError("Player not found.")
-
-    if not player.active or player.suspended:
-        raise ValueError("Player is not active.")
-
-    if reference_type and reference_id is not None:
-        existing = transaction_exists(
-            db,
-            reference_type,
-            reference_id,
-            player_id,
-        )
-
-        if existing:
-            return XPResult(
-                player_xp=get_player_xp(db, player_id),
-                programme_xp=get_programme_xp(
-                    db,
-                    programme_id,
-                ),
-                transaction_id=existing.id,
-            )
-
-    transaction = XPTransaction(
-        programme_id=programme_id,
-        player_id=player_id,
-        group_id=player.group_id,
-        amount=individual_xp,
-        group_amount=group_xp,
-        transaction_type=source_type,
-        reason=reason,
-        reference_type=reference_type,
-        reference_id=reference_id,
-        created_by=created_by,
-    )
-
-    db.add(transaction)
-    db.flush()
-
-    return XPResult(
-        player_xp=get_player_xp(
-            db,
-            player_id,
-        ),
-        programme_xp=get_programme_xp(
-            db,
-            programme_id,
-        ),
-        transaction_id=transaction.id,
-    )
-
-
-# ============================================================
-# POSITIVE AWARDS
-# ============================================================
-
-def award_positive_xp(
-    db: Session,
-    *,
-    programme_id: int,
-    player_id: int,
-    amount: int,
-    source_type: str,
-    reason: str,
-    group_amount: int | None = None,
-    reference_type: str | None = None,
-    reference_id: int | None = None,
-    created_by: int | None = None,
-) -> XPResult:
-
-    amount = abs(int(amount))
-
-    if group_amount is None:
-        group_amount = amount
-
-    group_amount = abs(int(group_amount))
-
-    return award_xp(
-        db,
-        programme_id=programme_id,
-        player_id=player_id,
-        individual_xp=amount,
-        group_xp=group_amount,
-        source_type=source_type,
-        reason=reason,
-        reference_type=reference_type,
-        reference_id=reference_id,
-        created_by=created_by,
-    )
-
-
-# ============================================================
 # INDIVIDUAL PENALTIES
 # ============================================================
 
@@ -301,9 +162,9 @@ def award_individual_penalty(
         db,
         programme_id=programme_id,
         player_id=player_id,
-        individual_xp=-amount,
-        group_xp=0,
-        source_type="penalty",
+        amount=-amount,
+        group_amount=0,
+        transaction_type="penalty",
         reason=reason,
         reference_type="conduct_incident",
         reference_id=incident_id,
@@ -399,9 +260,9 @@ def award_exceptional_group_penalty(
             db,
             programme_id=programme_id,
             player_id=participant.id,
-            individual_xp=0 - amount,
-            group_xp=0 - amount,
-            source_type="group_penalty",
+            amount=-amount,
+            group_amount=-amount,
+            transaction_type="group_penalty",
             reason=reason,
             reference_type="group_penalty",
             reference_id=penalty.id,

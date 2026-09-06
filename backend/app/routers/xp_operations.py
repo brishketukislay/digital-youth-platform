@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models.core import Player, XPTransaction
+from app.db.models.xp_balance import PlayerXPBalance, GroupXPBalance
 from app.services.xp import (
     DuplicateXPTransactionError,
     GroupNotFoundError,
@@ -276,6 +277,40 @@ def get_xp_balance(
         "player_id": balance.player_id,
         "current_xp": balance.current_xp,
         "lifetime_xp": balance.lifetime_xp,
+    }
+
+
+# ============================================================
+# PROGRAMME BALANCE
+# ============================================================
+
+@router.get("/programmes/{programme_id}/balance")
+def get_programme_xp_balance(
+    programme_id: int,
+    db: Session = Depends(get_db),
+):
+    balance = (
+        db.query(GroupXPBalance)
+        .filter(
+            GroupXPBalance.programme_id == programme_id,
+        )
+        .first()
+    )
+
+    if balance is None:
+        return {
+            "programme_id": programme_id,
+            "current_xp": 0,
+            "lifetime_xp_awarded": 0,
+            "lifetime_xp_removed": 0,
+        }
+
+    return {
+        "programme_id": balance.programme_id,
+        "current_xp": balance.current_xp,
+        "lifetime_xp_awarded": balance.lifetime_xp_awarded,
+        "lifetime_xp_removed": balance.lifetime_xp_removed,
+        "updated_at": balance.updated_at,
     }
 
 

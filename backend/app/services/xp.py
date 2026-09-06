@@ -14,6 +14,10 @@ from ..db.models import (
     YouthGroup,
     XPTransaction,
 )
+from ..db.models.xp_balance import (
+    PlayerXPBalance,
+    GroupXPBalance,
+)
 
 from .rewards import grant_eligible_rewards
 
@@ -195,23 +199,24 @@ def player_xp(
     player_id: int,
 ) -> int:
     """
-    Return lifetime net XP for a player.
+    Return the player's current materialised XP balance.
+
+    The XP transaction ledger remains the source of truth, while the
+    materialised balance provides the fast read path.
     """
 
-    result = (
-        db.query(
-            func.coalesce(
-                func.sum(XPTransaction.amount),
-                0,
-            )
-        )
+    balance = (
+        db.query(PlayerXPBalance)
         .filter(
-            XPTransaction.player_id == player_id,
+            PlayerXPBalance.player_id == player_id,
         )
-        .scalar()
+        .first()
     )
 
-    return int(result or 0)
+    if balance is None:
+        return 0
+
+    return int(balance.current_xp or 0)
 
 
 def player_current_xp(
@@ -219,9 +224,7 @@ def player_current_xp(
     player_id: int,
 ) -> int:
     """
-    Current XP currently equals lifetime net XP.
-
-    Kept separate so a spendable/current XP system can be introduced later.
+    Return the player's current materialised XP balance.
     """
 
     return player_xp(
@@ -265,31 +268,45 @@ def group_xp(
     If group_id is supplied, it takes precedence over programme_id.
     """
 
-    query = db.query(
-        func.coalesce(
-            func.sum(XPTransaction.group_amount),
-            0,
+    if programme_id is not None and group_id is None:
+        balance = (
+            db.query(GroupXPBalance)
+            .filter(
+                GroupXPBalance.programme_id == programme_id,
+            )
+            .first()
         )
-    )
+
+        if balance is None:
+            return 0
+
+        return int(balance.current_xp or 0)
 
     if group_id is not None:
-        query = query.filter(
-            XPTransaction.group_id == group_id,
-        )
-
-    elif programme_id is not None:
-        query = (
-            query
-            .join(
-                YouthGroup,
-                YouthGroup.id == XPTransaction.group_id,
+        result = (
+            db.query(
+                func.coalesce(
+                    func.sum(XPTransaction.group_amount),
+                    0,
+                )
             )
             .filter(
-                YouthGroup.programme_id == programme_id,
+                XPTransaction.group_id == group_id,
             )
+            .scalar()
         )
 
-    result = query.scalar()
+        return int(result or 0)
+
+    result = (
+        db.query(
+            func.coalesce(
+                func.sum(XPTransaction.group_amount),
+                0,
+            )
+        )
+        .scalar()
+    )
 
     return int(result or 0)
 
@@ -1005,7 +1022,7 @@ def apply_group_xp(
 def apply_xp_transaction(
     db: Session,
     transaction: XPTransaction,
-) -> tuple["PlayerXPBalance", "GroupXPBalance | None"]:
+) -> tuple["PlayerXPBalance | None", "GroupXPBalance | None"]:
     """
     Apply one persisted XP transaction to all materialised balances.
 
@@ -1013,20 +1030,29 @@ def apply_xp_transaction(
 
     No commit is performed here.
 
-    A transaction is applied to:
+    A transaction may affect:
 
-        1. player balance
-        2. programme-wide collective balance
+        1. player balance, when player_id is present
+        2. programme-wide collective balance, when group_amount is non-zero
+
+    This supports both player XP transactions and collective
+    programme/group transactions.
 
     The collective balance uses XPTransaction.group_amount rather than
     XPTransaction.amount.
     """
 
-    player_balance = apply_player_xp(
-        db,
-        player_id=transaction.player_id,
-        amount=transaction.amount,
-    )
+    player_balance = None
+
+    if (
+        transaction.player_id is not None
+        and transaction.amount != 0
+    ):
+        player_balance = apply_player_xp(
+            db,
+            player_id=transaction.player_id,
+            amount=transaction.amount,
+        )
 
     group_balance = None
 

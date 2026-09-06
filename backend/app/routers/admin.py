@@ -38,9 +38,12 @@ from ..services.xp import (
 )
 
 from ..services.gamification import (
-    award_positive_xp,
     award_individual_penalty,
-    get_programme_xp,
+)
+
+from ..services.xp import (
+    award_positive_xp,
+    programme_xp,
 )
 
 
@@ -493,7 +496,6 @@ def award_player_xp(
             db,
             programme_id=get_programme(db).id,
             player_id=player.id,
-            group_id=player.group_id,
             amount=data.amount,
             group_amount=0,
             transaction_type=(
