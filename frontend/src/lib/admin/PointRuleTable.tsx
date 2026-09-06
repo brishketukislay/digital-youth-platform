@@ -1,16 +1,17 @@
-import type { PointRuleCalculation } from "./programmeMath";
-import { formatXp } from "./programmeMath";
+import type {
+  PointRuleCalculation,
+} from "./programmeMath";
+
+import {
+  formatXp,
+} from "./programmeMath";
 
 type PointRuleTableProps = {
   rules: PointRuleCalculation[];
-  onEdit: (rule: PointRuleCalculation) => void;
+  onEdit: (
+    rule: PointRuleCalculation,
+  ) => void;
 };
-
-function limit(value: number | null): string {
-  return value === null
-    ? "—"
-    : formatXp(value);
-}
 
 export function PointRuleTable({
   rules,
@@ -19,7 +20,7 @@ export function PointRuleTable({
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] text-left">
+        <table className="w-full min-w-[1050px] text-left">
           <thead className="border-b border-white/10 bg-white/[0.02]">
             <tr>
               <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -35,19 +36,15 @@ export function PointRuleTable({
               </th>
 
               <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Individual cap
-              </th>
-
-              <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Group cap
-              </th>
-
-              <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Weekly cap
-              </th>
-
-              <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Awards / week
+              </th>
+
+              <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Group weekly yield
+              </th>
+
+              <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Cap
               </th>
 
               <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -75,29 +72,34 @@ export function PointRuleTable({
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-300">
-                  {formatXp(rule.xpPerAward)}
+                  {formatXp(
+                    rule.individualXpPerAward,
+                  )}{" "}
+                  XP
+                </td>
+
+                <td className="px-5 py-4 text-sm text-cyan-300">
+                  {formatXp(
+                    rule.groupXpPerAward,
+                  )}{" "}
+                  XP
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-300">
-                  {formatXp(rule.groupXpPerAward)}
+                  {rule.awardsPerWeek}
                 </td>
 
-                <td className="px-5 py-4 text-sm text-slate-300">
-                  {limit(rule.individualAwardCap)}
+                <td className="px-5 py-4 text-sm font-semibold text-cyan-300">
+                  {formatXp(
+                    rule.groupWeeklyYield,
+                  )}{" "}
+                  XP
                 </td>
 
-                <td className="px-5 py-4 text-sm text-slate-300">
-                  {limit(rule.groupAwardCap)}
-                </td>
-
-                <td className="px-5 py-4 text-sm text-slate-300">
-                  {limit(rule.weeklyCap)}
-                </td>
-
-                <td className="px-5 py-4 text-sm text-slate-300">
-                  {rule.awardsPerWeek === 0
-                    ? "Unlimited"
-                    : rule.awardsPerWeek}
+                <td className="px-5 py-4 text-sm text-slate-400">
+                  {rule.weeklyCap === null
+                    ? "—"
+                    : `${formatXp(rule.weeklyCap)} XP`}
                 </td>
 
                 <td className="px-5 py-4">
@@ -115,7 +117,9 @@ export function PointRuleTable({
                 <td className="px-5 py-4 text-right">
                   <button
                     type="button"
-                    onClick={() => onEdit(rule)}
+                    onClick={() =>
+                      onEdit(rule)
+                    }
                     className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-cyan-400/30 hover:bg-cyan-400/5 hover:text-cyan-300"
                   >
                     Configure
@@ -127,7 +131,7 @@ export function PointRuleTable({
             {rules.length === 0 && (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={8}
                   className="px-5 py-12 text-center text-sm text-slate-500"
                 >
                   No point rules have been configured.

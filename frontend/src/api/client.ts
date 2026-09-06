@@ -127,10 +127,13 @@ export type Programme = {
   start_date: string | null;
   end_date: string | null;
   target_xp: number;
+  weekly_target_xp: number | null;
+  max_group_penalty_percent: number;
 
   /**
-   * These are the backend's active_* relationships exposed
-   * by the API.
+   * Backend uses active_* names for these relationships.
+   * The UI normalises them below so existing components can
+   * continue to use theme_id/map_id/phase_id.
    */
   theme_id: Id | null;
   map_id: Id | null;
@@ -143,10 +146,33 @@ export type ProgrammeRequest = {
   start_date?: string | null;
   end_date?: string | null;
   target_xp: number;
+  weekly_target_xp?: number | null;
+  max_group_penalty_percent?: number;
+};
+
+type ProgrammeApiResponse = Omit<
+  Programme,
+  "theme_id" | "map_id" | "phase_id"
+> & {
+  active_theme_id: Id | null;
+  active_map_id: Id | null;
+  active_phase_id: Id | null;
 };
 
 export async function getProgramme() {
-  return api.get<Programme>("/admin/programme");
+  const response = await api.get<ProgrammeApiResponse>(
+    "/admin/programme",
+  );
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      theme_id: response.data.active_theme_id ?? null,
+      map_id: response.data.active_map_id ?? null,
+      phase_id: response.data.active_phase_id ?? null,
+    },
+  };
 }
 
 export async function updateProgramme(

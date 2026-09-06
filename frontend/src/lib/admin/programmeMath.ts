@@ -1,24 +1,38 @@
 export type PointRuleCalculation = {
   id: string;
   name: string;
-  xpPerAward: number;
+
+  individualXpPerAward: number;
   groupXpPerAward: number;
+
   awardsPerWeek: number;
   weeklyCap: number | null;
-  individualAwardCap: number | null;
-  groupAwardCap: number | null;
-  weeklyYield: number;
+
+  individualWeeklyYield: number;
+  groupWeeklyYield: number;
+
   enabled: boolean;
 };
 
 export type EconomyProjection = {
-  weeklyYield: number;
+  individualWeeklyYield: number;
+  groupWeeklyYield: number;
+
   programmeWeeks: number;
-  projectedXp: number;
+
+  projectedGroupXp: number;
+
   targetXp: number;
+
   bufferXp: number;
   bufferPercentage: number;
+
   progressPercentage: number;
+
+  weeklyTargetXp: number | null;
+
+  weeklyVarianceXp: number | null;
+
   status: "behind" | "on-track" | "ahead";
 };
 
@@ -29,31 +43,87 @@ export function calculateWeeklyYield(
     .filter((rule) => rule.enabled)
     .reduce(
       (total, rule) =>
-        total +
-        Math.max(0, rule.xpPerAward) *
-          Math.max(0, rule.awardsPerWeek),
+        total + rule.groupWeeklyYield,
       0,
     );
 }
 
-export function calculateProjection({
-  weeklyYield,
-  programmeWeeks,
-  currentXp,
-  targetXp,
-}: {
-  weeklyYield: number;
-  programmeWeeks: number;
-  currentXp: number;
-  targetXp: number;
-}): EconomyProjection {
-  const safeWeeks = Math.max(0, programmeWeeks);
-  const safeTarget = Math.max(0, targetXp);
-  const projectedXp =
-    Math.max(0, currentXp) +
-    Math.max(0, weeklyYield) * safeWeeks;
+export function calculateIndividualWeeklyYield(
+  rules: PointRuleCalculation[],
+): number {
+  return rules
+    .filter((rule) => rule.enabled)
+    .reduce(
+      (total, rule) =>
+        total + rule.individualWeeklyYield,
+      0,
+    );
+}
 
-  const bufferXp = projectedXp - safeTarget;
+function calculateRuleWeeklyYield(
+  xpPerAward: number,
+  awardsPerWeek: number,
+  weeklyCap: number | null,
+): number {
+  const uncapped =
+    Math.max(0, xpPerAward) *
+    Math.max(0, awardsPerWeek);
+
+  if (
+    weeklyCap === null ||
+    !Number.isFinite(weeklyCap) ||
+    weeklyCap < 0
+  ) {
+    return uncapped;
+  }
+
+  return Math.min(
+    uncapped,
+    Math.max(0, weeklyCap),
+  );
+}
+
+export function calculateProjection({
+  individualWeeklyYield,
+  groupWeeklyYield,
+  programmeWeeks,
+  currentGroupXp,
+  targetXp,
+  weeklyTargetXp,
+}: {
+  individualWeeklyYield: number;
+  groupWeeklyYield: number;
+  programmeWeeks: number;
+  currentGroupXp: number;
+  targetXp: number;
+  weeklyTargetXp: number | null;
+}): EconomyProjection {
+  const safeWeeks = Math.max(
+    0,
+    Math.round(programmeWeeks),
+  );
+
+  const safeCurrentGroupXp = Math.max(
+    0,
+    currentGroupXp,
+  );
+
+  const safeTarget = Math.max(
+    0,
+    targetXp,
+  );
+
+  const safeGroupWeeklyYield = Math.max(
+    0,
+    groupWeeklyYield,
+  );
+
+  const projectedGroupXp =
+    safeCurrentGroupXp +
+    safeGroupWeeklyYield * safeWeeks;
+
+  const bufferXp =
+    projectedGroupXp - safeTarget;
 
   const bufferPercentage =
     safeTarget > 0
@@ -64,44 +134,145 @@ export function calculateProjection({
     safeTarget > 0
       ? Math.min(
           100,
-          (Math.max(0, currentXp) / safeTarget) * 100,
+          (safeCurrentGroupXp / safeTarget) * 100,
         )
       : 0;
 
   let status: EconomyProjection["status"];
 
-  if (projectedXp < safeTarget) {
+  if (projectedGroupXp < safeTarget) {
     status = "behind";
-  } else if (projectedXp === safeTarget) {
+  } else if (projectedGroupXp === safeTarget) {
     status = "on-track";
   } else {
     status = "ahead";
   }
 
+  const safeWeeklyTarget =
+    weeklyTargetXp === null
+      ? null
+      : Math.max(0, weeklyTargetXp);
+
+  const weeklyVarianceXp =
+    safeWeeklyTarget === null
+      ? null
+      : safeGroupWeeklyYield -
+        safeWeeklyTarget;
+
   return {
-    weeklyYield: Math.max(0, weeklyYield),
-    programmeWeeks: safeWeeks,
-    projectedXp,
-    targetXp: safeTarget,
+    individualWeeklyYield:
+      Math.max(0, individualWeeklyYield),
+
+    groupWeeklyYield:
+      safeGroupWeeklyYield,
+
+    programmeWeeks:
+      safeWeeks,
+
+    projectedGroupXp,
+
+    targetXp:
+      safeTarget,
+
     bufferXp,
+
     bufferPercentage,
+
     progressPercentage,
+
+    weeklyTargetXp:
+      safeWeeklyTarget,
+
+    weeklyVarianceXp,
+
     status,
   };
 }
 
-export function formatXp(value: number): string {
-  return new Intl.NumberFormat("en-GB").format(
-    Math.round(value),
-  );
+export function toPointRuleCalculation(
+  rule: {
+    id: number;
+    name: string;
+    individual_xp: number;
+    group_xp: number;
+    weekly_cap?: number | null;
+    awards_per_week: number;
+    enabled: boolean;
+  },
+): PointRuleCalculation {
+  const individualXpPerAward =
+    Math.max(
+      0,
+      Number(rule.individual_xp || 0),
+    );
+
+  const groupXpPerAward =
+    Math.max(
+      0,
+      Number(rule.group_xp || 0),
+    );
+
+  const awardsPerWeek =
+    Math.max(
+      0,
+      Number(rule.awards_per_week || 0),
+    );
+
+  const weeklyCap =
+    rule.weekly_cap === null ||
+    rule.weekly_cap === undefined
+      ? null
+      : Math.max(
+          0,
+          Number(rule.weekly_cap),
+        );
+
+  return {
+    id: String(rule.id),
+    name: rule.name,
+
+    individualXpPerAward,
+    groupXpPerAward,
+
+    awardsPerWeek,
+    weeklyCap,
+
+    individualWeeklyYield:
+      calculateRuleWeeklyYield(
+        individualXpPerAward,
+        awardsPerWeek,
+        weeklyCap,
+      ),
+
+    groupWeeklyYield:
+      calculateRuleWeeklyYield(
+        groupXpPerAward,
+        awardsPerWeek,
+        weeklyCap,
+      ),
+
+    enabled:
+      Boolean(rule.enabled),
+  };
+}
+
+export function formatXp(
+  value: number,
+): string {
+  return new Intl.NumberFormat(
+    "en-GB",
+  ).format(Math.round(value));
 }
 
 export function formatCurrency(
   value: number,
 ): string {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return new Intl.NumberFormat(
+    "en-GB",
+    {
+      style: "currency",
+      currency: "GBP",
+      maximumFractionDigits: 0,
+    },
+  ).format(value);
 }

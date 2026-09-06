@@ -1,22 +1,21 @@
 from datetime import date
 
-from backend.app.db.database import Base, engine, SessionLocal
-from backend.app.db.models.models import (
+from app.db.base import Base
+from app.db.database import engine, SessionLocal
+from app.db.models import (
     User,
     Programme,
     Theme,
-    Map,
+    GameMap,
     MapLocation,
     Phase,
-    Group,
+    YouthGroup,
     Player,
     PointRule,
     SkillTree,
     SkillMilestone,
 )
 from app.auth import hash_password
-
-Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
@@ -33,7 +32,7 @@ if db.query(User).count() == 0:
     db.add(theme)
     db.flush()
 
-    game_map = Map(
+    game_map = GameMap(
         name="Cumbernauld",
         description="Initial pilot map. This can be replaced by administrators.",
     )
@@ -63,8 +62,8 @@ if db.query(User).count() == 0:
         description="Six month digital youth work pilot.",
         start_date=date.today(),
         target_xp=1500000,
-        theme_id=theme.id,
-        map_id=game_map.id,
+        active_theme_id=theme.id,
+        active_map_id=game_map.id,
         active=True,
     )
     db.add(programme)
@@ -79,7 +78,7 @@ if db.query(User).count() == 0:
 
     for index, (name, description, colour, icon) in enumerate(phases):
         db.add(
-            __import__("app.models", fromlist=["Phase"]).Phase(
+            Phase(
                 programme_id=programme.id,
                 name=name,
                 description=description,
@@ -89,7 +88,7 @@ if db.query(User).count() == 0:
             )
         )
 
-    group = Group(
+    group = YouthGroup(
         programme_id=programme.id,
         name="Pilot Group",
     )
@@ -107,6 +106,7 @@ if db.query(User).count() == 0:
     for name, code, individual, group_xp in rules:
         db.add(
             PointRule(
+                programme_id=programme.id,
                 name=name,
                 code=code,
                 individual_xp=individual,

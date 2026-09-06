@@ -58,7 +58,7 @@ export function EconomyHealth({
             </div>
 
             <div className="mt-1 text-lg font-bold">
-              {formatXp(projection.projectedXp)}
+              {formatXp(projection.projectedGroupXp)}
             </div>
           </div>
 

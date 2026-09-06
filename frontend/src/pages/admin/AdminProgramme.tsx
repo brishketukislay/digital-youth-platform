@@ -419,6 +419,35 @@ export default function AdminProgramme() {
       }
 
       if (
+        programme.weekly_target_xp !== null &&
+        programme.weekly_target_xp !== undefined &&
+        (
+          !Number.isFinite(
+            programme.weekly_target_xp,
+          ) ||
+          programme.weekly_target_xp < 0
+        )
+      ) {
+        setError(
+          "Weekly target XP must be zero or greater.",
+        );
+        return;
+      }
+
+      if (
+        !Number.isFinite(
+          programme.max_group_penalty_percent,
+        ) ||
+        programme.max_group_penalty_percent < 0 ||
+        programme.max_group_penalty_percent > 100
+      ) {
+        setError(
+          "Maximum group penalty must be between 0% and 100%.",
+        );
+        return;
+      }
+
+      if (
         programme.start_date &&
         programme.end_date &&
         programme.end_date <
@@ -445,6 +474,17 @@ export default function AdminProgramme() {
         target_xp:
           Number(
             programme.target_xp,
+          ),
+        weekly_target_xp:
+          programme.weekly_target_xp === null ||
+          programme.weekly_target_xp === undefined
+            ? null
+            : Number(
+                programme.weekly_target_xp,
+              ),
+        max_group_penalty_percent:
+          Number(
+            programme.max_group_penalty_percent,
           ),
       });
 
@@ -1217,6 +1257,70 @@ export default function AdminProgramme() {
                 }
                 required
               />
+            </label>
+
+            <label>
+              Weekly target XP
+
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={
+                  programme.weekly_target_xp ?? ""
+                }
+                onChange={event =>
+                  setProgramme({
+                    ...programme,
+                    weekly_target_xp:
+                      event.target.value === ""
+                        ? null
+                        : Number(
+                            event.target.value,
+                          ),
+                  })
+                }
+                placeholder="5000"
+              />
+
+              <span className="muted">
+                Target group XP earned per week.
+              </span>
+            </label>
+
+            <label>
+              Maximum group penalty
+
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={
+                    programme.max_group_penalty_percent
+                  }
+                  onChange={event =>
+                    setProgramme({
+                      ...programme,
+                      max_group_penalty_percent:
+                        Number(
+                          event.target.value,
+                        ),
+                    })
+                  }
+                  className="pr-10"
+                  placeholder="10"
+                />
+
+                <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500">
+                  %
+                </span>
+              </div>
+
+              <span className="muted">
+                Maximum reduction applied to group rewards.
+              </span>
             </label>
 
             <label>
