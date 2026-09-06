@@ -90,7 +90,7 @@ export function GroupProgress({
         </div>
 
         <div className="progress-number">
-          {Math.round(progress)}%
+          {progress.toFixed(1)}%
         </div>
       </div>
 
