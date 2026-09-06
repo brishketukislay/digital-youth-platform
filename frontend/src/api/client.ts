@@ -654,9 +654,17 @@ export type CheckInResponse = {
   message?: string;
 };
 
-export async function startAttendance() {
+export type StartAttendanceRequest = {
+  group_id?: Id | null;
+  expires_in_minutes?: number;
+};
+
+export async function startAttendance(
+  payload: StartAttendanceRequest = {},
+) {
   return api.post<AttendanceSession>(
-    "/attendance/start"
+    "/attendance/start",
+    payload,
   );
 }
 

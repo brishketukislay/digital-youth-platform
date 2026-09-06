@@ -115,6 +115,9 @@ export default function YouthWorkerDashboard() {
   const [attendanceExpiry, setAttendanceExpiry] =
     useState<string | null>(null);
 
+  const [attendanceDuration, setAttendanceDuration] =
+    useState("15");
+
   const [selectedPlayerId, setSelectedPlayerId] =
     useState<number | "">("");
 
@@ -188,7 +191,22 @@ export default function YouthWorkerDashboard() {
     setActionError(null);
 
     try {
-      const response = await startAttendance();
+      const duration = Number(attendanceDuration);
+
+      if (
+        !Number.isInteger(duration) ||
+        duration < 1 ||
+        duration > 120
+      ) {
+        setActionError(
+          "Attendance must last between 1 and 120 minutes.",
+        );
+        return;
+      }
+
+      const response = await startAttendance({
+        expires_in_minutes: duration,
+      });
 
       setAttendanceCode(response.data.code);
       setAttendanceExpiry(
@@ -850,6 +868,40 @@ export default function YouthWorkerDashboard() {
               Ask participants to enter this
               code on their attendance screen.
             </p>
+
+            <div className="staff-form">
+              <label>
+                Session duration
+                <select
+                  value={attendanceDuration}
+                  onChange={(event) =>
+                    setAttendanceDuration(
+                      event.target.value,
+                    )
+                  }
+                  disabled={actionLoading}
+                >
+                  <option value="5">
+                    5 minutes
+                  </option>
+                  <option value="10">
+                    10 minutes
+                  </option>
+                  <option value="15">
+                    15 minutes
+                  </option>
+                  <option value="30">
+                    30 minutes
+                  </option>
+                  <option value="60">
+                    60 minutes
+                  </option>
+                  <option value="120">
+                    120 minutes
+                  </option>
+                </select>
+              </label>
+            </div>
 
             <div className="staff-attendance-code">
               {attendanceCode ?? "—"}
