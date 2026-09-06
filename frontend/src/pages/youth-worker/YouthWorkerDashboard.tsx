@@ -426,7 +426,7 @@ const [awardModal, setAwardModal] = useState<{
 
     const value = awardXPInput.trim();
 
-    if (!/^\\d+$/.test(value)) {
+    if (!/^\d+$/.test(value)) {
       setActionError(
         "Enter a whole number of XP points.",
       );
@@ -453,6 +453,14 @@ const [awardModal, setAwardModal] = useState<{
     setActionError(null);
 
     try {
+      console.log(
+        "[Community Award] approving",
+        {
+          awardId: awardModal.id,
+          xp,
+        },
+      );
+
       await reviewCommunityAward(
         awardModal.id,
         "approved",
@@ -1180,7 +1188,8 @@ const [awardModal, setAwardModal] = useState<{
                 <input
                   type="number"
                   step="1"
-                  value={awardXPInput}
+                  min="1"
+                  value={xpAmount}
                   onChange={(event) =>
                     setXpAmount(
                       event.target.value,
