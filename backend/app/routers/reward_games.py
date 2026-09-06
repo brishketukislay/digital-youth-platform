@@ -386,7 +386,9 @@ def play_reward_game(
             programme_id=group.programme_id,
             player_id=player.id,
             amount=awarded_xp,
-            group_amount=0,
+            # Reward-game XP is positive player progress and therefore
+            # contributes the same amount to the shared squad goal.
+            group_amount=awarded_xp,
             transaction_type=(
                 "reward_game_scratch"
                 if game.game_type == RewardGameType.SCRATCH
