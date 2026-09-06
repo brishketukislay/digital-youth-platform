@@ -807,13 +807,20 @@ export async function adminCommunityAwards() {
 
 export async function reviewCommunityAward(
   id: Id,
-  status: "approved" | "rejected"
+  status: "approved" | "rejected",
+  xp?: number
 ) {
   return api.post(
     `/admin/community-awards/${id}/review`,
-    { status }
+    {
+      status,
+      ...(status === "approved" && xp !== undefined
+        ? { xp }
+        : {}),
+    }
   );
 }
+
 
 
 /* ============================================================

@@ -3124,6 +3124,14 @@ class CommunityAwardReviewRequest(BaseModel):
         pattern="^(approved|rejected)$",
     )
 
+    # Required when approving a community recognition.
+    # The Youth Worker decides how much XP the recognition deserves.
+    xp: int | None = Field(
+        default=None,
+        ge=1,
+        le=10000,
+    )
+
 
 @router.post("/community-awards/{award_id}/review")
 def review_community_award(
@@ -3174,6 +3182,18 @@ def review_community_award(
         )
 
     if data.status == "approved":
+        if data.xp is None:
+            raise HTTPException(
+                status_code=400,
+                detail="XP points are required when approving a community award.",
+            )
+
+        if data.xp < 1:
+            raise HTTPException(
+                status_code=400,
+                detail="XP points must be greater than zero.",
+            )
+
         if award.player_id is None:
             raise HTTPException(
                 status_code=400,
@@ -3202,8 +3222,8 @@ def review_community_award(
             db,
             programme_id=award.programme_id,
             player_id=award.player_id,
-            amount=award.xp,
-            group_amount=award.xp,
+            amount=data.xp,
+            group_amount=data.xp,
             transaction_type="community_award",
             reason=(
                 f"Community award: {award.category}"
@@ -3212,6 +3232,9 @@ def review_community_award(
             reference_id=award.id,
             created_by=user.id,
         )
+
+        # Persist the XP amount chosen by the Youth Worker.
+        award.xp = data.xp
 
         award.status = "approved"
         award.reviewed_by = user.id
@@ -3226,7 +3249,7 @@ def review_community_award(
             (
                 f"award_id={award.id};"
                 f"player_id={award.player_id};"
-                f"xp={award.xp};"
+                f"xp={data.xp};"
                 f"transaction_id={transaction.id}"
             ),
         )

@@ -393,6 +393,53 @@ export default function YouthWorkerDashboard() {
     id: number,
     status: "approved" | "rejected",
   ) {
+    let xp: number | undefined;
+
+    if (status === "approved") {
+      const input = window.prompt(
+        "How many XP points should be awarded for this community recognition?",
+        "25",
+      );
+
+      // Cancel means do nothing.
+      if (input === null) {
+        return;
+      }
+
+      const value = input.trim();
+
+      if (!value) {
+        setActionError(
+          "Enter the number of XP points before approving.",
+        );
+        return;
+      }
+
+      // XP must be a whole positive number.
+      if (!/^\\d+$/.test(value)) {
+        setActionError(
+          "XP points must be a whole positive number.",
+        );
+        return;
+      }
+
+      xp = Number(value);
+
+      if (!Number.isSafeInteger(xp) || xp < 1) {
+        setActionError(
+          "XP points must be greater than zero.",
+        );
+        return;
+      }
+
+      if (xp > 10000) {
+        setActionError(
+          "XP points cannot exceed 10,000.",
+        );
+        return;
+      }
+    }
+
     setReviewingAwardId(id);
     setActionError(null);
 
@@ -400,6 +447,7 @@ export default function YouthWorkerDashboard() {
       await reviewCommunityAward(
         id,
         status,
+        xp,
       );
 
       await load();
