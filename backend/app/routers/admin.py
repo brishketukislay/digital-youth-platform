@@ -25,6 +25,8 @@ from ..db.models import (
     ProgrammeMilestone,
     AuditLog,
     CommunityAward,
+    SkillTree,
+    SkillMilestone,
 )
 
 from ..auth import (
@@ -3062,6 +3064,337 @@ def admin_themes(
         }
         for theme in themes
     ]
+
+
+
+# ============================================================
+# YOUTH WORKER SKILL PLANS
+# ============================================================
+
+class SkillPlanMilestoneRequest(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=200,
+    )
+
+    required_xp: int = Field(
+        ...,
+        ge=1,
+        le=1_000_000,
+    )
+
+    reward_description: str | None = Field(
+        default=None,
+        max_length=500,
+    )
+
+
+class SkillPlanCreateRequest(BaseModel):
+    player_id: int
+
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=200,
+    )
+
+    description: str | None = Field(
+        default=None,
+        max_length=2000,
+    )
+
+    milestones: list[SkillPlanMilestoneRequest] = Field(
+        ...,
+        min_length=1,
+        max_length=3,
+    )
+
+
+def _skill_plan_payload(
+    tree: SkillTree,
+    gamertag: str | None = None,
+):
+    return {
+        "id": tree.id,
+        "player_id": tree.player_id,
+        "gamertag": gamertag,
+        "name": tree.name,
+        "description": tree.description,
+        "active": tree.active,
+        "completed": tree.completed,
+        "completed_at": (
+            tree.completed_at.isoformat()
+            if tree.completed_at
+            else None
+        ),
+        "current_xp": tree.current_xp,
+        "tree_number": tree.tree_number,
+        "milestones": [
+            {
+                "id": milestone.id,
+                "name": milestone.name,
+                "required_xp": milestone.required_xp,
+                "sort_order": milestone.sort_order,
+                "reward_description": (
+                    milestone.reward_description
+                ),
+                "completed": milestone.completed,
+                "completed_at": (
+                    milestone.completed_at.isoformat()
+                    if milestone.completed_at
+                    else None
+                ),
+            }
+            for milestone in tree.milestones
+        ],
+    }
+
+
+@router.get("/skill-plans")
+def get_skill_plans(
+    player_id: int | None = None,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    query = (
+        db.query(SkillTree)
+        .join(
+            Player,
+            SkillTree.player_id == Player.id,
+        )
+        .filter(
+            Player.active == True,
+        )
+    )
+
+    if player_id is not None:
+        query = query.filter(
+            SkillTree.player_id == player_id,
+        )
+
+    trees = (
+        query
+        .order_by(
+            SkillTree.active.desc(),
+            SkillTree.completed.asc(),
+            SkillTree.player_id.asc(),
+            SkillTree.tree_number.asc(),
+            SkillTree.id.asc(),
+        )
+        .all()
+    )
+
+    return [
+        _skill_plan_payload(
+            tree,
+            tree.player.gamertag,
+        )
+        for tree in trees
+    ]
+
+
+@router.post("/skill-plans")
+def create_skill_plan(
+    data: SkillPlanCreateRequest,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    player = (
+        db.query(Player)
+        .filter(
+            Player.id == data.player_id,
+            Player.active == True,
+        )
+        .first()
+    )
+
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Young person not found.",
+        )
+
+    active_tree = (
+        db.query(SkillTree)
+        .filter(
+            SkillTree.player_id == player.id,
+            SkillTree.active == True,
+            SkillTree.completed == False,
+        )
+        .first()
+    )
+
+    if active_tree is not None:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This young person already has an active "
+                "skill plan. Complete or archive it first."
+            ),
+        )
+
+    milestone_xp = [
+        milestone.required_xp
+        for milestone in data.milestones
+    ]
+
+    if milestone_xp != sorted(milestone_xp):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Milestone XP thresholds must increase."
+            ),
+        )
+
+    if len(set(milestone_xp)) != len(milestone_xp):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Milestone XP thresholds must be different."
+            ),
+        )
+
+    previous_trees = (
+        db.query(SkillTree)
+        .filter(
+            SkillTree.player_id == player.id,
+        )
+        .all()
+    )
+
+    next_tree_number = (
+        max(
+            (
+                tree.tree_number
+                for tree in previous_trees
+            ),
+            default=0,
+        )
+        + 1
+    )
+
+    tree = SkillTree(
+        player_id=player.id,
+        name=data.name.strip(),
+        description=(
+            data.description.strip()
+            if data.description
+            else None
+        ),
+        active=True,
+        completed=False,
+        current_xp=0,
+        tree_number=next_tree_number,
+    )
+
+    db.add(tree)
+    db.flush()
+
+    for sort_order, milestone in enumerate(
+        data.milestones,
+        start=1,
+    ):
+        db.add(
+            SkillMilestone(
+                skill_tree_id=tree.id,
+                name=milestone.name.strip(),
+                required_xp=milestone.required_xp,
+                sort_order=sort_order,
+                reward_description=(
+                    milestone.reward_description.strip()
+                    if milestone.reward_description
+                    else None
+                ),
+                completed=False,
+            )
+        )
+
+    audit(
+        db,
+        user.id,
+        "skill_tree.created",
+        (
+            f"skill_tree_id={tree.id};"
+            f"player_id={player.id};"
+            f"tree_number={tree.tree_number}"
+        ),
+    )
+
+    db.commit()
+    db.refresh(tree)
+
+    return _skill_plan_payload(
+        tree,
+        player.gamertag,
+    )
+
+
+@router.post("/skill-plans/{skill_tree_id}/archive")
+def archive_skill_plan(
+    skill_tree_id: int,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    tree = (
+        db.query(SkillTree)
+        .join(
+            Player,
+            SkillTree.player_id == Player.id,
+        )
+        .filter(
+            SkillTree.id == skill_tree_id,
+            Player.active == True,
+        )
+        .first()
+    )
+
+    if tree is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Skill plan not found.",
+        )
+
+    if not tree.active:
+        raise HTTPException(
+            status_code=409,
+            detail="Skill plan is already archived.",
+        )
+
+    tree.active = False
+
+    audit(
+        db,
+        user.id,
+        "skill_tree.archived",
+        (
+            f"skill_tree_id={tree.id};"
+            f"player_id={tree.player_id}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": tree.id,
+        "active": False,
+    }
 
 
 # ============================================================

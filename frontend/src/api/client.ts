@@ -882,6 +882,78 @@ export async function submitRecognition(
 }
 
 /* ============================================================
+   YOUTH WORKER SKILL PLANS
+   ============================================================ */
+
+export type SkillPlanMilestone = {
+  id: Id;
+  name: string;
+  required_xp: number;
+  sort_order: number;
+  reward_description: string | null;
+  completed: boolean;
+  completed_at: string | null;
+};
+
+export type SkillPlan = {
+  id: Id;
+  player_id: Id;
+  gamertag: string | null;
+  name: string;
+  description: string | null;
+  active: boolean;
+  completed: boolean;
+  completed_at: string | null;
+  current_xp: number;
+  tree_number: number;
+  milestones: SkillPlanMilestone[];
+};
+
+export type SkillPlanMilestoneRequest = {
+  name: string;
+  required_xp: number;
+  reward_description?: string | null;
+};
+
+export type SkillPlanCreateRequest = {
+  player_id: Id;
+  name: string;
+  description?: string | null;
+  milestones: SkillPlanMilestoneRequest[];
+};
+
+export async function getSkillPlans(
+  playerId?: Id,
+) {
+  return api.get<SkillPlan[]>(
+    "/admin/skill-plans",
+    {
+      params:
+        playerId !== undefined
+          ? { player_id: playerId }
+          : undefined,
+    },
+  );
+}
+
+export async function createSkillPlan(
+  payload: SkillPlanCreateRequest,
+) {
+  return api.post<SkillPlan>(
+    "/admin/skill-plans",
+    payload,
+  );
+}
+
+export async function archiveSkillPlan(
+  skillTreeId: Id,
+) {
+  return api.post<ApiSuccess>(
+    `/admin/skill-plans/${skillTreeId}/archive`,
+  );
+}
+
+/* ============================================================
    PLAYER DASHBOARD
    ============================================================ */
 

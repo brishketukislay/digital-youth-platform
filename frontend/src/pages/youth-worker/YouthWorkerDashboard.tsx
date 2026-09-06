@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import YouthWorkerGroups from "../../components/youth-worker/YouthWorkerGroups";
+import YouthWorkerSkillPlans from "../../components/youth-worker/YouthWorkerSkillPlans";
 
 import {
   adminCommunityAwards,
@@ -980,6 +981,9 @@ const [awardModal, setAwardModal] = useState<{
       </section>
 
       <YouthWorkerGroups
+        players={players}
+      />
+      <YouthWorkerSkillPlans
         players={players}
       />
 
