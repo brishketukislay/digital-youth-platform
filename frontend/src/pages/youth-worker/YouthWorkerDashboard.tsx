@@ -11,12 +11,16 @@ import {
   awardXP,
   getApiErrorMessage,
   getStaffChallenges,
+getStaffChallengeAttempts,
+verifyChallengeAttempt,
+rejectChallengeAttempt,
   reviewCommunityAward,
   startAttendance,
   type AdminOverview,
   type CommunityAward,
   type Player,
   type StaffChallenge,
+type StaffChallengeAttempt,
 } from "../../api/client";
 
 function formatXP(value: number) {
@@ -81,6 +85,15 @@ export default function YouthWorkerDashboard() {
   const [challenges, setChallenges] =
     useState<StaffChallenge[]>([]);
 
+  const [attempts, setAttempts] =
+    useState<StaffChallengeAttempt[]>([]);
+
+  const [reviewingAttemptId, setReviewingAttemptId] =
+    useState<number | null>(null);
+
+  const [rejectReason, setRejectReason] =
+    useState("");
+
   const [loading, setLoading] =
     useState(true);
 
@@ -123,17 +136,29 @@ export default function YouthWorkerDashboard() {
         playersResponse,
         awardsResponse,
         challengesResponse,
+        attemptsResponse,
       ] = await Promise.all([
         adminOverview(),
         adminPlayers(),
         adminCommunityAwards(),
         getStaffChallenges(),
+        getStaffChallengeAttempts({
+          status: "submitted",
+        }),
       ]);
 
       setOverview(overviewResponse.data);
       setPlayers(playersResponse.data);
       setAwards(awardsResponse.data);
       setChallenges(challengesResponse.data);
+
+      const attemptData = attemptsResponse.data;
+
+      setAttempts(
+        Array.isArray(attemptData)
+          ? attemptData
+          : attemptData.attempts ?? [],
+      );
     } catch (err) {
       setError(
         getApiErrorMessage(
@@ -236,6 +261,62 @@ export default function YouthWorkerDashboard() {
       );
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function handleVerifyAttempt(
+    attemptId: number,
+  ) {
+    setReviewingAttemptId(attemptId);
+    setActionError(null);
+
+    try {
+      await verifyChallengeAttempt(attemptId);
+      await load();
+    } catch (err) {
+      setActionError(
+        getApiErrorMessage(
+          err,
+          "Unable to verify challenge submission.",
+        ),
+      );
+    } finally {
+      setReviewingAttemptId(null);
+    }
+  }
+
+  async function handleRejectAttempt(
+    attemptId: number,
+  ) {
+    const reason = rejectReason.trim();
+
+    if (!reason) {
+      setActionError(
+        "Enter a reason before rejecting a submission.",
+      );
+      return;
+    }
+
+    setReviewingAttemptId(attemptId);
+    setActionError(null);
+
+    try {
+      await rejectChallengeAttempt(
+        attemptId,
+        { reason },
+      );
+
+      setRejectReason("");
+      await load();
+    } catch (err) {
+      setActionError(
+        getApiErrorMessage(
+          err,
+          "Unable to reject challenge submission.",
+        ),
+      );
+    } finally {
+      setReviewingAttemptId(null);
     }
   }
 
@@ -918,67 +999,215 @@ export default function YouthWorkerDashboard() {
               <button
                 type="button"
                 className="staff-modal__close"
-                onClick={() =>
-                  setModal(null)
-                }
+                onClick={() => setModal(null)}
               >
                 ×
               </button>
             </div>
 
-            <p>
-              Current challenges are shown below.
-              Challenge creation and editing can
-              be added here without changing the
-              underlying challenge engine.
-            </p>
-
-            <div className="staff-review-list">
-              {challenges.map((challenge) => (
-                <div
-                  className="staff-review-item"
-                  key={challenge.id}
-                >
-                  <div>
-                    <strong>
-                      {challenge.title}
-                    </strong>
-
-                    <p>
-                      {challenge.description ||
-                        "No description"}
-                    </p>
-
-                    <small>
-                      {challenge.state ??
-                        "scheduled"}{" "}
-                      ·{" "}
-                      {formatDate(
-                        challenge.start_at,
-                      )}
-                    </small>
-                  </div>
-
-                  <span
-                    className={
-                      "staff-status " +
-                      `staff-status--${
-                        challenge.state ??
-                        "scheduled"
-                      }`
-                    }
-                  >
-                    {challenge.state ??
-                      "scheduled"}
+            <div className="staff-review-section">
+              <div className="staff-review-section__heading">
+                <div>
+                  <span className="staff-eyebrow">
+                    SUBMISSIONS
                   </span>
-                </div>
-              ))}
 
-              {!challenges.length && (
+                  <h3>
+                    Awaiting review
+                  </h3>
+                </div>
+
+                <span className="staff-count">
+                  {attempts.length}
+                </span>
+              </div>
+
+              {attempts.length === 0 ? (
                 <div className="staff-empty">
-                  No challenges configured.
+                  No challenge submissions are waiting
+                  for review.
+                </div>
+              ) : (
+                <div className="staff-review-list">
+                  {attempts.map((attempt) => (
+                    <article
+                      className="staff-review-item"
+                      key={attempt.id}
+                    >
+                      <div className="staff-review-item__content">
+                        <strong>
+                          {attempt.challenge_title ||
+                            `Challenge #${attempt.challenge_id}`}
+                        </strong>
+
+                        <p>
+                          {attempt.player_name ||
+                            attempt.player_username ||
+                            `Player #${attempt.player_id}`}
+                        </p>
+
+                        <p>
+                          Score:{" "}
+                          <strong>
+                            {attempt.score}
+                          </strong>
+                        </p>
+
+                        {attempt.evidence_type && (
+                          <small>
+                            Evidence:{" "}
+                            {attempt.evidence_type}
+                          </small>
+                        )}
+
+                        {attempt.evidence_payload && (
+                          <div className="staff-evidence">
+                            <strong>
+                              Evidence
+                            </strong>
+
+                            <p>
+                              {attempt.evidence_payload}
+                            </p>
+                          </div>
+                        )}
+
+                        <small>
+                          Submitted:{" "}
+                          {formatDate(
+                            attempt.submitted_at ||
+                              attempt.created_at,
+                          )}
+                        </small>
+
+                        <small>
+                          Reference:{" "}
+                          {attempt.attempt_reference}
+                        </small>
+                      </div>
+
+                      <div className="staff-review-form">
+                        <button
+                          type="button"
+                          className="button button--primary"
+                          disabled={
+                            reviewingAttemptId ===
+                            attempt.id
+                          }
+                          onClick={() =>
+                            void handleVerifyAttempt(
+                              attempt.id,
+                            )
+                          }
+                        >
+                          {reviewingAttemptId ===
+                          attempt.id
+                            ? "Reviewing..."
+                            : "Verify & award XP"}
+                        </button>
+
+                        <textarea
+                          rows={3}
+                          value={
+                            reviewingAttemptId ===
+                            attempt.id
+                              ? rejectReason
+                              : undefined
+                          }
+                          onChange={(event) =>
+                            setRejectReason(
+                              event.target.value,
+                            )
+                          }
+                          placeholder="Reason for rejection"
+                        />
+
+                        <button
+                          type="button"
+                          className="button button--danger"
+                          disabled={
+                            reviewingAttemptId ===
+                            attempt.id
+                          }
+                          onClick={() =>
+                            void handleRejectAttempt(
+                              attempt.id,
+                            )
+                          }
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               )}
+            </div>
+
+            <div className="staff-review-section">
+              <div className="staff-review-section__heading">
+                <div>
+                  <span className="staff-eyebrow">
+                    LIVE CHALLENGES
+                  </span>
+
+                  <h3>
+                    Challenge status
+                  </h3>
+                </div>
+
+                <span className="staff-count">
+                  {challenges.length}
+                </span>
+              </div>
+
+              <div className="staff-review-list">
+                {challenges.map((challenge) => (
+                  <div
+                    className="staff-review-item"
+                    key={challenge.id}
+                  >
+                    <div>
+                      <strong>
+                        {challenge.title}
+                      </strong>
+
+                      <p>
+                        {challenge.description ||
+                          "No description"}
+                      </p>
+
+                      <small>
+                        {challenge.state ||
+                          "scheduled"}{" "}
+                        ·{" "}
+                        {formatDate(
+                          challenge.start_at,
+                        )}
+                      </small>
+                    </div>
+
+                    <span
+                      className={
+                        "staff-status " +
+                        `staff-status--${
+                          challenge.state ||
+                          "scheduled"
+                        }`
+                      }
+                    >
+                      {challenge.state ||
+                        "scheduled"}
+                    </span>
+                  </div>
+                ))}
+
+                {!challenges.length && (
+                  <div className="staff-empty">
+                    No challenges configured.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
