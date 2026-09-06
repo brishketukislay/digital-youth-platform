@@ -248,6 +248,93 @@ export async function awardXP(
 }
 
 /* ============================================================
+   STAFF GROUP MANAGEMENT
+   ============================================================ */
+
+export type StaffGroupPlayer = {
+  id: Id;
+  gamertag: string;
+  avatar: string;
+  active: boolean;
+  suspended: boolean;
+  group_id?: Id | null;
+  xp: number;
+};
+
+export type StaffGroup = {
+  id: Id;
+  programme_id: Id;
+  name: string;
+  active: boolean;
+  player_count: number;
+  players: StaffGroupPlayer[];
+};
+
+export type StaffGroupCreateRequest = {
+  name: string;
+  player_ids?: Id[];
+};
+
+export type StaffGroupUpdateRequest = {
+  name: string;
+  active: boolean;
+};
+
+export async function getStaffGroups() {
+  return api.get<StaffGroup[]>(
+    "/admin/groups",
+  );
+}
+
+export async function createStaffGroup(
+  payload: StaffGroupCreateRequest,
+) {
+  return api.post<StaffGroup>(
+    "/admin/groups",
+    payload,
+  );
+}
+
+export async function updateStaffGroup(
+  groupId: Id,
+  payload: StaffGroupUpdateRequest,
+) {
+  return api.put<StaffGroup>(
+    `/admin/groups/${groupId}`,
+    payload,
+  );
+}
+
+export async function addPlayerToStaffGroup(
+  groupId: Id,
+  playerId: Id,
+) {
+  return api.post<{
+    success: boolean;
+    group_id: Id;
+    player_id: Id;
+    previous_group_id: Id | null;
+  }>(
+    `/admin/groups/${groupId}/players/${playerId}`,
+  );
+}
+
+export async function removePlayerFromStaffGroup(
+  groupId: Id,
+  playerId: Id,
+) {
+  return api.delete<{
+    success: boolean;
+    group_id: Id;
+    player_id: Id;
+    group_id_after: null;
+  }>(
+    `/admin/groups/${groupId}/players/${playerId}`,
+  );
+}
+
+
+/* ============================================================
    THEMES
    ============================================================ */
 

@@ -4,10 +4,17 @@ import {
   useState,
 } from "react";
 
+import YouthWorkerGroups from "../../components/youth-worker/YouthWorkerGroups";
+
 import {
   adminCommunityAwards,
   adminOverview,
   adminPlayers,
+  getStaffGroups,
+  createStaffGroup,
+  updateStaffGroup,
+  addPlayerToStaffGroup,
+  removePlayerFromStaffGroup,
   awardXP,
   getApiErrorMessage,
   getStaffChallenges,
@@ -19,6 +26,7 @@ rejectChallengeAttempt,
   type AdminOverview,
   type CommunityAward,
   type Player,
+  type StaffGroup,
   type StaffChallenge,
 type StaffChallengeAttempt,
 } from "../../api/client";
@@ -84,6 +92,24 @@ export default function YouthWorkerDashboard() {
   const [awards, setAwards] =
     useState<CommunityAward[]>([]);
 
+  const [groups, setGroups] =
+    useState<StaffGroup[]>([]);
+
+  const [groupName, setGroupName] =
+    useState("");
+
+  const [groupPlayerIds, setGroupPlayerIds] =
+    useState<number[]>([]);
+
+  const [editingGroupId, setEditingGroupId] =
+    useState<number | null>(null);
+
+  const [groupBusyPlayerId, setGroupBusyPlayerId] =
+    useState<number | null>(null);
+
+  const [groupSaving, setGroupSaving] =
+    useState(false);
+
   const [challenges, setChallenges] =
     useState<StaffChallenge[]>([]);
 
@@ -140,12 +166,14 @@ export default function YouthWorkerDashboard() {
         overviewResponse,
         playersResponse,
         awardsResponse,
+        groupsResponse,
         challengesResponse,
         attemptsResponse,
       ] = await Promise.all([
         adminOverview(),
         adminPlayers(),
         adminCommunityAwards(),
+        getStaffGroups(),
         getStaffChallenges(),
         getStaffChallengeAttempts({
           status: "submitted",
@@ -155,6 +183,7 @@ export default function YouthWorkerDashboard() {
       setOverview(overviewResponse.data);
       setPlayers(playersResponse.data);
       setAwards(awardsResponse.data);
+      setGroups(groupsResponse.data);
       setChallenges(challengesResponse.data);
 
       const attemptData = attemptsResponse.data;
@@ -862,6 +891,10 @@ export default function YouthWorkerDashboard() {
           )}
         </div>
       </section>
+
+      <YouthWorkerGroups
+        players={players}
+      />
 
       {modal === "attendance" && (
         <div className="staff-modal-backdrop">

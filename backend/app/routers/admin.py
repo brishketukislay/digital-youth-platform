@@ -2554,6 +2554,421 @@ def activate_theme(
 
 
 # ============================================================
+# STAFF GROUP MANAGEMENT
+# ============================================================
+
+class StaffGroupCreateRequest(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+    )
+
+    player_ids: list[int] = Field(
+        default_factory=list,
+        max_length=100,
+    )
+
+
+class StaffGroupUpdateRequest(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+    )
+
+    active: bool = True
+
+
+def _staff_group(
+    db: Session,
+    group_id: int,
+    programme_id: int,
+) -> YouthGroup:
+    group = (
+        db.query(YouthGroup)
+        .filter(
+            YouthGroup.id == group_id,
+            YouthGroup.programme_id == programme_id,
+        )
+        .first()
+    )
+
+    if group is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Group not found.",
+        )
+
+    return group
+
+
+def _group_payload(
+    db: Session,
+    group: YouthGroup,
+):
+    players = (
+        db.query(Player)
+        .filter(
+            Player.group_id == group.id,
+            Player.active == True,
+        )
+        .order_by(Player.gamertag.asc())
+        .all()
+    )
+
+    return {
+        "id": group.id,
+        "programme_id": group.programme_id,
+        "name": group.name,
+        "active": group.active,
+        "player_count": len(players),
+        "players": [
+            {
+                "id": player.id,
+                "gamertag": player.gamertag,
+                "avatar": player.avatar,
+                "active": player.active,
+                "suspended": player.suspended,
+                "group_id": player.group_id,
+                "xp": player_xp(
+                    db,
+                    player.id,
+                ),
+            }
+            for player in players
+        ],
+    }
+
+
+@router.get("/groups")
+def staff_groups(
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    groups = (
+        db.query(YouthGroup)
+        .filter(
+            YouthGroup.programme_id == programme.id,
+        )
+        .order_by(
+            YouthGroup.active.desc(),
+            YouthGroup.name.asc(),
+        )
+        .all()
+    )
+
+    return [
+        _group_payload(db, group)
+        for group in groups
+    ]
+
+
+@router.post("/groups")
+def create_staff_group(
+    data: StaffGroupCreateRequest,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    name = data.name.strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Group name is required.",
+        )
+
+    duplicate = (
+        db.query(YouthGroup)
+        .filter(
+            YouthGroup.programme_id == programme.id,
+            YouthGroup.name == name,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise HTTPException(
+            status_code=409,
+            detail="A group with this name already exists.",
+        )
+
+    player_ids = list(dict.fromkeys(data.player_ids))
+
+    players = []
+
+    if player_ids:
+        players = (
+            db.query(Player)
+            .filter(
+                Player.id.in_(player_ids),
+                Player.active == True,
+            )
+            .all()
+        )
+
+        found_ids = {player.id for player in players}
+        missing_ids = [
+            player_id
+            for player_id in player_ids
+            if player_id not in found_ids
+        ]
+
+        if missing_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "One or more selected players "
+                    "could not be found or are inactive."
+                ),
+            )
+
+    group = YouthGroup(
+        programme_id=programme.id,
+        name=name,
+        active=True,
+    )
+
+    db.add(group)
+    db.flush()
+
+    for player in players:
+        player.group_id = group.id
+
+    audit(
+        db,
+        user.id,
+        "group.created",
+        (
+            f"group_id={group.id};"
+            f"name={group.name};"
+            f"player_ids={player_ids}"
+        ),
+    )
+
+    db.commit()
+    db.refresh(group)
+
+    return _group_payload(
+        db,
+        group,
+    )
+
+
+@router.put("/groups/{group_id}")
+def update_staff_group(
+    group_id: int,
+    data: StaffGroupUpdateRequest,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    group = _staff_group(
+        db,
+        group_id,
+        programme.id,
+    )
+
+    name = data.name.strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Group name is required.",
+        )
+
+    duplicate = (
+        db.query(YouthGroup)
+        .filter(
+            YouthGroup.programme_id == programme.id,
+            YouthGroup.name == name,
+            YouthGroup.id != group.id,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise HTTPException(
+            status_code=409,
+            detail="A group with this name already exists.",
+        )
+
+    old_name = group.name
+    old_active = group.active
+
+    group.name = name
+    group.active = data.active
+
+    audit(
+        db,
+        user.id,
+        "group.updated",
+        (
+            f"group_id={group.id};"
+            f"old_name={old_name};"
+            f"new_name={group.name};"
+            f"old_active={old_active};"
+            f"new_active={group.active}"
+        ),
+    )
+
+    db.commit()
+    db.refresh(group)
+
+    return _group_payload(
+        db,
+        group,
+    )
+
+
+@router.post("/groups/{group_id}/players/{player_id}")
+def add_player_to_staff_group(
+    group_id: int,
+    player_id: int,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    group = _staff_group(
+        db,
+        group_id,
+        programme.id,
+    )
+
+    if not group.active:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot assign a player to an inactive group.",
+        )
+
+    player = (
+        db.query(Player)
+        .filter(
+            Player.id == player_id,
+            Player.active == True,
+        )
+        .first()
+    )
+
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found.",
+        )
+
+    previous_group_id = player.group_id
+
+    player.group_id = group.id
+
+    audit(
+        db,
+        user.id,
+        "group.player_assigned",
+        (
+            f"group_id={group.id};"
+            f"player_id={player.id};"
+            f"previous_group_id={previous_group_id}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "group_id": group.id,
+        "player_id": player.id,
+        "previous_group_id": previous_group_id,
+    }
+
+
+@router.delete(
+    "/groups/{group_id}/players/{player_id}"
+)
+def remove_player_from_staff_group(
+    group_id: int,
+    player_id: int,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    programme = get_programme(db)
+
+    group = _staff_group(
+        db,
+        group_id,
+        programme.id,
+    )
+
+    player = (
+        db.query(Player)
+        .filter(
+            Player.id == player_id,
+            Player.active == True,
+            Player.group_id == group.id,
+        )
+        .first()
+    )
+
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Player is not a member of this group.",
+        )
+
+    player.group_id = None
+
+    audit(
+        db,
+        user.id,
+        "group.player_removed",
+        (
+            f"group_id={group.id};"
+            f"player_id={player.id}"
+        ),
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "group_id": group.id,
+        "player_id": player.id,
+        "group_id_after": None,
+    }
+
+
+
+# ============================================================
 # SIMPLE ADMIN DATA ENDPOINTS
 # ============================================================
 
