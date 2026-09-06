@@ -591,7 +591,9 @@ export default function YouthWorkerDashboard() {
               disabled={actionLoading}
               onClick={() => {
                 setActionError(null);
-                void handleStartAttendance();
+                setAttendanceCode(null);
+                setAttendanceExpiry(null);
+                setModal("attendance");
               }}
             >
               <span>✓</span>
@@ -871,80 +873,136 @@ export default function YouthWorkerDashboard() {
                 </span>
 
                 <h2>
-                  Session ready
+                  {attendanceCode
+                    ? "Session ready"
+                    : "Start attendance"}
                 </h2>
               </div>
 
               <button
                 type="button"
                 className="staff-modal__close"
-                onClick={() =>
-                  setModal(null)
-                }
+                disabled={actionLoading}
+                onClick={() => {
+                  if (!actionLoading) {
+                    setModal(null);
+                  }
+                }}
               >
                 ×
               </button>
             </div>
 
-            <p>
-              Ask participants to enter this
-              code on their attendance screen.
-            </p>
+            {attendanceCode ? (
+              <>
+                <p>
+                  Ask participants to enter this
+                  code on their attendance screen.
+                </p>
 
-            <div className="staff-form">
-              <label>
-                Session duration
-                <select
-                  value={attendanceDuration}
-                  onChange={(event) =>
-                    setAttendanceDuration(
-                      event.target.value,
-                    )
-                  }
-                  disabled={actionLoading}
+                <div className="staff-attendance-code">
+                  {attendanceCode}
+                </div>
+
+                <div className="staff-modal__meta">
+                  Expires:{" "}
+                  {formatDate(
+                    attendanceExpiry,
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={() => {
+                    setModal(null);
+                    setAttendanceCode(null);
+                    setAttendanceExpiry(null);
+                  }}
                 >
-                  <option value="5">
-                    5 minutes
-                  </option>
-                  <option value="10">
-                    10 minutes
-                  </option>
-                  <option value="15">
-                    15 minutes
-                  </option>
-                  <option value="30">
-                    30 minutes
-                  </option>
-                  <option value="60">
-                    60 minutes
-                  </option>
-                  <option value="120">
-                    120 minutes
-                  </option>
-                </select>
-              </label>
-            </div>
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <p>
+                  Choose how long the attendance
+                  session should remain active.
+                </p>
 
-            <div className="staff-attendance-code">
-              {attendanceCode ?? "—"}
-            </div>
+                <div className="staff-form">
+                  <label>
+                    Session duration
 
-            <div className="staff-modal__meta">
-              Expires:{" "}
-              {formatDate(
-                attendanceExpiry,
-              )}
-            </div>
+                    <select
+                      value={attendanceDuration}
+                      onChange={(event) =>
+                        setAttendanceDuration(
+                          event.target.value,
+                        )
+                      }
+                      disabled={actionLoading}
+                    >
+                      <option value="5">
+                        5 minutes
+                      </option>
 
-            <button
-              type="button"
-              className="button button--primary"
-              onClick={() =>
-                setModal(null)
-              }
-            >
-              Done
-            </button>
+                      <option value="10">
+                        10 minutes
+                      </option>
+
+                      <option value="15">
+                        15 minutes
+                      </option>
+
+                      <option value="30">
+                        30 minutes
+                      </option>
+
+                      <option value="60">
+                        60 minutes
+                      </option>
+
+                      <option value="120">
+                        120 minutes
+                      </option>
+                    </select>
+                  </label>
+                </div>
+
+                {actionError && (
+                  <div className="staff-inline-error">
+                    {actionError}
+                  </div>
+                )}
+
+                <div className="staff-modal__actions">
+                  <button
+                    type="button"
+                    className="button button--secondary"
+                    disabled={actionLoading}
+                    onClick={() =>
+                      setModal(null)
+                    }
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    className="button button--primary"
+                    disabled={actionLoading}
+                    onClick={() =>
+                      void handleStartAttendance()
+                    }
+                  >
+                    {actionLoading
+                      ? "Starting..."
+                      : "Start session"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
