@@ -213,6 +213,7 @@ def dashboard(
             SkillTree.player_id
             == player.id,
             SkillTree.active == True,
+            SkillTree.completed == False,
         )
         .first()
     )
@@ -234,6 +235,21 @@ def dashboard(
             )
             .all()
         )
+
+    # Completed skill trees remain linked to the young person
+    # and are shown separately from the current active tree.
+    completed_skills = (
+        db.query(SkillTree)
+        .filter(
+            SkillTree.player_id == player.id,
+            SkillTree.completed == True,
+        )
+        .order_by(
+            SkillTree.completed_at.desc(),
+            SkillTree.id.desc(),
+        )
+        .all()
+    )
 
     challenges = (
         db.query(Challenge)
@@ -427,6 +443,37 @@ def dashboard(
             if skill
             else None
         ),
+
+        "completed_skill_trees": [
+            {
+                "id": tree.id,
+                "player_id": tree.player_id,
+                "name": tree.name,
+                "description": tree.description,
+                "xp": tree.current_xp,
+                "active": tree.active,
+                "completed": tree.completed,
+                "completed_at": tree.completed_at,
+                "milestones": [
+                    {
+                        "id": milestone.id,
+                        "name": milestone.name,
+                        "required_xp": milestone.required_xp,
+                        "completed": milestone.completed,
+                        "completed_at": milestone.completed_at,
+                        "reward": milestone.reward_description,
+                    }
+                    for milestone in sorted(
+                        tree.milestones,
+                        key=lambda item: (
+                            item.required_xp,
+                            item.id,
+                        ),
+                    )
+                ],
+            }
+            for tree in completed_skills
+        ],
 
         "challenges": [
             {
