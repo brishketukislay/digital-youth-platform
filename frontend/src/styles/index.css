@@ -62,3 +62,6 @@ body,
   color: #083b2d;
 }
 @import "./dyp-modern.css";
+
+/* DYP modern dashboard visual system */
+@import "./dyp-modern-dashboard.css";

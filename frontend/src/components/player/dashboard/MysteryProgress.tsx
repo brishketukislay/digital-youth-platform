@@ -1,3 +1,4 @@
+import { Gift, LockKeyhole } from "lucide-react";
 import type { PlayerDashboard } from "../../../api/client";
 
 type Props = {
@@ -76,9 +77,11 @@ export function MysteryProgress({
                   className="mystery-node__icon"
                   aria-hidden="true"
                 >
-                  {complete
-                    ? "🎁"
-                    : "?"}
+                  {complete ? (
+                    <Gift size={18} strokeWidth={1.8} />
+                  ) : (
+                    <LockKeyhole size={17} strokeWidth={1.8} />
+                  )}
                 </div>
 
                 <strong>

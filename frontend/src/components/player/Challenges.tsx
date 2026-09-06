@@ -1,3 +1,4 @@
+import { Zap } from "lucide-react";
 import type { PlayerDashboard } from "../../api/client";
 
 type Props = {
@@ -30,7 +31,7 @@ export function Challenges({ data }: Props) {
             className="empty-state__icon"
             aria-hidden="true"
           >
-            ⚡
+            <Zap size={20} strokeWidth={1.8} />
           </span>
 
           <strong>No live challenges</strong>
@@ -51,7 +52,7 @@ export function Challenges({ data }: Props) {
                 className="challenge-icon"
                 aria-hidden="true"
               >
-                ⚡
+                <Zap size={19} strokeWidth={1.8} />
               </div>
 
               <div className="challenge-card__content">

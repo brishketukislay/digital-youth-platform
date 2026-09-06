@@ -1,3 +1,4 @@
+import { MapPinned } from "lucide-react";
 import type { PlayerDashboard } from "../../../api/client";
 
 type Props = {
@@ -82,7 +83,7 @@ export function CurrentPhase({
           }}
           aria-hidden="true"
         >
-          {phase.icon || "⭐"}
+          <MapPinned size={22} strokeWidth={1.8} />
         </div>
 
         <div>
