@@ -25,6 +25,8 @@ import {
   PrivacyNotice,
 } from "../components/player";
 
+import RecognitionQR from "../components/player/RecognitionQR";
+
 /* -------------------------------------------------------------------------- */
 /* Player Dashboard                                                           */
 /* -------------------------------------------------------------------------- */
@@ -265,6 +267,11 @@ export default function PlayerDashboard() {
         className="player-dashboard"
         style={themeStyle}
       >
+        <RecognitionQR
+          playerId={data.player.id}
+          gamertag={data.player.gamertag}
+        />
+
         <PlayerHero
           data={data}
         />

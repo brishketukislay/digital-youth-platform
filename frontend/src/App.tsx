@@ -26,6 +26,8 @@ import {
   me,
 } from "./api/client";
 
+import RecognitionPage from "./pages/RecognitionPage";
+
 /* ============================================================
    LAZY ROUTES
 ============================================================ */
@@ -493,6 +495,12 @@ function AppRoutes() {
       }
     >
       <Routes>
+
+          <Route
+            path="/recognise/:token"
+            element={<RecognitionPage />}
+          />
+
 
         {/* ====================================================
             ENTRY

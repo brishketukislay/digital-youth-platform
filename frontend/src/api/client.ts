@@ -815,6 +815,65 @@ export async function reviewCommunityAward(
   );
 }
 
+
+/* ============================================================
+   COMMUNITY RECOGNITION
+   ============================================================ */
+
+export type RecognitionToken = {
+  token: string;
+  player_id: Id;
+  gamertag: string;
+};
+
+export type RecognitionPlayer = {
+  player_id: Id;
+  gamertag: string;
+  avatar?: string | null;
+};
+
+export type RecognitionSubmission = {
+  token: string;
+  category: string;
+  description: string;
+  submitted_by_name: string;
+  submitted_by_contact: string;
+};
+
+export async function createRecognitionToken(
+  playerId: Id,
+) {
+  return api.post<RecognitionToken>(
+    `/recognition/token?player_id=${playerId}`,
+  );
+}
+
+export async function lookupRecognitionToken(
+  token: string,
+) {
+  return api.get<RecognitionPlayer>(
+    "/recognition/lookup",
+    {
+      params: { token },
+    },
+  );
+}
+
+export async function submitRecognition(
+  payload: RecognitionSubmission,
+) {
+  return api.post<{
+    success: boolean;
+    player_id: Id;
+    gamertag: string;
+    award_id: Id;
+    status: string;
+  }>(
+    "/recognition/submit",
+    payload,
+  );
+}
+
 /* ============================================================
    PLAYER DASHBOARD
    ============================================================ */
