@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from dataclasses import dataclass
 from typing import Iterable
 
@@ -918,6 +920,7 @@ def apply_player_xp(
         .filter(
             PlayerXPBalance.player_id == player_id,
         )
+        .with_for_update()
         .first()
     )
 
@@ -938,6 +941,8 @@ def apply_player_xp(
         balance.lifetime_xp += amount
     elif amount < 0:
         balance.lifetime_xp_removed += abs(amount)
+
+    balance.updated_at = datetime.utcnow()
 
     db.flush()
 
@@ -968,6 +973,7 @@ def apply_group_xp(
         .filter(
             GroupXPBalance.programme_id == programme_id,
         )
+        .with_for_update()
         .first()
     )
 
@@ -988,6 +994,8 @@ def apply_group_xp(
         balance.lifetime_xp_awarded += amount
     elif amount < 0:
         balance.lifetime_xp_removed += abs(amount)
+
+    balance.updated_at = datetime.utcnow()
 
     db.flush()
 
