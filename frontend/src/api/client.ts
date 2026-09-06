@@ -808,7 +808,7 @@ export async function adminCommunityAwards() {
 export async function reviewCommunityAward(
   id: Id,
   status: "approved" | "rejected",
-  xp?: number
+  xp?: number,
 ) {
   return api.post(
     `/admin/community-awards/${id}/review`,
@@ -817,7 +817,7 @@ export async function reviewCommunityAward(
       ...(status === "approved" && xp !== undefined
         ? { xp }
         : {}),
-    }
+    },
   );
 }
 

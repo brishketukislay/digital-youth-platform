@@ -158,6 +158,31 @@ export default function YouthWorkerDashboard() {
   const [reviewingAwardId, setReviewingAwardId] =
     useState<number | null>(null);
 
+  const [
+    approvalAwardId,
+    setApprovalAwardId,
+  ] = useState<number | null>(null);
+
+  const [
+    approvalXp,
+    setApprovalXp,
+  ] = useState("");
+
+  const [
+    approvalError,
+    setApprovalError,
+  ] = useState("");
+
+
+  const [awardModal, setAwardModal] = useState<{
+    id: number;
+    category: string;
+    description: string;
+    playerId?: number | null;
+  } | null>(null);
+
+  const [awardXPInput, setAwardXPInput] = useState("");
+
   const load = useCallback(async () => {
     try {
       setError(null);
@@ -389,65 +414,93 @@ export default function YouthWorkerDashboard() {
     }
   }
 
-  async function handleReviewAward(
-    id: number,
-    status: "approved" | "rejected",
-  ) {
-    let xp: number | undefined;
+  function openAwardApproval(award: CommunityAward) {
+    setActionError(null);
 
-    if (status === "approved") {
-      const input = window.prompt(
-        "How many XP points should be awarded for this community recognition?",
-        "25",
-      );
+    setAwardXPInput("");
 
-      // Cancel means do nothing.
-      if (input === null) {
-        return;
-      }
+    setAwardModal({
+      id: award.id,
+      category: award.category,
+      description: award.description,
+      playerId: award.player_id,
+    });
+  }
 
-      const value = input.trim();
-
-      if (!value) {
-        setActionError(
-          "Enter the number of XP points before approving.",
-        );
-        return;
-      }
-
-      // XP must be a whole positive number.
-      if (!/^\\d+$/.test(value)) {
-        setActionError(
-          "XP points must be a whole positive number.",
-        );
-        return;
-      }
-
-      xp = Number(value);
-
-      if (!Number.isSafeInteger(xp) || xp < 1) {
-        setActionError(
-          "XP points must be greater than zero.",
-        );
-        return;
-      }
-
-      if (xp > 10000) {
-        setActionError(
-          "XP points cannot exceed 10,000.",
-        );
-        return;
-      }
+  function closeAwardApproval() {
+    if (reviewingAwardId !== null) {
+      return;
     }
 
+    setAwardModal(null);
+    setAwardXPInput("");
+    setActionError(null);
+  }
+
+  async function confirmAwardApproval() {
+    if (!awardModal) {
+      return;
+    }
+
+    const value = awardXPInput.trim();
+
+    if (!/^\\d+$/.test(value)) {
+      setActionError(
+        "Enter a whole number of XP points.",
+      );
+      return;
+    }
+
+    const xp = Number(value);
+
+    if (!Number.isSafeInteger(xp) || xp < 1) {
+      setActionError(
+        "XP points must be greater than zero.",
+      );
+      return;
+    }
+
+    if (xp > 10000) {
+      setActionError(
+        "XP points cannot exceed 10,000.",
+      );
+      return;
+    }
+
+    setReviewingAwardId(awardModal.id);
+    setActionError(null);
+
+    try {
+      await reviewCommunityAward(
+        awardModal.id,
+        "approved",
+        xp,
+      );
+
+      setAwardModal(null);
+      setAwardXPInput("");
+
+      await load();
+    } catch (err) {
+      setActionError(
+        getApiErrorMessage(
+          err,
+          "Unable to approve community award.",
+        ),
+      );
+    } finally {
+      setReviewingAwardId(null);
+    }
+  }
+
+  async function handleRejectAward(id: number) {
     setReviewingAwardId(id);
     setActionError(null);
 
     try {
       await reviewCommunityAward(
         id,
-        status,
-        xp,
+        "rejected",
       );
 
       await load();
@@ -455,13 +508,14 @@ export default function YouthWorkerDashboard() {
       setActionError(
         getApiErrorMessage(
           err,
-          `Unable to ${status} community award.`,
+          "Unable to reject community award.",
         ),
       );
     } finally {
       setReviewingAwardId(null);
     }
   }
+
 
   if (loading && !overview) {
     return (
@@ -518,7 +572,8 @@ export default function YouthWorkerDashboard() {
     ).length;
 
   return (
-    <main className="staff-page">
+    <>
+      <main className="staff-page">
       <header className="staff-header">
         <div>
           <span className="staff-eyebrow">
@@ -835,10 +890,7 @@ export default function YouthWorkerDashboard() {
                             reviewingAwardId === award.id
                           }
                           onClick={() =>
-                            void handleReviewAward(
-                              award.id,
-                              "approved",
-                            )
+                            openAwardApproval(award)
                           }
                         >
                           Approve
@@ -851,10 +903,7 @@ export default function YouthWorkerDashboard() {
                             reviewingAwardId === award.id
                           }
                           onClick={() =>
-                            void handleReviewAward(
-                              award.id,
-                              "rejected",
-                            )
+                            void handleRejectAward(award.id)
                           }
                         >
                           Reject
@@ -1489,10 +1538,7 @@ export default function YouthWorkerDashboard() {
                           award.id
                         }
                         onClick={() =>
-                          void handleReviewAward(
-                            award.id,
-                            "approved",
-                          )
+                          openAwardApproval(award)
                         }
                       >
                         {reviewingAwardId ===
@@ -1509,10 +1555,7 @@ export default function YouthWorkerDashboard() {
                           award.id
                         }
                         onClick={() =>
-                          void handleReviewAward(
-                            award.id,
-                            "rejected",
-                          )
+                          void handleRejectAward(award.id)
                         }
                       >
                         Reject
@@ -1541,5 +1584,133 @@ export default function YouthWorkerDashboard() {
         </div>
       )}
     </main>
+
+      {awardModal && (
+        <div
+          className="award-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeAwardApproval();
+            }
+          }}
+        >
+          <section
+            className="award-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="award-modal-title"
+          >
+            <div className="award-modal__icon">
+              ★
+            </div>
+
+            <div className="award-modal__header">
+              <span className="staff-eyebrow">
+                COMMUNITY RECOGNITION
+              </span>
+
+              <h2 id="award-modal-title">
+                Award XP
+              </h2>
+
+              <p>
+                Decide how many XP points this recognition
+                deserves before approving it.
+              </p>
+            </div>
+
+            <div className="award-modal__recognition">
+              <strong>
+                {awardModal.category}
+              </strong>
+
+              <p>
+                {awardModal.description}
+              </p>
+            </div>
+
+            <label
+              className="award-modal__label"
+              htmlFor="community-award-xp"
+            >
+              XP points
+            </label>
+
+            <div className="award-modal__input-wrap">
+              <input
+                id="community-award-xp"
+                className="award-modal__input"
+                type="number"
+                min="1"
+                max="10000"
+                step="1"
+                inputMode="numeric"
+                autoFocus
+                value={xpAmount}
+                onChange={(event) => {
+                  setXpAmount(event.target.value);
+                  setActionError(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    void confirmAwardApproval();
+                  }
+
+                  if (event.key === "Escape") {
+                    closeAwardApproval();
+                  }
+                }}
+                placeholder="e.g. 25"
+              />
+
+              <span className="award-modal__suffix">
+                XP
+              </span>
+            </div>
+
+            <small className="award-modal__hint">
+              Enter a whole number from 1 to 10,000.
+            </small>
+
+            {actionError && (
+              <div
+                className="award-modal__error"
+                role="alert"
+              >
+                {actionError}
+              </div>
+            )}
+
+            <div className="award-modal__actions">
+              <button
+                className="button button--secondary"
+                type="button"
+                disabled={reviewingAwardId !== null}
+                onClick={closeAwardApproval}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="button button--primary award-modal__approve"
+                type="button"
+                disabled={
+                  reviewingAwardId !== null ||
+                  !xpAmount.trim()
+                }
+                onClick={() => {
+                  void confirmAwardApproval();
+                }}
+              >
+                {reviewingAwardId === awardModal.id
+                  ? "Approving..."
+                  : "Approve & Award XP"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
