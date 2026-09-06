@@ -1113,6 +1113,7 @@ export type StaffChallengeAttempt = {
   challenge_title?: string | null;
 
   player_id: Id;
+  gamertag?: string | null;
   player_name?: string | null;
   player_username?: string | null;
 

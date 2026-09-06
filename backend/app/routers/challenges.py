@@ -36,8 +36,6 @@ from ..services.challenge_engine import (
     reject_attempt,
     submit_attempt,
     finalise_attempt,
-    verify_attempt,
-    reject_attempt,
     challenge_summary,
     get_challenge,
 )
@@ -692,7 +690,7 @@ def staff_list_challenge_audit(
     "/staff/attempts",
 )
 def staff_list_attempts(
-    status_filter: str | None = None,
+    status: str | None = None,
     challenge_id: int | None = None,
     user=Depends(
         require_roles(
@@ -720,7 +718,7 @@ def staff_list_attempts(
         )
     )
 
-    if status_filter is not None:
+    if status is not None:
         allowed_statuses = {
             "created",
             "submitted",
@@ -728,7 +726,7 @@ def staff_list_attempts(
             "rejected",
         }
 
-        if status_filter not in allowed_statuses:
+        if status not in allowed_statuses:
             raise HTTPException(
                 status_code=400,
                 detail=(
@@ -739,7 +737,7 @@ def staff_list_attempts(
             )
 
         query = query.filter(
-            ChallengeAttempt.status == status_filter,
+            ChallengeAttempt.status == status,
         )
 
     if challenge_id is not None:

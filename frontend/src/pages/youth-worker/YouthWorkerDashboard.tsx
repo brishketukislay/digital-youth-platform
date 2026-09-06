@@ -1041,7 +1041,8 @@ export default function YouthWorkerDashboard() {
                         </strong>
 
                         <p>
-                          {attempt.player_name ||
+                          {attempt.gamertag ||
+                            attempt.player_name ||
                             attempt.player_username ||
                             `Player #${attempt.player_id}`}
                         </p>
