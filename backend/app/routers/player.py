@@ -333,6 +333,7 @@ def dashboard(
             "gamertag": player.gamertag,
             "avatar": player.avatar,
             "xp": player_total,
+            "individual_xp": player_total,
         },
 
         "mystery_rewards": mystery_rewards,
