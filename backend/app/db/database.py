@@ -7,27 +7,17 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 
-# ---------------------------------------------------------------------------
-# Database URL
-# ---------------------------------------------------------------------------
-
 DATABASE_URL = settings.database_url
 
-# Resolve the default SQLite database relative to the backend directory.
-#
-# settings.database_url normally contains:
-#     sqlite:///./youth_platform.db
-#
-# Using an absolute path prevents the database location from depending on
-# whatever directory happened to launch Uvicorn.
+
+# Resolve the default SQLite database relative to this project instead of
+# relying on the process working directory.
 if DATABASE_URL == "sqlite:///./youth_platform.db":
-    DATABASE_PATH = Path(__file__).resolve().parents[2] / "youth_platform.db"
-    DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+    DEFAULT_DATABASE_PATH = (
+        Path(__file__).resolve().parents[2] / "youth_platform.db"
+    )
+    DATABASE_URL = f"sqlite:///{DEFAULT_DATABASE_PATH}"
 
-
-# ---------------------------------------------------------------------------
-# Engine
-# ---------------------------------------------------------------------------
 
 connect_args: dict[str, object] = {}
 
@@ -46,59 +36,46 @@ engine = create_engine(
 )
 
 
-# ---------------------------------------------------------------------------
-# SQLite configuration
-# ---------------------------------------------------------------------------
-
 if DATABASE_URL.startswith("sqlite"):
 
     @event.listens_for(engine, "connect")
-    def _sqlite_configure_connection(
+    def _configure_sqlite_connection(
         dbapi_connection: sqlite3.Connection,
         connection_record,
     ) -> None:
         """
-        Configure every SQLite connection.
+        Configure SQLite without changing journal mode during connection
+        startup.
 
-        Important:
-        - WAL is deliberately not forced here.
-        - The database previously experienced corruption / disk I/O errors.
-        - SQLite's journal mode is therefore left alone rather than changing
-          the database journal mode every time a new connection is opened.
+        In particular, do not execute:
+            PRAGMA journal_mode = WAL
+
+        here. Changing journal mode is a database-level operation and can
+        create unnecessary contention or interact badly with stale WAL/SHM
+        files during local development.
+
+        SQLite's normal rollback journal is sufficient for this development
+        application and is safer while the database is being stabilized.
         """
 
         cursor = dbapi_connection.cursor()
 
-        try:
-            # Wait for another connection's write lock instead of immediately
-            # failing with "database is locked".
-            cursor.execute("PRAGMA busy_timeout = 30000")
+        cursor.execute("PRAGMA busy_timeout = 30000")
+        cursor.execute("PRAGMA foreign_keys = ON")
+        cursor.execute("PRAGMA synchronous = NORMAL")
 
-            # Foreign-key enforcement must be enabled per SQLite connection.
-            cursor.execute("PRAGMA foreign_keys = ON")
-
-            # Good durability without the extra write overhead of FULL.
-            cursor.execute("PRAGMA synchronous = NORMAL")
-
-        finally:
-            cursor.close()
+        cursor.close()
 
 
     @event.listens_for(engine, "begin")
     def _sqlite_explicit_begin(connection) -> None:
         """
-        SQLAlchemy owns transaction boundaries.
-
-        pysqlite implicit transaction handling is disabled via
-        isolation_level=None, so explicitly start transactions here.
+        pysqlite implicit transaction handling is disabled with
+        isolation_level=None, so SQLAlchemy explicitly starts transactions.
         """
 
         connection.exec_driver_sql("BEGIN")
 
-
-# ---------------------------------------------------------------------------
-# Sessions
-# ---------------------------------------------------------------------------
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -107,18 +84,9 @@ SessionLocal = sessionmaker(
 )
 
 
-# ---------------------------------------------------------------------------
-# FastAPI dependency
-# ---------------------------------------------------------------------------
-
 def get_db():
     """
-    FastAPI database-session dependency.
-
-    Usage:
-
-        def endpoint(db: Session = Depends(get_db)):
-            ...
+    FastAPI database dependency.
     """
 
     db = SessionLocal()
@@ -131,7 +99,7 @@ def get_db():
 
 __all__ = [
     "DATABASE_URL",
-    "engine",
     "SessionLocal",
+    "engine",
     "get_db",
 ]
