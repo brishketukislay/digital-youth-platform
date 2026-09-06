@@ -592,6 +592,7 @@ def award_positive_xp(
     reference: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    idempotency_key: str | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
     """
@@ -624,6 +625,7 @@ def award_positive_xp(
         reference=reference,
         reference_type=reference_type,
         reference_id=reference_id,
+        idempotency_key=idempotency_key,
         created_by=created_by,
     )
 
@@ -639,6 +641,7 @@ def award_individual_xp(
     reference: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    idempotency_key: str | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
     """
@@ -656,6 +659,7 @@ def award_individual_xp(
         reference=reference,
         reference_type=reference_type,
         reference_id=reference_id,
+        idempotency_key=idempotency_key,
         created_by=created_by,
     )
 
@@ -671,6 +675,7 @@ def award_group_xp(
     reference: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    idempotency_key: str | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
     """
@@ -695,6 +700,7 @@ def award_group_xp(
         reference=reference,
         reference_type=reference_type,
         reference_id=reference_id,
+        idempotency_key=idempotency_key,
         created_by=created_by,
     )
 
@@ -711,6 +717,7 @@ def award_negative_xp(
     reference: str | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    idempotency_key: str | None = None,
     created_by: int | None = None,
 ) -> XPTransaction:
     """
@@ -746,6 +753,7 @@ def award_negative_xp(
         reference=reference,
         reference_type=reference_type,
         reference_id=reference_id,
+        idempotency_key=idempotency_key,
         created_by=created_by,
     )
 

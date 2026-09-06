@@ -375,6 +375,10 @@ def play_reward_game(
     }
 
     db.flush()
+    # One play represents one logical reward entitlement.
+    # The stable key prevents duplicate XP on request retries.
+    idempotency_key = f"reward-game-play:{play.id}"
+
 
     try:
         transaction = award_xp(
@@ -391,6 +395,9 @@ def play_reward_game(
             reason=(
                 f"{game.name}: reward game result"
             ),
+            reference_type="reward_game_play",
+            reference_id=play.id,
+            idempotency_key=idempotency_key,
             created_by=user.id,
         )
 
@@ -402,7 +409,7 @@ def play_reward_game(
         db.rollback()
         raise HTTPException(
             status_code=400,
-            detail=str(exc),
+            detail="The reward could not be completed safely. Please retry.",
         ) from exc
 
     # player_xp is intentionally imported lazily to avoid circular imports.
