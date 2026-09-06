@@ -24,6 +24,7 @@ from ..db.models import (
     Reward,
     ProgrammeMilestone,
     AuditLog,
+    CommunityAward,
 )
 
 from ..auth import (
@@ -2645,4 +2646,54 @@ def admin_themes(
             ),
         }
         for theme in themes
+    ]
+
+
+# ============================================================
+# COMMUNITY AWARDS
+# ============================================================
+
+@router.get("/community-awards")
+def list_community_awards(
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Staff-only list of community award nominations.
+
+    Submitter information is intentionally only exposed here,
+    behind staff authentication.
+    """
+
+    awards = (
+        db.query(CommunityAward)
+        .order_by(
+            CommunityAward.created_at.desc(),
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": award.id,
+            "player_id": award.player_id,
+            "group_id": award.group_id,
+            "category": award.category,
+            "description": award.description,
+            "submitted_by_name": award.submitted_by_name,
+            "submitted_by_contact": award.submitted_by_contact,
+            "status": award.status,
+            "xp": award.xp,
+            "created_at": (
+                award.created_at.isoformat()
+                if award.created_at
+                else None
+            ),
+        }
+        for award in awards
     ]
