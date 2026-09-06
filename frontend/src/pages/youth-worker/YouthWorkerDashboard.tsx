@@ -15,7 +15,7 @@ import {
   updateStaffGroup,
   addPlayerToStaffGroup,
   removePlayerFromStaffGroup,
-  awardXP,
+  awardXP as awardPlayerXP,
   getApiErrorMessage,
   getStaffChallenges,
 getStaffChallengeAttempts,
@@ -158,20 +158,14 @@ export default function YouthWorkerDashboard() {
   const [reviewingAwardId, setReviewingAwardId] =
     useState<number | null>(null);
 
-  const [
-    approvalAwardId,
-    setApprovalAwardId,
-  ] = useState<number | null>(null);
+  const [approvalAwardId, setApprovalAwardId] =
+    useState<number | null>(null);
 
-  const [
-    approvalXp,
-    setApprovalXp,
-  ] = useState("");
+  const [approvalXp, setApprovalXp] =
+    useState("");
 
-  const [
-    approvalError,
-    setApprovalError,
-  ] = useState("");
+  const [approvalError, setApprovalError] =
+    useState("");
 
 
   const [awardModal, setAwardModal] = useState<{
@@ -427,25 +421,32 @@ export default function YouthWorkerDashboard() {
     });
   }
 
+  function openAwardApproval(id: number) {
+    setApprovalAwardId(id);
+    setApprovalXp("");
+    setApprovalError("");
+    setActionError(null);
+  }
+
   function closeAwardApproval() {
     if (reviewingAwardId !== null) {
       return;
     }
 
-    setAwardModal(null);
-    setAwardXPInput("");
-    setActionError(null);
+    setApprovalAwardId(null);
+    setApprovalXp("");
+    setApprovalError("");
   }
 
   async function confirmAwardApproval() {
-    if (!awardModal) {
+    if (approvalAwardId === null) {
       return;
     }
 
-    const value = awardXPInput.trim();
+    const value = approvalXp.trim();
 
     if (!/^\\d+$/.test(value)) {
-      setActionError(
+      setApprovalError(
         "Enter a whole number of XP points.",
       );
       return;
@@ -454,35 +455,36 @@ export default function YouthWorkerDashboard() {
     const xp = Number(value);
 
     if (!Number.isSafeInteger(xp) || xp < 1) {
-      setActionError(
+      setApprovalError(
         "XP points must be greater than zero.",
       );
       return;
     }
 
     if (xp > 10000) {
-      setActionError(
+      setApprovalError(
         "XP points cannot exceed 10,000.",
       );
       return;
     }
 
-    setReviewingAwardId(awardModal.id);
+    setReviewingAwardId(approvalAwardId);
+    setApprovalError("");
     setActionError(null);
 
     try {
       await reviewCommunityAward(
-        awardModal.id,
+        approvalAwardId,
         "approved",
         xp,
       );
 
-      setAwardModal(null);
-      setAwardXPInput("");
+      setApprovalAwardId(null);
+      setApprovalXp("");
 
       await load();
     } catch (err) {
-      setActionError(
+      setApprovalError(
         getApiErrorMessage(
           err,
           "Unable to approve community award.",

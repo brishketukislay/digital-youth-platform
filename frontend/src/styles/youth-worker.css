@@ -944,3 +944,147 @@
   }
 }
 
+
+.staff-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.staff-award-approval-modal {
+  width: min(520px, 100%);
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.25),
+    0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.staff-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.staff-modal__eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #6366f1;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.staff-modal__header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.45rem;
+}
+
+.staff-modal__header p {
+  margin: 8px 0 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.staff-modal__close {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.staff-award-xp-panel {
+  margin: 24px 28px;
+  padding: 20px;
+  border: 1px solid #e0e7ff;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+}
+
+.staff-form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #1e293b;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.staff-award-xp-panel input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 2px solid #c7d2fe;
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 700;
+  outline: none;
+}
+
+.staff-award-xp-panel input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.staff-form-help {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.staff-form-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.staff-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 28px 28px;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 600px) {
+  .staff-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .staff-award-approval-modal {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .staff-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .staff-modal__actions button {
+    width: 100%;
+  }
+}
+
