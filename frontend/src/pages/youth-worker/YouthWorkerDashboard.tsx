@@ -8,8 +8,11 @@ import {
   adminCommunityAwards,
   adminOverview,
   adminPlayers,
+  awardXP,
   getApiErrorMessage,
   getStaffChallenges,
+  reviewCommunityAward,
+  startAttendance,
   type AdminOverview,
   type CommunityAward,
   type Player,
@@ -17,9 +20,24 @@ import {
 } from "../../api/client";
 
 function formatXP(value: number) {
-  return new Intl.NumberFormat("en-GB").format(
-    value,
-  );
+  return new Intl.NumberFormat("en-GB").format(value);
+}
+
+function formatDate(value?: string | null) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 
 function ProgressBar({
@@ -32,23 +50,23 @@ function ProgressBar({
   const value = target
     ? Math.min(
         100,
-        Math.max(
-          0,
-          (current / target) * 100,
-        ),
+        Math.max(0, (current / target) * 100),
       )
     : 0;
 
   return (
     <div className="staff-progress">
-      <div
-        style={{
-          width: `${value}%`,
-        }}
-      />
+      <div style={{ width: `${value}%` }} />
     </div>
   );
 }
+
+type Modal =
+  | "attendance"
+  | "xp"
+  | "challenge"
+  | "awards"
+  | null;
 
 export default function YouthWorkerDashboard() {
   const [overview, setOverview] =
@@ -69,6 +87,33 @@ export default function YouthWorkerDashboard() {
   const [error, setError] =
     useState<string | null>(null);
 
+  const [actionError, setActionError] =
+    useState<string | null>(null);
+
+  const [modal, setModal] =
+    useState<Modal>(null);
+
+  const [actionLoading, setActionLoading] =
+    useState(false);
+
+  const [attendanceCode, setAttendanceCode] =
+    useState<string | null>(null);
+
+  const [attendanceExpiry, setAttendanceExpiry] =
+    useState<string | null>(null);
+
+  const [selectedPlayerId, setSelectedPlayerId] =
+    useState<number | "">("");
+
+  const [xpAmount, setXpAmount] =
+    useState("500");
+
+  const [xpReason, setXpReason] =
+    useState("");
+
+  const [reviewingAwardId, setReviewingAwardId] =
+    useState<number | null>(null);
+
   const load = useCallback(async () => {
     try {
       setError(null);
@@ -85,21 +130,10 @@ export default function YouthWorkerDashboard() {
         getStaffChallenges(),
       ]);
 
-      setOverview(
-        overviewResponse.data,
-      );
-
-      setPlayers(
-        playersResponse.data,
-      );
-
-      setAwards(
-        awardsResponse.data,
-      );
-
-      setChallenges(
-        challengesResponse.data,
-      );
+      setOverview(overviewResponse.data);
+      setPlayers(playersResponse.data);
+      setAwards(awardsResponse.data);
+      setChallenges(challengesResponse.data);
     } catch (err) {
       setError(
         getApiErrorMessage(
@@ -124,6 +158,113 @@ export default function YouthWorkerDashboard() {
       window.clearInterval(timer);
   }, [load]);
 
+  async function handleStartAttendance() {
+    setActionLoading(true);
+    setActionError(null);
+
+    try {
+      const response = await startAttendance();
+
+      setAttendanceCode(response.data.code);
+      setAttendanceExpiry(
+        response.data.expires_at ?? null,
+      );
+      setModal("attendance");
+    } catch (err) {
+      setActionError(
+        getApiErrorMessage(
+          err,
+          "Unable to start attendance.",
+        ),
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleAwardXP() {
+    const playerId =
+      selectedPlayerId === ""
+        ? null
+        : Number(selectedPlayerId);
+
+    const amount = Number(xpAmount);
+
+    if (!playerId) {
+      setActionError(
+        "Select a player first.",
+      );
+      return;
+    }
+
+    if (!Number.isInteger(amount) || amount === 0) {
+      setActionError(
+        "Enter a whole-number XP amount other than zero.",
+      );
+      return;
+    }
+
+    if (!xpReason.trim()) {
+      setActionError(
+        "Enter a reason for the XP award.",
+      );
+      return;
+    }
+
+    setActionLoading(true);
+    setActionError(null);
+
+    try {
+      await awardXP(
+        playerId,
+        amount,
+        xpReason.trim(),
+      );
+
+      setModal(null);
+      setSelectedPlayerId("");
+      setXpAmount("500");
+      setXpReason("");
+
+      await load();
+    } catch (err) {
+      setActionError(
+        getApiErrorMessage(
+          err,
+          "Unable to award XP.",
+        ),
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleReviewAward(
+    id: number,
+    status: "approved" | "rejected",
+  ) {
+    setReviewingAwardId(id);
+    setActionError(null);
+
+    try {
+      await reviewCommunityAward(
+        id,
+        status,
+      );
+
+      await load();
+    } catch (err) {
+      setActionError(
+        getApiErrorMessage(
+          err,
+          `Unable to ${status} community award.`,
+        ),
+      );
+    } finally {
+      setReviewingAwardId(null);
+    }
+  }
+
   if (loading && !overview) {
     return (
       <main className="staff-page">
@@ -138,10 +279,7 @@ export default function YouthWorkerDashboard() {
     return (
       <main className="staff-page">
         <div className="staff-error">
-          <h1>
-            Dashboard unavailable
-          </h1>
-
+          <h1>Dashboard unavailable</h1>
           <p>{error}</p>
 
           <button
@@ -202,6 +340,7 @@ export default function YouthWorkerDashboard() {
         <button
           className="button button--secondary"
           type="button"
+          disabled={loading}
           onClick={() => {
             setLoading(true);
             void load();
@@ -214,6 +353,12 @@ export default function YouthWorkerDashboard() {
       {error && (
         <div className="staff-inline-error">
           {error}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="staff-inline-error">
+          {actionError}
         </div>
       )}
 
@@ -322,6 +467,11 @@ export default function YouthWorkerDashboard() {
             <button
               type="button"
               className="staff-action"
+              disabled={actionLoading}
+              onClick={() => {
+                setActionError(null);
+                void handleStartAttendance();
+              }}
             >
               <span>✓</span>
               Attendance
@@ -330,6 +480,10 @@ export default function YouthWorkerDashboard() {
             <button
               type="button"
               className="staff-action"
+              onClick={() => {
+                setActionError(null);
+                setModal("xp");
+              }}
             >
               <span>⚡</span>
               Award XP
@@ -338,6 +492,10 @@ export default function YouthWorkerDashboard() {
             <button
               type="button"
               className="staff-action"
+              onClick={() => {
+                setActionError(null);
+                setModal("challenge");
+              }}
             >
               <span>🎮</span>
               Challenge
@@ -346,6 +504,10 @@ export default function YouthWorkerDashboard() {
             <button
               type="button"
               className="staff-action"
+              onClick={() => {
+                setActionError(null);
+                setModal("awards");
+              }}
             >
               <span>★</span>
               Community awards
@@ -381,8 +543,7 @@ export default function YouthWorkerDashboard() {
                   key={player.id}
                 >
                   <div className="staff-player__avatar">
-                    {player.avatar ||
-                      "★"}
+                    {player.avatar || "★"}
                   </div>
 
                   <div className="staff-player__name">
@@ -396,8 +557,7 @@ export default function YouthWorkerDashboard() {
                   </div>
 
                   <strong>
-                    {formatXP(player.xp)}
-                    {" "}XP
+                    {formatXP(player.xp)} XP
                   </strong>
                 </div>
               ))}
@@ -421,6 +581,17 @@ export default function YouthWorkerDashboard() {
                 Recent awards
               </h2>
             </div>
+
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={() => {
+                setActionError(null);
+                setModal("awards");
+              }}
+            >
+              Review
+            </button>
           </div>
 
           <div className="staff-award-list">
@@ -445,14 +616,52 @@ export default function YouthWorkerDashboard() {
                     </small>
                   </div>
 
-                  <span
-                    className={
-                      "staff-status " +
-                      `staff-status--${award.status}`
-                    }
-                  >
-                    {award.status}
-                  </span>
+                  <div className="staff-award__actions">
+                    <span
+                      className={
+                        "staff-status " +
+                        `staff-status--${award.status}`
+                      }
+                    >
+                      {award.status}
+                    </span>
+
+                    {award.status === "pending" && (
+                      <div className="staff-award__buttons">
+                        <button
+                          type="button"
+                          className="button button--primary"
+                          disabled={
+                            reviewingAwardId === award.id
+                          }
+                          onClick={() =>
+                            void handleReviewAward(
+                              award.id,
+                              "approved",
+                            )
+                          }
+                        >
+                          Approve
+                        </button>
+
+                        <button
+                          type="button"
+                          className="button button--danger"
+                          disabled={
+                            reviewingAwardId === award.id
+                          }
+                          onClick={() =>
+                            void handleReviewAward(
+                              award.id,
+                              "rejected",
+                            )
+                          }
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
 
@@ -477,9 +686,16 @@ export default function YouthWorkerDashboard() {
             </h2>
           </div>
 
-          <span className="staff-count">
-            {challenges.length}
-          </span>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() => {
+              setActionError(null);
+              setModal("challenge");
+            }}
+          >
+            Manage
+          </button>
         </div>
 
         <div className="staff-challenge-list">
@@ -504,7 +720,10 @@ export default function YouthWorkerDashboard() {
                 <span
                   className={
                     "staff-status " +
-                    `staff-status--${challenge.state ?? "scheduled"}`
+                    `staff-status--${
+                      challenge.state ??
+                      "scheduled"
+                    }`
                   }
                 >
                   {challenge.state ??
@@ -520,6 +739,364 @@ export default function YouthWorkerDashboard() {
           )}
         </div>
       </section>
+
+      {modal === "attendance" && (
+        <div className="staff-modal-backdrop">
+          <div className="staff-modal">
+            <div className="staff-modal__header">
+              <div>
+                <span className="staff-eyebrow">
+                  ATTENDANCE
+                </span>
+
+                <h2>
+                  Session ready
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="staff-modal__close"
+                onClick={() =>
+                  setModal(null)
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <p>
+              Ask participants to enter this
+              code on their attendance screen.
+            </p>
+
+            <div className="staff-attendance-code">
+              {attendanceCode ?? "—"}
+            </div>
+
+            <div className="staff-modal__meta">
+              Expires:{" "}
+              {formatDate(
+                attendanceExpiry,
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="button button--primary"
+              onClick={() =>
+                setModal(null)
+              }
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {modal === "xp" && (
+        <div className="staff-modal-backdrop">
+          <div className="staff-modal">
+            <div className="staff-modal__header">
+              <div>
+                <span className="staff-eyebrow">
+                  XP
+                </span>
+
+                <h2>
+                  Award XP
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="staff-modal__close"
+                onClick={() =>
+                  setModal(null)
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="staff-form">
+              <label>
+                Player
+                <select
+                  value={selectedPlayerId}
+                  onChange={(event) =>
+                    setSelectedPlayerId(
+                      event.target.value
+                        ? Number(
+                            event.target.value,
+                          )
+                        : "",
+                    )
+                  }
+                >
+                  <option value="">
+                    Select player
+                  </option>
+
+                  {players.map((player) => (
+                    <option
+                      key={player.id}
+                      value={player.id}
+                    >
+                      {player.gamertag} —{" "}
+                      {formatXP(player.xp)} XP
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                XP amount
+                <input
+                  type="number"
+                  step="1"
+                  value={xpAmount}
+                  onChange={(event) =>
+                    setXpAmount(
+                      event.target.value,
+                    )
+                  }
+                />
+              </label>
+
+              <label>
+                Reason
+                <textarea
+                  rows={3}
+                  value={xpReason}
+                  onChange={(event) =>
+                    setXpReason(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Explain why this XP is being awarded..."
+                />
+              </label>
+
+              {actionError && (
+                <div className="staff-inline-error">
+                  {actionError}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="button button--primary"
+                disabled={actionLoading}
+                onClick={() =>
+                  void handleAwardXP()
+                }
+              >
+                {actionLoading
+                  ? "Awarding..."
+                  : "Award XP"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modal === "challenge" && (
+        <div className="staff-modal-backdrop">
+          <div className="staff-modal staff-modal--wide">
+            <div className="staff-modal__header">
+              <div>
+                <span className="staff-eyebrow">
+                  CHALLENGES
+                </span>
+
+                <h2>
+                  Challenge control
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="staff-modal__close"
+                onClick={() =>
+                  setModal(null)
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <p>
+              Current challenges are shown below.
+              Challenge creation and editing can
+              be added here without changing the
+              underlying challenge engine.
+            </p>
+
+            <div className="staff-review-list">
+              {challenges.map((challenge) => (
+                <div
+                  className="staff-review-item"
+                  key={challenge.id}
+                >
+                  <div>
+                    <strong>
+                      {challenge.title}
+                    </strong>
+
+                    <p>
+                      {challenge.description ||
+                        "No description"}
+                    </p>
+
+                    <small>
+                      {challenge.state ??
+                        "scheduled"}{" "}
+                      ·{" "}
+                      {formatDate(
+                        challenge.start_at,
+                      )}
+                    </small>
+                  </div>
+
+                  <span
+                    className={
+                      "staff-status " +
+                      `staff-status--${
+                        challenge.state ??
+                        "scheduled"
+                      }`
+                    }
+                  >
+                    {challenge.state ??
+                      "scheduled"}
+                  </span>
+                </div>
+              ))}
+
+              {!challenges.length && (
+                <div className="staff-empty">
+                  No challenges configured.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modal === "awards" && (
+        <div className="staff-modal-backdrop">
+          <div className="staff-modal staff-modal--wide">
+            <div className="staff-modal__header">
+              <div>
+                <span className="staff-eyebrow">
+                  COMMUNITY
+                </span>
+
+                <h2>
+                  Review awards
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="staff-modal__close"
+                onClick={() =>
+                  setModal(null)
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="staff-review-list">
+              {awards.map((award) => (
+                <article
+                  className="staff-review-item"
+                  key={award.id}
+                >
+                  <div>
+                    <strong>
+                      {award.category}
+                    </strong>
+
+                    <p>
+                      {award.description}
+                    </p>
+
+                    <small>
+                      Submitted by{" "}
+                      {award.submitted_by_name ||
+                        "Unknown"}{" "}
+                      ·{" "}
+                      {formatDate(
+                        award.created_at,
+                      )}
+                    </small>
+                  </div>
+
+                  {award.status ===
+                  "pending" ? (
+                    <div className="staff-review-form">
+                      <button
+                        type="button"
+                        className="button button--primary"
+                        disabled={
+                          reviewingAwardId ===
+                          award.id
+                        }
+                        onClick={() =>
+                          void handleReviewAward(
+                            award.id,
+                            "approved",
+                          )
+                        }
+                      >
+                        {reviewingAwardId ===
+                        award.id
+                          ? "Working..."
+                          : "Approve"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        disabled={
+                          reviewingAwardId ===
+                          award.id
+                        }
+                        onClick={() =>
+                          void handleReviewAward(
+                            award.id,
+                            "rejected",
+                          )
+                        }
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <span
+                      className={
+                        "staff-status " +
+                        `staff-status--${award.status}`
+                      }
+                    >
+                      {award.status}
+                    </span>
+                  )}
+                </article>
+              ))}
+
+              {!awards.length && (
+                <div className="staff-empty">
+                  No community awards yet.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

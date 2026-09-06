@@ -640,7 +640,10 @@ export async function disableReward(
    ============================================================ */
 
 export type AttendanceSession = {
+  success?: boolean;
+  id?: Id;
   code: string;
+  group_id?: Id | null;
   expires_at?: string;
   expires_in_seconds?: number;
 };
