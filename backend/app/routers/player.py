@@ -337,11 +337,22 @@ def dashboard(
 
         "mystery_rewards": mystery_rewards,
 
-        "group_xp": group_xp(
-            db,
-            programme.id
-            if programme
-            else None,
+        "group_xp": (
+            group_xp(
+                db,
+                group_id=player.group_id,
+            )
+            if player.group_id is not None
+            else None
+        ),
+
+        "group": (
+            {
+                "id": player.group.id,
+                "name": player.group.name,
+            }
+            if player.group is not None
+            else None
         ),
 
         "target_xp": (

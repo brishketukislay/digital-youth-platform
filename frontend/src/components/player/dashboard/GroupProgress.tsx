@@ -54,6 +54,30 @@ function ProgressBar({
 export function GroupProgress({
   data,
 }: Props) {
+  if (!data.group) {
+    return (
+      <section className="card featured-progress">
+        <div className="card-title-row">
+          <div>
+            <div className="eyebrow">
+              SQUAD PROGRESS
+            </div>
+
+            <h2>
+              Not currently in a squad
+            </h2>
+          </div>
+        </div>
+
+        <p className="muted progress-description">
+          Join a squad to contribute towards
+          a shared squad goal and see your
+          squad's progress here.
+        </p>
+      </section>
+    );
+  }
+
   const target =
     data.target_xp ||
     DEFAULT_TARGET_XP;
@@ -61,7 +85,7 @@ export function GroupProgress({
   const current =
     Math.max(
       0,
-      data.group_xp,
+      data.group_xp ?? 0,
     );
 
   const progress =
@@ -87,6 +111,10 @@ export function GroupProgress({
           <h2>
             {formatXP(current)} XP
           </h2>
+
+          <div className="muted">
+            {data.group.name}
+          </div>
         </div>
 
         <div className="progress-number">

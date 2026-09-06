@@ -1038,8 +1038,13 @@ export type PlayerDashboard = {
     xp: number;
   };
 
-  group_xp: number;
+  group_xp: number | null;
   target_xp: number;
+
+  group: {
+    id: Id;
+    name: string;
+  } | null;
 
   programme: {
     name: string;

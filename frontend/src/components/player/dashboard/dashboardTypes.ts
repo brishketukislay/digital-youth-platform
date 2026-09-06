@@ -404,8 +404,8 @@ export type PlayerDashboardViewData =
     group_progress?: DashboardGroupProgress;
     groupProgress?: DashboardGroupProgress;
 
-    group_xp?: number;
-    groupXP?: number;
+    group_xp?: number | null;
+    groupXP?: number | null;
 
     group_target_xp?: number;
     groupTargetXP?: number;
