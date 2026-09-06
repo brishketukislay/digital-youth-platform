@@ -4,6 +4,7 @@ import {
 } from "react";
 
 import {
+  useNavigate,
   useParams,
 } from "react-router-dom";
 
@@ -99,8 +100,7 @@ function mapChallengeAttempt(
         ? "verified"
         : raw.status === "rejected"
           ? "rejected"
-          : raw.status ===
-              "submitted"
+          : raw.status === "submitted"
             ? "submitted"
             : "started",
 
@@ -241,6 +241,9 @@ function mapChallenge(
 ============================================================ */
 
 export default function PlayerChallengePage() {
+  const navigate =
+    useNavigate();
+
   const {
     challengeId,
   } = useParams<{
@@ -262,7 +265,9 @@ export default function PlayerChallengePage() {
   const [
     error,
     setError,
-  ] = useState<string | null>(null);
+  ] = useState<string | null>(
+    null,
+  );
 
   const [
     resultMessage,
@@ -271,12 +276,21 @@ export default function PlayerChallengePage() {
     null,
   );
 
+  const [
+    challengeResult,
+    setChallengeResult,
+  ] = useState<any>(
+    null,
+  );
+
   useEffect(() => {
     if (!challengeId) {
       setError(
         "Challenge ID is missing.",
       );
+
       setLoading(false);
+
       return;
     }
 
@@ -294,7 +308,9 @@ export default function PlayerChallengePage() {
       setError(
         "Invalid challenge ID.",
       );
+
       setLoading(false);
+
       return;
     }
 
@@ -340,6 +356,10 @@ export default function PlayerChallengePage() {
     };
   }, [challengeId]);
 
+  /* ==========================================================
+     LOADING
+  ========================================================== */
+
   if (loading) {
     return (
       <main className="app-loading">
@@ -351,6 +371,10 @@ export default function PlayerChallengePage() {
       </main>
     );
   }
+
+  /* ==========================================================
+     ERROR
+  ========================================================== */
 
   if (
     error ||
@@ -377,8 +401,17 @@ export default function PlayerChallengePage() {
       challengeId,
     );
 
+  /* ==========================================================
+     RENDER
+  ========================================================== */
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+
+      {/* ======================================================
+          SUCCESS MESSAGE
+      ====================================================== */}
+
       {resultMessage && (
         <div className="mx-auto w-full max-w-4xl px-4 pt-5 sm:px-6 lg:px-8">
           <div
@@ -389,6 +422,56 @@ export default function PlayerChallengePage() {
           </div>
         </div>
       )}
+
+      {/* ======================================================
+          CHALLENGE RESULT
+      ====================================================== */}
+
+      {challengeResult && (
+        <section className="mx-auto w-full max-w-4xl px-4 pt-5 sm:px-6 lg:px-8">
+          <div
+            className="rounded-2xl border border-white/10 bg-white/5 p-5"
+          >
+            <div
+              className="mb-2 text-xs font-bold tracking-widest text-white/60"
+            >
+              CHALLENGE COMPLETE
+            </div>
+
+            <h2 className="text-xl font-semibold">
+              Challenge complete
+            </h2>
+
+            {typeof challengeResult.player_total_xp ===
+              "number" && (
+              <p className="mt-2 text-sm text-white/70">
+                Total XP:{" "}
+                <strong className="text-white">
+                  {challengeResult.player_total_xp.toLocaleString(
+                    "en-GB",
+                  )}
+                </strong>
+              </p>
+            )}
+
+            <button
+              type="button"
+              className="mt-4 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950"
+              onClick={() =>
+                navigate(
+                  "/player",
+                )
+              }
+            >
+              Back to my dashboard
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* ======================================================
+          CHALLENGE RUNTIME
+      ====================================================== */}
 
       <ChallengeRuntime
         challenge={
@@ -404,6 +487,7 @@ export default function PlayerChallengePage() {
              * This UUID becomes attempt_reference when the
              * authoritative result is submitted.
              */
+
             const attemptId =
               crypto.randomUUID();
 
@@ -411,7 +495,8 @@ export default function PlayerChallengePage() {
               new Date().toISOString();
 
             const attempt: ChallengeAttempt = {
-              id: attemptId,
+              id:
+                attemptId,
 
               challengeId:
                 String(
@@ -421,7 +506,8 @@ export default function PlayerChallengePage() {
               playerId:
                 "current",
 
-              startedAt: now,
+              startedAt:
+                now,
 
               submittedAt:
                 null,
@@ -463,6 +549,7 @@ export default function PlayerChallengePage() {
              * because 0 is a legitimate score and means something
              * different from "the client failed to provide a score".
              */
+
             if (
               payload.score == null ||
               !Number.isFinite(
@@ -501,6 +588,14 @@ export default function PlayerChallengePage() {
 
             const result =
               response.data;
+
+            /*
+             * Store the complete authoritative backend result
+             * so the completion panel can render it.
+             */
+            setChallengeResult(
+              result,
+            );
 
             const xp =
               result.xp;
