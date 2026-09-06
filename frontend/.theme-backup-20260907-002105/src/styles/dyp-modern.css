@@ -1,0 +1,1990 @@
+/*
+============================================================
+ DIGITAL YOUTH PLATFORM — MODERN UI SYSTEM
+ Visual direction: pol-scot/sample2.html
+ No gradients. No neon. No emoji UI.
+============================================================
+*/
+
+:root {
+  --dyp-green-950: #06291e;
+  --dyp-green-900: #083b2d;
+  --dyp-green-800: #0b503d;
+  --dyp-green-700: #12634c;
+  --dyp-green-600: #18775b;
+  --dyp-green-500: #22966e;
+  --dyp-green-400: #43b98b;
+  --dyp-green-300: #83d8b5;
+  --dyp-green-200: #c9f0df;
+  --dyp-green-100: #eaf8f2;
+
+  --dyp-bg: #f3f7f5;
+  --dyp-surface: #ffffff;
+  --dyp-surface-soft: #f5f8f6;
+
+  --dyp-text: #15211d;
+  --dyp-muted: #68766f;
+  --dyp-subtle: #94a29b;
+
+  --dyp-border: #dfe8e3;
+  --dyp-border-strong: #cbd9d2;
+
+  --dyp-warning: #d18b27;
+  --dyp-danger: #b84b4b;
+  --dyp-info: #3f6f9f;
+
+  --dyp-radius-sm: 10px;
+  --dyp-radius-md: 14px;
+  --dyp-radius-lg: 18px;
+  --dyp-radius-xl: 22px;
+
+  --dyp-shadow-sm:
+    0 3px 10px rgba(9, 55, 39, .045);
+
+  --dyp-shadow:
+    0 8px 24px rgba(9, 55, 39, .06);
+
+  --dyp-shadow-lg:
+    0 12px 35px rgba(9, 55, 39, .08);
+
+  --dyp-transition:
+    160ms cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ==========================================================
+   GLOBAL
+========================================================== */
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: var(--dyp-bg);
+}
+
+body {
+  margin: 0;
+
+  background: var(--dyp-bg) !important;
+
+  color: var(--dyp-text) !important;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* ==========================================================
+   KILL OLD GAMING VISUAL LANGUAGE
+========================================================== */
+
+[class*="glow"],
+[class*="neon"],
+[class*="jackpot"] {
+  text-shadow: none !important;
+}
+
+[class*="glass"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.card::before,
+.card::after {
+  display: none !important;
+}
+
+.player-dashboard::before,
+.player-dashboard::after {
+  display: none !important;
+}
+
+/* ==========================================================
+   APP BACKGROUND
+========================================================== */
+
+.app-shell,
+.app-content,
+.app-main,
+main,
+.page {
+  background: var(--dyp-bg);
+}
+
+/* ==========================================================
+   MAIN CONTENT
+========================================================== */
+
+.app-main-content,
+.app-main {
+  padding: 28px !important;
+}
+
+.player-dashboard,
+.dashboard,
+.admin-dashboard,
+.youth-worker-dashboard,
+.public-dashboard {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ==========================================================
+   TOP BAR
+========================================================== */
+
+.app-topbar {
+  min-height: 70px !important;
+
+  background: var(--dyp-green-950) !important;
+
+  border: 0 !important;
+
+  box-shadow: none !important;
+
+  color: white !important;
+
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.app-topbar * {
+  color: inherit;
+}
+
+.app-topbar button {
+  background: transparent !important;
+
+  border-color: rgba(255,255,255,.10) !important;
+
+  box-shadow: none !important;
+}
+
+.app-topbar button:hover {
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* ==========================================================
+   BRAND
+========================================================== */
+
+.brand {
+  color: white !important;
+}
+
+.brand-mark {
+  width: 34px !important;
+  height: 34px !important;
+
+  border-radius: 10px !important;
+
+  background: var(--dyp-green-400) !important;
+
+  color: var(--dyp-green-950) !important;
+
+  box-shadow: none !important;
+}
+
+.brand-copy strong {
+  color: white !important;
+
+  font-weight: 800 !important;
+
+  letter-spacing: -.03em !important;
+}
+
+.brand-copy small {
+  color: #9fc7b7 !important;
+
+  font-size: 10px !important;
+}
+
+/* ==========================================================
+   SIDEBAR
+========================================================== */
+
+.app-sidebar {
+  width: 240px !important;
+
+  background: #ffffff !important;
+
+  border-right: 1px solid var(--dyp-border) !important;
+
+  box-shadow: none !important;
+}
+
+.app-sidebar__brand {
+  height: 70px !important;
+
+  border-bottom: 1px solid var(--dyp-border) !important;
+
+  padding: 0 20px !important;
+}
+
+.app-sidebar__nav {
+  padding: 22px 14px !important;
+
+  gap: 4px !important;
+}
+
+.nav-section {
+  margin:
+    12px 10px
+    7px !important;
+
+  color: var(--dyp-subtle) !important;
+
+  font-size: 10px !important;
+
+  letter-spacing: .12em !important;
+}
+
+.nav-item {
+  min-height: 44px !important;
+
+  padding: 0 12px !important;
+
+  border: 0 !important;
+
+  border-radius: 11px !important;
+
+  background: transparent !important;
+
+  color: #596760 !important;
+
+  font-size: 13px !important;
+
+  font-weight: 700 !important;
+}
+
+.nav-item:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.nav-item.active {
+  background: var(--dyp-green-100) !important;
+
+  color: var(--dyp-green-800) !important;
+}
+
+.nav-item__icon {
+  color: currentColor !important;
+}
+
+.app-sidebar__footer {
+  border-top: 1px solid var(--dyp-border) !important;
+
+  padding: 14px !important;
+}
+
+.nav-user {
+  background: var(--dyp-surface-soft) !important;
+
+  border-radius: 11px !important;
+}
+
+/* ==========================================================
+   PAGE HEADERS
+========================================================== */
+
+.page-header {
+  margin-bottom: 24px !important;
+}
+
+.page-header h1 {
+  color: var(--dyp-text) !important;
+
+  font-size: 30px !important;
+
+  line-height: 1.05 !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -.045em !important;
+}
+
+.page-header p {
+  color: var(--dyp-muted) !important;
+
+  font-size: 14px !important;
+
+  line-height: 1.5 !important;
+}
+
+/* ==========================================================
+   ALL CARDS
+========================================================== */
+
+.card,
+.panel,
+.dashboard-card,
+.section-card,
+.stat-card,
+.metric-card {
+  position: relative;
+
+  background: var(--dyp-surface) !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-lg) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.card {
+  padding: 20px !important;
+}
+
+/* Don't let nested cards become enormous */
+
+.card .card {
+  box-shadow: var(--dyp-shadow-sm) !important;
+
+  border-radius: var(--dyp-radius-md) !important;
+}
+
+/* ==========================================================
+   CARD HEADERS
+========================================================== */
+
+.card-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 16px !important;
+}
+
+.card-header h2,
+.card-header h3,
+.card-title h2,
+.card-title h3,
+.card-title h4 {
+  margin: 0;
+
+  color: var(--dyp-text) !important;
+
+  font-size: 15px !important;
+
+  line-height: 1.25;
+
+  font-weight: 850 !important;
+
+  letter-spacing: -.02em;
+}
+
+.card-header p,
+.card-title p {
+  color: var(--dyp-muted) !important;
+
+  font-size: 12px !important;
+}
+
+/* ==========================================================
+   MODERN HOVER
+========================================================== */
+
+.card-hover {
+  transition:
+    transform var(--dyp-transition),
+    border-color var(--dyp-transition),
+    box-shadow var(--dyp-transition);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px) !important;
+
+  border-color: var(--dyp-border-strong) !important;
+
+  box-shadow: var(--dyp-shadow-lg) !important;
+
+  background: #fff !important;
+}
+
+/* ==========================================================
+   STAT CARDS
+========================================================== */
+
+.stat-card {
+  padding: 19px !important;
+
+  min-height: 125px;
+}
+
+.stat-card-label,
+.stat-label {
+  color: var(--dyp-muted) !important;
+
+  font-size: 11px !important;
+
+  font-weight: 750 !important;
+
+  letter-spacing: .01em !important;
+
+  text-transform: none !important;
+}
+
+.stat-card-value,
+.stat-value {
+  margin-top: 8px;
+
+  color: var(--dyp-green-900) !important;
+
+  font-size: 28px !important;
+
+  line-height: 1 !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -.05em !important;
+}
+
+.stat-card-meta,
+.stat-foot {
+  margin-top: 7px;
+
+  color: var(--dyp-green-700) !important;
+
+  font-size: 11px !important;
+
+  font-weight: 700 !important;
+}
+
+/* ==========================================================
+   ICON CONTAINERS
+========================================================== */
+
+.icon-box,
+.icon-container,
+.stat-icon,
+.card-icon,
+.feature-icon {
+  display: inline-flex;
+
+  width: 38px;
+  height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 38px;
+
+  border-radius: 11px;
+
+  background: var(--dyp-green-100);
+
+  color: var(--dyp-green-700);
+
+  box-shadow: none !important;
+}
+
+.icon-box svg,
+.icon-container svg,
+.stat-icon svg,
+.card-icon svg,
+.feature-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.btn,
+.button {
+  display: inline-flex;
+
+  min-height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 9px 14px !important;
+
+  border-radius: 10px !important;
+
+  font-size: 12px !important;
+
+  font-weight: 800 !important;
+
+  box-shadow: none !important;
+
+  transition:
+    background var(--dyp-transition),
+    border-color var(--dyp-transition),
+    color var(--dyp-transition),
+    transform var(--dyp-transition) !important;
+}
+
+.btn-primary,
+.button--primary {
+  background: var(--dyp-green-700) !important;
+
+  border: 1px solid var(--dyp-green-700) !important;
+
+  color: white !important;
+
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+.button--primary:hover {
+  background: var(--dyp-green-800) !important;
+
+  border-color: var(--dyp-green-800) !important;
+
+  transform: translateY(-1px);
+}
+
+.btn-secondary,
+.button--secondary {
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  color: var(--dyp-green-900) !important;
+}
+
+.btn-secondary:hover,
+.button--secondary:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  border-color: var(--dyp-border-strong) !important;
+}
+
+.btn-ghost,
+.button--ghost {
+  background: transparent !important;
+
+  color: var(--dyp-muted) !important;
+
+  border: 1px solid transparent !important;
+}
+
+.btn-ghost:hover,
+.button--ghost:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+/* ==========================================================
+   BADGES
+========================================================== */
+
+.badge {
+  min-height: 25px !important;
+
+  padding: 4px 9px !important;
+
+  border-radius: 999px !important;
+
+  border: 1px solid var(--dyp-green-200) !important;
+
+  background: var(--dyp-green-100) !important;
+
+  color: var(--dyp-green-800) !important;
+
+  font-size: 10px !important;
+
+  font-weight: 800 !important;
+
+  box-shadow: none !important;
+}
+
+.badge-purple,
+.badge-blue,
+.badge-gold,
+.badge-danger {
+  border-color: var(--dyp-border) !important;
+
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-muted) !important;
+}
+
+.badge-danger {
+  background: #faeeee !important;
+
+  color: #9c4141 !important;
+}
+
+/* ==========================================================
+   PROGRESS
+========================================================== */
+
+.progress-track,
+.progress {
+  overflow: hidden !important;
+
+  background: #e2ebe6 !important;
+
+  border-radius: 999px !important;
+
+  box-shadow: none !important;
+}
+
+.progress-track {
+  height: 10px !important;
+}
+
+.progress-lg .progress-track {
+  height: 12px !important;
+}
+
+.progress-xl .progress-track {
+  height: 14px !important;
+}
+
+.progress-fill,
+.progress > div {
+  background: var(--dyp-green-500) !important;
+
+  box-shadow: none !important;
+
+  border-radius: 999px !important;
+}
+
+.progress-fill::after {
+  display: none !important;
+}
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero,
+.player-hero,
+.dashboard-hero {
+  position: relative;
+
+  overflow: hidden;
+
+  background: var(--dyp-green-950) !important;
+
+  border: 0 !important;
+
+  border-radius: var(--dyp-radius-xl) !important;
+
+  color: white !important;
+
+  box-shadow: var(--dyp-shadow-lg) !important;
+}
+
+.hero::before,
+.hero::after,
+.player-hero::before,
+.player-hero::after,
+.dashboard-hero::before,
+.dashboard-hero::after {
+  display: none !important;
+}
+
+.hero h1,
+.player-hero h1,
+.dashboard-hero h1 {
+  color: white !important;
+
+  font-size: clamp(28px, 4vw, 38px) !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -.055em !important;
+}
+
+.hero p,
+.player-hero p,
+.dashboard-hero p {
+  color: #c2ded2 !important;
+
+  line-height: 1.6 !important;
+}
+
+.hero .progress,
+.player-hero .progress,
+.dashboard-hero .progress {
+  background: rgba(255,255,255,.13) !important;
+}
+
+.hero .progress > div,
+.player-hero .progress > div,
+.dashboard-hero .progress > div {
+  background: var(--dyp-green-300) !important;
+}
+
+/* ==========================================================
+   PLAYER DASHBOARD
+========================================================== */
+
+.player-dashboard {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.player-dashboard .grid {
+  gap: 18px;
+}
+
+.player-core-grid,
+.player-progression-grid {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(300px, .65fr) !important;
+}
+
+/* ==========================================================
+   PLAYER SECTIONS
+========================================================== */
+
+.player-dashboard section,
+.player-dashboard .card {
+  min-width: 0;
+}
+
+.player-dashboard h2,
+.player-dashboard h3,
+.player-dashboard h4 {
+  color: var(--dyp-text);
+}
+
+.player-dashboard .muted {
+  color: var(--dyp-muted) !important;
+}
+
+/* ==========================================================
+   SKILLS
+========================================================== */
+
+.skill-line {
+  background: #e1ebe6 !important;
+}
+
+.skill-line.done {
+  background: var(--dyp-green-500) !important;
+}
+
+/* ==========================================================
+   BADGES / REWARDS
+========================================================== */
+
+.badge-trophy,
+.badge-card,
+.reward-card {
+  background: var(--dyp-surface-soft) !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  box-shadow: none !important;
+
+  color: var(--dyp-green-800) !important;
+}
+
+.badge-trophy:hover,
+.badge-card:hover,
+.reward-card:hover {
+  background: var(--dyp-green-100) !important;
+
+  border-color: var(--dyp-green-200) !important;
+}
+
+/* ==========================================================
+   CHALLENGES
+========================================================== */
+
+.challenge-card,
+.challenge-item,
+.challenge-row {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-md) !important;
+
+  box-shadow: none !important;
+}
+
+.challenge-card:hover,
+.challenge-item:hover,
+.challenge-row:hover {
+  border-color: var(--dyp-green-300) !important;
+
+  background: var(--dyp-green-100) !important;
+}
+
+/* ==========================================================
+   LEADERBOARD
+========================================================== */
+
+.player-row {
+  min-height: 62px !important;
+
+  padding: 9px 12px !important;
+
+  border-radius: 12px !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.player-row:hover {
+  background: var(--dyp-surface-soft) !important;
+
+  border-color: var(--dyp-border) !important;
+}
+
+.player-gamertag {
+  color: var(--dyp-text) !important;
+}
+
+.player-meta {
+  color: var(--dyp-muted) !important;
+}
+
+.player-xp {
+  color: var(--dyp-green-700) !important;
+}
+
+/* ==========================================================
+   TABLES
+========================================================== */
+
+.table-container {
+  overflow: hidden;
+
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-lg) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+.table th {
+  background: var(--dyp-surface-soft) !important;
+
+  color: var(--dyp-subtle) !important;
+
+  border-color: var(--dyp-border) !important;
+}
+
+.table td {
+  color: var(--dyp-text) !important;
+
+  border-color: var(--dyp-border) !important;
+}
+
+.table tbody tr:hover {
+  background: var(--dyp-surface-soft) !important;
+}
+
+/* ==========================================================
+   FORMS
+========================================================== */
+
+input,
+select,
+textarea {
+  min-height: 40px;
+
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: 10px !important;
+
+  color: var(--dyp-text) !important;
+
+  box-shadow: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dyp-subtle);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--dyp-green-400) !important;
+
+  outline: none !important;
+
+  box-shadow:
+    0 0 0 3px var(--dyp-green-100) !important;
+}
+
+/* ==========================================================
+   ALERTS
+========================================================== */
+
+.alert,
+.notice {
+  border-radius: var(--dyp-radius-md) !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  background: white !important;
+
+  box-shadow: none !important;
+}
+
+.notice--error,
+.alert-danger {
+  background: #faeeee !important;
+
+  border-color: #f0d0d0 !important;
+
+  color: #9c4141 !important;
+}
+
+/* ==========================================================
+   LOADING / EMPTY STATES
+========================================================== */
+
+.dashboard-loading,
+.dashboard-error,
+.app-loading,
+.app-error {
+  background: var(--dyp-bg) !important;
+
+  color: var(--dyp-text) !important;
+}
+
+.loading-orb,
+.dashboard-error__icon,
+.empty-state__icon {
+  display: inline-flex;
+
+  width: 44px;
+  height: 44px;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: var(--dyp-green-100);
+
+  color: var(--dyp-green-700);
+
+  box-shadow: none !important;
+
+  font-size: 0 !important;
+}
+
+.loading-orb::before {
+  content: "";
+
+  width: 18px;
+  height: 18px;
+
+  border: 2px solid var(--dyp-green-200);
+
+  border-top-color: var(--dyp-green-700);
+
+  border-radius: 50%;
+
+  animation: dyp-spin .8s linear infinite;
+}
+
+@keyframes dyp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================
+   MAP
+========================================================== */
+
+.map-card,
+.game-map,
+.map-container {
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: var(--dyp-radius-lg) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* ==========================================================
+   ADMIN
+========================================================== */
+
+.admin-dashboard,
+.admin-page,
+.admin-content {
+  color: var(--dyp-text);
+}
+
+.admin-dashboard .card,
+.admin-page .card,
+.admin-content .card {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* Admin dark panels should become intentional green panels */
+
+.admin-dashboard .bg-slate-900,
+.admin-dashboard .bg-slate-950,
+.admin-page .bg-slate-900,
+.admin-page .bg-slate-950 {
+  background: var(--dyp-green-950) !important;
+}
+
+.admin-dashboard [class*="bg-gradient"],
+.admin-page [class*="bg-gradient"] {
+  background-image: none !important;
+}
+
+/* ==========================================================
+   YOUTH WORKER
+========================================================== */
+
+.youth-worker-dashboard,
+.youth-worker-page {
+  color: var(--dyp-text);
+}
+
+.youth-worker-dashboard .card,
+.youth-worker-page .card {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* ==========================================================
+   PUBLIC
+========================================================== */
+
+.public-dashboard,
+.public-page {
+  background: var(--dyp-bg) !important;
+
+  color: var(--dyp-text);
+}
+
+.public-dashboard .card,
+.public-page .card {
+  background: white !important;
+
+  border-color: var(--dyp-border) !important;
+
+  box-shadow: var(--dyp-shadow) !important;
+}
+
+/* ==========================================================
+   LOGIN
+========================================================== */
+
+.login-page,
+.login,
+.auth-page {
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--dyp-green-950) 0,
+      var(--dyp-green-950) 35%,
+      var(--dyp-bg) 35%,
+      var(--dyp-bg) 100%
+    ) !important;
+}
+
+.login-card,
+.auth-card {
+  background: white !important;
+
+  border: 1px solid var(--dyp-border) !important;
+
+  border-radius: 18px !important;
+
+  box-shadow: var(--dyp-shadow-lg) !important;
+}
+
+/* ==========================================================
+   REMOVE DECORATIVE SYMBOLS FROM COMMON UI
+========================================================== */
+
+.loading-orb,
+.dashboard-error__icon {
+  font-size: 0 !important;
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 1100px) {
+  .player-core-grid,
+  .player-progression-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-main-content,
+  .app-main {
+    padding: 22px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    width: 240px !important;
+  }
+
+  .app-main-content,
+  .app-main {
+    padding: 18px !important;
+  }
+
+  .card {
+    padding: 18px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-main-content,
+  .app-main {
+    padding: 14px !important;
+  }
+
+  .card {
+    padding: 16px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .page-header h1 {
+    font-size: 26px !important;
+  }
+
+  .hero,
+  .player-hero,
+  .dashboard-hero {
+    border-radius: 16px !important;
+
+    padding: 22px !important;
+  }
+
+  .stat-card {
+    min-height: 110px;
+  }
+}
+
+/* ==========================================================
+   ACCESSIBILITY
+========================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--dyp-green-400) !important;
+
+  outline-offset: 2px !important;
+}
+
+::selection {
+  background: var(--dyp-green-200);
+
+  color: var(--dyp-green-950);
+}
+
+/* ==========================================================
+   REDUCED MOTION
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================
+   PLAYER DASHBOARD — COMPOSITION
+========================================================== */
+
+.player-dashboard {
+  max-width: 1600px;
+}
+
+.player-dashboard > .dashboard-sync {
+  margin: -6px 0 0;
+
+  padding: 8px 12px;
+
+  border-radius: 9px;
+
+  background: var(--dyp-green-100);
+
+  color: var(--dyp-green-800);
+
+  font-size: 11px;
+
+  font-weight: 750;
+}
+
+/*
+  Keep the hero visually dominant.
+*/
+
+.player-dashboard > :is(
+  .player-hero,
+  .hero,
+  [class*="hero"]
+) {
+  margin-bottom: 0;
+}
+
+/*
+  Progress should read as a compact dashboard metric,
+  not as another giant hero.
+*/
+
+.player-dashboard .group-progress,
+.player-dashboard [class*="group-progress"] {
+  min-height: 110px;
+}
+
+/*
+  Core cards:
+  primary content gets more width,
+  secondary metric gets less.
+*/
+
+.player-core-grid > *,
+.player-progression-grid > * {
+  min-width: 0;
+}
+
+/*
+  Make sections breathe.
+*/
+
+.player-dashboard > section,
+.player-dashboard > .card,
+.player-dashboard > [class*="section"] {
+  margin: 0;
+}
+
+/*
+  Buttons inside cards remain compact.
+*/
+
+.player-dashboard .btn,
+.player-dashboard .button {
+  min-height: 36px !important;
+}
+
+/*
+  Map is intentionally quieter than the main journey content.
+*/
+
+.player-dashboard [class*="map"] {
+  margin-top: 0;
+}
+
+/* ==========================================================
+   ADMIN / STAFF DASHBOARD GRID
+========================================================== */
+
+.admin-dashboard .grid,
+.youth-worker-dashboard .grid {
+  gap: 18px;
+}
+
+.admin-dashboard .grid-4,
+.youth-worker-dashboard .grid-4 {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+}
+
+.admin-dashboard .grid-3,
+.youth-worker-dashboard .grid-3 {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .admin-dashboard .grid-4,
+  .youth-worker-dashboard .grid-4 {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-dashboard .grid-3,
+  .youth-worker-dashboard .grid-3 {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-dashboard .grid-4,
+  .admin-dashboard .grid-3,
+  .youth-worker-dashboard .grid-4,
+  .youth-worker-dashboard .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   DYP DASHBOARD V2
+   Strong visual composition based on sample2.html.
+   ============================================================ */
+
+:root {
+  --dyp-bg: #f3f7f5;
+  --dyp-white: #ffffff;
+  --dyp-green-950: #06291e;
+  --dyp-green-900: #083b2d;
+  --dyp-green-800: #0b503d;
+  --dyp-green-700: #12634c;
+  --dyp-green-600: #18775b;
+  --dyp-green-500: #22966e;
+  --dyp-green-400: #43b98b;
+  --dyp-green-300: #83d8b5;
+  --dyp-green-200: #c9f0df;
+  --dyp-green-100: #eaf8f2;
+  --dyp-ink: #15211d;
+  --dyp-muted: #68766f;
+  --dyp-subtle: #94a29b;
+  --dyp-line: #dfe8e3;
+}
+
+/* ---------- APP SHELL ---------- */
+
+html,
+body,
+#root {
+  background: var(--dyp-bg) !important;
+  color: var(--dyp-ink) !important;
+}
+
+body {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif !important;
+}
+
+/* ---------- MAIN CONTENT ---------- */
+
+.app-main-content {
+  padding: 28px !important;
+}
+
+.player-dashboard {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- GLOBAL CARDS ---------- */
+
+.player-dashboard .card,
+.player-dashboard .player-card {
+  background: #fff !important;
+  border: 1px solid var(--dyp-line) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 4px 12px rgba(9, 55, 39, 0.035),
+    0 12px 32px rgba(9, 55, 39, 0.045) !important;
+  color: var(--dyp-ink) !important;
+}
+
+.player-dashboard .card {
+  padding: 22px !important;
+}
+
+.player-dashboard .card:hover {
+  box-shadow:
+    0 6px 16px rgba(9, 55, 39, 0.045),
+    0 16px 38px rgba(9, 55, 39, 0.065) !important;
+}
+
+/* ---------- CARD HEADERS ---------- */
+
+.player-dashboard .card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.player-dashboard .card-title-row h2 {
+  margin: 3px 0 0 !important;
+  color: var(--dyp-ink) !important;
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+  font-weight: 850 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.player-dashboard .eyebrow {
+  color: var(--dyp-subtle) !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.11em !important;
+}
+
+/* ---------- HERO ---------- */
+
+.player-dashboard .player-hero {
+  min-height: 220px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 30px !important;
+  background: var(--dyp-green-950) !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  color: #fff !important;
+  box-shadow:
+    0 10px 28px rgba(6, 41, 30, 0.14),
+    0 20px 50px rgba(6, 41, 30, 0.08) !important;
+}
+
+.player-dashboard .player-hero::before,
+.player-dashboard .player-hero::after {
+  display: none !important;
+}
+
+.player-hero__main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.player-hero__avatar {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--dyp-green-400);
+  color: var(--dyp-green-950);
+}
+
+.player-hero__identity {
+  min-width: 0;
+}
+
+.player-dashboard .player-hero .hero-eyebrow {
+  margin-bottom: 8px;
+  color: #9fc7b7 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+}
+
+.player-dashboard .player-hero h1 {
+  margin: 0 !important;
+  color: #fff !important;
+  font-size: clamp(30px, 4vw, 42px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.player-dashboard .player-hero .hero-subtitle {
+  max-width: 570px;
+  margin: 12px 0 0 !important;
+  color: #c2ded2 !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+.player-hero__stats {
+  min-width: 330px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 0 4px 0 24px;
+  border-left: 1px solid rgba(255,255,255,.12);
+}
+
+.player-hero__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-hero__stat span {
+  color: #9fc7b7;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.player-hero__stat strong {
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 850;
+  letter-spacing: -.035em;
+}
+
+.player-hero__divider {
+  width: 1px;
+  height: 42px;
+  background: rgba(255,255,255,.12);
+}
+
+/* ---------- SQUAD PROGRESS ---------- */
+
+.player-dashboard .featured-progress {
+  padding: 22px 24px !important;
+}
+
+.player-dashboard .featured-progress .progress-number {
+  color: var(--dyp-green-700) !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.05em;
+}
+
+.player-dashboard .featured-progress h2 {
+  color: var(--dyp-green-900) !important;
+  font-size: 24px !important;
+  letter-spacing: -.04em !important;
+}
+
+.player-dashboard .progress-description {
+  max-width: 680px;
+  color: var(--dyp-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+
+.player-dashboard .featured-progress .progress.large-progress {
+  height: 12px !important;
+  margin-top: 18px;
+  border-radius: 999px !important;
+  background: #e4ece8 !important;
+}
+
+.player-dashboard .featured-progress .progress__fill {
+  background: var(--dyp-green-500) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+.player-dashboard .progress-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 11px;
+  color: var(--dyp-subtle);
+  font-size: 11px;
+}
+
+.player-dashboard .progress-footer strong {
+  color: var(--dyp-green-700);
+}
+
+/* ---------- CORE GRID ---------- */
+
+.player-dashboard .player-core-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
+  gap: 18px;
+}
+
+/* ---------- PHASE ---------- */
+
+.player-dashboard .phase-display {
+  min-height: 112px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 18px;
+  border: 1px solid var(--dyp-line) !important;
+  border-left: 4px solid var(--dyp-green-500) !important;
+  border-radius: 14px !important;
+  background: var(--dyp-green-100) !important;
+}
+
+.player-dashboard .phase-icon {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px;
+  display: grid !important;
+  place-items: center;
+  border-radius: 13px !important;
+  background: var(--dyp-green-500) !important;
+  color: white !important;
+  box-shadow: none !important;
+  font-size: 0 !important;
+}
+
+.player-dashboard .phase-display h3 {
+  margin: 0 0 5px;
+  color: var(--dyp-green-900) !important;
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.player-dashboard .phase-display p {
+  margin: 0;
+  color: var(--dyp-muted) !important;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.player-dashboard .phase-pill {
+  padding: 5px 9px !important;
+  border-radius: 999px !important;
+  background: var(--dyp-green-100) !important;
+  color: var(--dyp-green-700) !important;
+  border: 1px solid var(--dyp-green-200);
+  font-size: 9px !important;
+  font-weight: 850 !important;
+}
+
+/* ---------- MYSTERY ---------- */
+
+.player-dashboard .mystery-track {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.player-dashboard .mystery-node {
+  min-width: 0;
+  padding: 13px 10px;
+  border: 1px solid var(--dyp-line);
+  border-radius: 13px;
+  background: #f8faf9;
+  text-align: center;
+}
+
+.player-dashboard .mystery-node.completed {
+  background: var(--dyp-green-100) !important;
+  border-color: var(--dyp-green-200) !important;
+}
+
+.player-dashboard .mystery-node__icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 9px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #e7eee9;
+  color: var(--dyp-muted);
+  font-size: 0 !important;
+}
+
+.player-dashboard .mystery-node.completed .mystery-node__icon {
+  background: var(--dyp-green-400);
+  color: var(--dyp-green-950);
+}
+
+.player-dashboard .mystery-node strong {
+  display: block;
+  color: var(--dyp-ink);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.player-dashboard .mystery-node span {
+  display: block;
+  margin-top: 4px;
+  color: var(--dyp-subtle);
+  font-size: 9px;
+}
+
+.player-dashboard .mystery-next {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  background: var(--dyp-surface-soft);
+}
+
+.player-dashboard .mystery-next span {
+  color: var(--dyp-muted);
+  font-size: 10px;
+}
+
+.player-dashboard .mystery-next strong {
+  color: var(--dyp-green-700);
+  font-size: 11px;
+}
+
+/* ---------- CHALLENGES ---------- */
+
+.player-dashboard .challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.player-dashboard .challenge-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 13px;
+  padding: 18px !important;
+  border: 1px solid var(--dyp-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.player-dashboard .challenge-card:hover {
+  border-color: var(--dyp-green-300) !important;
+  background: var(--dyp-green-100) !important;
+  transform: none !important;
+}
+
+.player-dashboard .challenge-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-700);
+}
+
+.player-dashboard .challenge-card__content h3 {
+  margin: 1px 0 5px;
+  color: var(--dyp-ink) !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+}
+
+.player-dashboard .challenge-card__content p {
+  margin: 0;
+  color: var(--dyp-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+
+.player-dashboard .challenge-rewards {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-top: 13px;
+  border-top: 1px solid var(--dyp-line);
+}
+
+.player-dashboard .challenge-rewards > div {
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--dyp-surface-soft);
+}
+
+.player-dashboard .challenge-rewards small {
+  display: block;
+  color: var(--dyp-subtle);
+  font-size: 9px;
+}
+
+.player-dashboard .challenge-rewards strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--dyp-green-700);
+  font-size: 13px;
+}
+
+.player-dashboard .challenge-card__footer {
+  grid-column: 1 / -1;
+  color: var(--dyp-subtle);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* ---------- SKILLS / BADGES ---------- */
+
+.player-dashboard .skill-node,
+.player-dashboard .badge {
+  border-color: var(--dyp-line) !important;
+  box-shadow: none !important;
+}
+
+.player-dashboard .skill-node {
+  background: #fff !important;
+}
+
+.player-dashboard .skill-node:hover {
+  background: var(--dyp-green-100) !important;
+  border-color: var(--dyp-green-200) !important;
+}
+
+.player-dashboard .badge-grid {
+  gap: 10px !important;
+}
+
+/* ---------- EMPTY STATES ---------- */
+
+.player-dashboard .empty-state {
+  padding: 26px 10px !important;
+  color: var(--dyp-muted);
+}
+
+.player-dashboard .empty-state__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+  border-radius: 11px;
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-700);
+}
+
+/* ---------- MAP ---------- */
+
+.player-dashboard .game-map {
+  overflow: hidden;
+  border-radius: 18px !important;
+}
+
+.player-dashboard .map-status {
+  color: var(--dyp-green-700) !important;
+}
+
+/* ---------- REMOVE OLD GAMING EFFECTS ---------- */
+
+.player-dashboard [class*="glow"],
+.player-dashboard [class*="neon"] {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.player-dashboard [class*="gradient"] {
+  background-image: none !important;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 1050px) {
+  .player-dashboard .player-hero {
+    flex-direction: column;
+  }
+
+  .player-hero__stats {
+    min-width: 0;
+    padding: 18px 0 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+
+  .player-dashboard .player-core-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-main-content {
+    padding: 16px 14px 80px !important;
+  }
+
+  .player-dashboard .player-hero {
+    min-height: 0;
+    padding: 22px !important;
+  }
+
+  .player-hero__main {
+    align-items: flex-start;
+  }
+
+  .player-hero__avatar {
+    width: 56px;
+    height: 56px;
+    flex-basis: 56px;
+  }
+
+  .player-dashboard .player-hero h1 {
+    font-size: 30px !important;
+  }
+
+  .player-hero__stats {
+    flex-wrap: wrap;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player-dashboard .mystery-track {
+    grid-template-columns: 1fr;
+  }
+
+  .player-dashboard .card {
+    padding: 18px !important;
+  }
+}
+

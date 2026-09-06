@@ -1,0 +1,385 @@
+/*
+ * Digital Youth Platform
+ * Shared visual language
+ *
+ * This file contains design tokens only.
+ * Page-specific layout should remain in the page styles.
+ */
+
+:root {
+  /* ---------------------------------------------------------
+     Colour
+     --------------------------------------------------------- */
+
+  --dyp-bg: #f5f7fb;
+  --dyp-surface: #ffffff;
+  --dyp-surface-soft: #f8fafc;
+
+  --dyp-text: #111827;
+  --dyp-text-secondary: #64748b;
+  --dyp-text-muted: #94a3b8;
+
+  --dyp-border: #e5e7eb;
+  --dyp-border-strong: #d9dee8;
+
+  --dyp-primary: #111827;
+  --dyp-primary-hover: #1f2937;
+
+  --dyp-accent: #7c3aed;
+  --dyp-accent-soft: #f3e8ff;
+
+  --dyp-blue: #2563eb;
+  --dyp-blue-soft: #eff6ff;
+
+  --dyp-green: #059669;
+  --dyp-green-soft: #ecfdf5;
+
+  --dyp-amber: #d97706;
+  --dyp-amber-soft: #fffbeb;
+
+  --dyp-red: #dc2626;
+  --dyp-red-soft: #fef2f2;
+
+  /* ---------------------------------------------------------
+     Typography
+     --------------------------------------------------------- */
+
+  --dyp-font:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  --dyp-font-display:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  /* ---------------------------------------------------------
+     Radius
+     --------------------------------------------------------- */
+
+  --dyp-radius-sm: 8px;
+  --dyp-radius-md: 12px;
+  --dyp-radius-lg: 16px;
+  --dyp-radius-xl: 20px;
+  --dyp-radius-pill: 999px;
+
+  /* ---------------------------------------------------------
+     Shadows
+     --------------------------------------------------------- */
+
+  --dyp-shadow-sm:
+    0 1px 2px rgba(15, 23, 42, 0.04);
+
+  --dyp-shadow-md:
+    0 8px 24px rgba(15, 23, 42, 0.06);
+
+  --dyp-shadow-lg:
+    0 16px 40px rgba(15, 23, 42, 0.08);
+
+  /* ---------------------------------------------------------
+     Layout
+     --------------------------------------------------------- */
+
+  --dyp-content-width: 1180px;
+  --dyp-content-padding: 24px;
+
+  /* ---------------------------------------------------------
+     Spacing
+     --------------------------------------------------------- */
+
+  --dyp-space-1: 4px;
+  --dyp-space-2: 8px;
+  --dyp-space-3: 12px;
+  --dyp-space-4: 16px;
+  --dyp-space-5: 20px;
+  --dyp-space-6: 24px;
+  --dyp-space-8: 32px;
+  --dyp-space-10: 40px;
+  --dyp-space-12: 48px;
+}
+
+/* -------------------------------------------------------------
+   Base
+   ------------------------------------------------------------- */
+
+html {
+  background: var(--dyp-bg);
+}
+
+body {
+  margin: 0;
+  background: var(--dyp-bg);
+  color: var(--dyp-text);
+  font-family: var(--dyp-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* -------------------------------------------------------------
+   Shared layout primitives
+   ------------------------------------------------------------- */
+
+.dyp-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 32px var(--dyp-content-padding) 56px;
+}
+
+.dyp-container {
+  width: 100%;
+  max-width: var(--dyp-content-width);
+  margin: 0 auto;
+}
+
+.dyp-section {
+  margin-top: var(--dyp-space-8);
+}
+
+.dyp-grid {
+  display: grid;
+  gap: var(--dyp-space-5);
+}
+
+.dyp-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dyp-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dyp-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* -------------------------------------------------------------
+   Cards
+   ------------------------------------------------------------- */
+
+.dyp-card {
+  min-width: 0;
+  background: var(--dyp-surface);
+  border: 1px solid var(--dyp-border);
+  border-radius: var(--dyp-radius-lg);
+  box-shadow: var(--dyp-shadow-sm);
+}
+
+.dyp-card--interactive {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.dyp-card--interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--dyp-border-strong);
+  box-shadow: var(--dyp-shadow-md);
+}
+
+.dyp-card__body {
+  padding: var(--dyp-space-6);
+}
+
+/* -------------------------------------------------------------
+   Page headings
+   ------------------------------------------------------------- */
+
+.dyp-eyebrow {
+  margin: 0 0 8px;
+  color: var(--dyp-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.dyp-title {
+  margin: 0;
+  color: var(--dyp-text);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.dyp-subtitle {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: var(--dyp-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------------------
+   Metric cards
+   ------------------------------------------------------------- */
+
+.dyp-metric {
+  padding: var(--dyp-space-6);
+}
+
+.dyp-metric__label {
+  color: var(--dyp-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dyp-metric__value {
+  margin-top: 8px;
+  color: var(--dyp-text);
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.dyp-metric__meta {
+  margin-top: 10px;
+  color: var(--dyp-text-muted);
+  font-size: 12px;
+}
+
+/* -------------------------------------------------------------
+   Pills / badges
+   ------------------------------------------------------------- */
+
+.dyp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: var(--dyp-radius-pill);
+  background: var(--dyp-surface-soft);
+  color: var(--dyp-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dyp-pill--purple {
+  background: var(--dyp-accent-soft);
+  color: var(--dyp-accent);
+}
+
+.dyp-pill--blue {
+  background: var(--dyp-blue-soft);
+  color: var(--dyp-blue);
+}
+
+.dyp-pill--green {
+  background: var(--dyp-green-soft);
+  color: var(--dyp-green);
+}
+
+.dyp-pill--amber {
+  background: var(--dyp-amber-soft);
+  color: var(--dyp-amber);
+}
+
+/* -------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------- */
+
+.dyp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--dyp-radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.dyp-button:active {
+  transform: translateY(1px);
+}
+
+.dyp-button--primary {
+  background: var(--dyp-primary);
+  color: #fff;
+}
+
+.dyp-button--primary:hover {
+  background: var(--dyp-primary-hover);
+}
+
+.dyp-button--secondary {
+  background: var(--dyp-surface);
+  border-color: var(--dyp-border);
+  color: var(--dyp-text);
+}
+
+.dyp-button--secondary:hover {
+  background: var(--dyp-surface-soft);
+}
+
+/* -------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  :root {
+    --dyp-content-padding: 20px;
+  }
+
+  .dyp-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dyp-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --dyp-content-padding: 16px;
+  }
+
+  .dyp-page {
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  .dyp-grid-2,
+  .dyp-grid-3,
+  .dyp-grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .dyp-card__body,
+  .dyp-metric {
+    padding: 20px;
+  }
+}

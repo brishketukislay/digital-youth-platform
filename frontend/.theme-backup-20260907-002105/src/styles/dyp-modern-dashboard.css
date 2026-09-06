@@ -1,0 +1,620 @@
+/* ============================================================
+   DYP MODERN DASHBOARD
+   Reference: Pol-Scot sample2 visual language
+   ============================================================ */
+
+:root {
+  --dyp-green-950: #06291e;
+  --dyp-green-900: #083b2d;
+  --dyp-green-800: #0b503d;
+  --dyp-green-700: #12634c;
+  --dyp-green-600: #18775b;
+  --dyp-green-500: #22966e;
+  --dyp-green-400: #43b98b;
+  --dyp-green-300: #83d8b5;
+  --dyp-green-200: #c9f0df;
+  --dyp-green-100: #eaf8f2;
+
+  --dyp-ink: #15211d;
+  --dyp-muted: #68766f;
+  --dyp-line: #dfe8e3;
+  --dyp-surface: #ffffff;
+  --dyp-surface-2: #f5f8f6;
+  --dyp-page: #f3f7f5;
+
+  --dyp-warning: #d18b27;
+  --dyp-danger: #b84b4b;
+  --dyp-blue: #3f6f9f;
+
+  --dyp-radius: 18px;
+  --dyp-radius-sm: 12px;
+  --dyp-shadow: 0 10px 30px rgba(9, 55, 39, 0.07);
+}
+
+/* ------------------------------------------------------------
+   PAGE
+   ------------------------------------------------------------ */
+
+.player-dashboard {
+  width: 100%;
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 4px 0 48px;
+  color: var(--dyp-ink);
+}
+
+.player-dashboard,
+.player-dashboard * {
+  box-sizing: border-box;
+}
+
+.player-dashboard .section-gap {
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------
+   GENERIC CARDS
+   ------------------------------------------------------------ */
+
+.player-dashboard .card,
+.player-dashboard .player-card,
+.player-dashboard .featured-progress,
+.player-dashboard .skill-tree-card {
+  background: var(--dyp-surface);
+  border: 1px solid var(--dyp-line);
+  border-radius: var(--dyp-radius);
+  box-shadow: var(--dyp-shadow);
+  color: var(--dyp-ink);
+}
+
+.player-dashboard .card {
+  padding: 20px;
+}
+
+.player-dashboard .card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.player-dashboard .card-title-row h2 {
+  margin: 3px 0 0;
+  color: var(--dyp-ink);
+  font-size: 18px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.player-dashboard .eyebrow,
+.player-dashboard .dashboard-card__eyebrow {
+  color: var(--dyp-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------
+   HERO
+   ------------------------------------------------------------ */
+
+.player-dashboard .hero,
+.player-dashboard .player-hero {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 18px;
+  padding: 30px;
+  min-height: 230px;
+
+  background: var(--dyp-green-950);
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 14px 35px rgba(6, 41, 30, 0.14);
+
+  color: #fff;
+}
+
+.player-dashboard .hero::before,
+.player-dashboard .player-hero::before {
+  content: "";
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  right: -170px;
+  top: -190px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.player-dashboard .hero::after,
+.player-dashboard .player-hero::after {
+  content: "";
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  right: -100px;
+  top: -120px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.player-dashboard .hero > *,
+.player-dashboard .player-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.player-dashboard .hero h1,
+.player-dashboard .player-hero h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+}
+
+.player-dashboard .hero p,
+.player-dashboard .player-hero p {
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: #c2ded2;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.player-dashboard .hero .hero-eyebrow,
+.player-dashboard .player-hero .hero-eyebrow {
+  margin-bottom: 9px;
+  color: #8ed2b5;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.player-dashboard .hero .hero-muted,
+.player-dashboard .player-hero .hero-muted {
+  color: #9fc7b7;
+}
+
+/* Hero progress */
+
+.player-dashboard .hero .progress,
+.player-dashboard .player-hero .progress {
+  height: 12px;
+  margin-top: 18px;
+  background: rgba(255,255,255,.13);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.player-dashboard .hero .progress__fill,
+.player-dashboard .player-hero .progress__fill {
+  background: #83d8b5;
+  border-radius: 99px;
+}
+
+/* ------------------------------------------------------------
+   CORE GRID
+   ------------------------------------------------------------ */
+
+.player-dashboard .player-core-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.player-dashboard .player-progression-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------
+   GROUP PROGRESS
+   ------------------------------------------------------------ */
+
+.player-dashboard .featured-progress {
+  padding: 24px;
+  background: var(--dyp-surface);
+}
+
+.player-dashboard .featured-progress .progress-number {
+  color: var(--dyp-green-800);
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+
+.player-dashboard .featured-progress .progress-description {
+  max-width: 650px;
+  margin: 9px 0 20px;
+  color: var(--dyp-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.player-dashboard .large-progress {
+  height: 13px;
+  background: #e5eee9;
+  border-radius: 99px;
+}
+
+.player-dashboard .large-progress .progress__fill {
+  background: var(--dyp-green-600);
+  border-radius: 99px;
+}
+
+/* ------------------------------------------------------------
+   CURRENT PHASE
+   ------------------------------------------------------------ */
+
+.player-dashboard .player-core-grid > .card {
+  min-height: 220px;
+}
+
+.player-dashboard .player-core-grid > .card h2 {
+  color: var(--dyp-green-900);
+}
+
+.player-dashboard .player-core-grid > .card .muted {
+  color: var(--dyp-muted);
+}
+
+/* ------------------------------------------------------------
+   MYSTERY PROGRESS
+   ------------------------------------------------------------ */
+
+.player-dashboard .player-core-grid .card {
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------
+   SKILLS
+   ------------------------------------------------------------ */
+
+.player-dashboard .skill-tree-card {
+  overflow: hidden;
+}
+
+.player-dashboard .skill-tree-card .skill-tree-heading h3 {
+  color: var(--dyp-ink);
+}
+
+.player-dashboard .skill-tree-card .progress {
+  height: 9px;
+  background: #e5eee9;
+  border-radius: 99px;
+}
+
+.player-dashboard .skill-tree-card .progress__fill {
+  background: var(--dyp-green-600);
+  border-radius: 99px;
+}
+
+.player-dashboard .skill-node {
+  border-color: #dce7e1;
+  background: #eef4f1;
+  color: #84948d;
+}
+
+.player-dashboard .skill-node.done {
+  background: var(--dyp-green-700);
+  border-color: var(--dyp-green-300);
+  color: white;
+}
+
+.player-dashboard .skill-node.current {
+  background: white;
+  border-color: var(--dyp-green-500);
+  color: var(--dyp-green-700);
+  box-shadow: 0 0 0 7px var(--dyp-green-100);
+}
+
+.player-dashboard .skill-line {
+  background: #dce7e1;
+}
+
+.player-dashboard .skill-line.done {
+  background: var(--dyp-green-500);
+}
+
+/* ------------------------------------------------------------
+   BADGES
+   ------------------------------------------------------------ */
+
+.player-dashboard .badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 10px;
+}
+
+.player-dashboard .badge {
+  min-height: 86px;
+  background: var(--dyp-surface-2);
+  border: 1px solid var(--dyp-line);
+  border-radius: 14px;
+  color: var(--dyp-green-800);
+}
+
+.player-dashboard .badge__icon {
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-800);
+}
+
+/* ------------------------------------------------------------
+   CHALLENGES
+   ------------------------------------------------------------ */
+
+.player-dashboard .challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.player-dashboard .challenge-card {
+  min-width: 0;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--dyp-line);
+  border-radius: 15px;
+  box-shadow: none;
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    box-shadow .16s ease;
+}
+
+.player-dashboard .challenge-card:hover {
+  transform: translateY(-2px);
+  border-color: #b9dfcf;
+  box-shadow: 0 8px 22px rgba(9,55,39,.07);
+}
+
+.player-dashboard .challenge-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-800);
+}
+
+.player-dashboard .challenge-card h3 {
+  margin: 0;
+  color: var(--dyp-ink);
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+
+.player-dashboard .challenge-card__content p {
+  margin: 7px 0 0;
+  color: var(--dyp-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.player-dashboard .challenge-rewards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 17px;
+}
+
+.player-dashboard .challenge-rewards > div {
+  padding: 9px 8px;
+  background: var(--dyp-surface-2);
+  border-radius: 10px;
+}
+
+.player-dashboard .challenge-rewards small {
+  display: block;
+  color: var(--dyp-muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.player-dashboard .challenge-rewards strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--dyp-green-800);
+  font-size: 13px;
+}
+
+.player-dashboard .challenge-card__footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--dyp-line);
+  color: var(--dyp-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.player-dashboard .live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-800);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.player-dashboard .live-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dyp-green-500);
+}
+
+/* ------------------------------------------------------------
+   MAP
+   ------------------------------------------------------------ */
+
+.player-dashboard .game-map,
+.player-dashboard .map {
+  border-radius: 16px;
+  border: 1px solid var(--dyp-line);
+  overflow: hidden;
+}
+
+.player-dashboard .map-status {
+  color: var(--dyp-green-700);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* ------------------------------------------------------------
+   BUTTONS
+   ------------------------------------------------------------ */
+
+.player-dashboard .button,
+.player-dashboard button {
+  font-family: inherit;
+}
+
+.player-dashboard .button--primary {
+  border-color: var(--dyp-green-700);
+  background: var(--dyp-green-700);
+  color: white;
+  border-radius: 10px;
+}
+
+.player-dashboard .button--primary:hover {
+  background: var(--dyp-green-800);
+}
+
+/* ------------------------------------------------------------
+   EMPTY / ERROR / LOADING
+   ------------------------------------------------------------ */
+
+.player-dashboard .empty-state {
+  color: var(--dyp-ink);
+}
+
+.player-dashboard .empty-state__icon {
+  color: var(--dyp-green-700);
+}
+
+.player-dashboard .dashboard-loading,
+.player-dashboard .dashboard-error {
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.player-dashboard .loading-orb {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 15px;
+  border-radius: 16px;
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-700);
+}
+
+.player-dashboard .dashboard-loading h2,
+.player-dashboard .dashboard-error h2 {
+  color: var(--dyp-ink);
+}
+
+/* ------------------------------------------------------------
+   SYNC NOTICE
+   ------------------------------------------------------------ */
+
+.player-dashboard .dashboard-sync {
+  margin: -6px 0 14px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  background: var(--dyp-green-100);
+  color: var(--dyp-green-800);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------
+   PRIVACY
+   ------------------------------------------------------------ */
+
+.player-dashboard .privacy-notice {
+  margin-top: 18px;
+  background: var(--dyp-surface-2);
+  border: 1px solid var(--dyp-line);
+  border-radius: 14px;
+  color: var(--dyp-muted);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 1050px) {
+  .player-dashboard .player-core-grid,
+  .player-dashboard .player-progression-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .player-dashboard {
+    padding-bottom: 28px;
+  }
+
+  .player-dashboard .hero,
+  .player-dashboard .player-hero {
+    padding: 23px 20px;
+    border-radius: 18px;
+  }
+
+  .player-dashboard .hero h1,
+  .player-dashboard .player-hero h1 {
+    font-size: 30px;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player-dashboard .card {
+    padding: 17px;
+  }
+
+  .player-dashboard .card-title-row {
+    margin-bottom: 14px;
+  }
+
+  .player-dashboard .featured-progress {
+    padding: 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-dashboard *,
+  .player-dashboard *::before,
+  .player-dashboard *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

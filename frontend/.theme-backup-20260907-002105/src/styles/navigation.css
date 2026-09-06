@@ -1,0 +1,485 @@
+/* =========================================================
+   DIGITAL YOUTH PLATFORM
+   Navigation / Shell
+   ========================================================= */
+
+.app-shell {
+  min-height: 100vh;
+  background: #f3f7f5;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.app-sidebar {
+  position: fixed;
+  z-index: 100;
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 240px;
+
+  background: #ffffff;
+  border-right: 1px solid #dfe8e3;
+}
+
+.app-sidebar__brand {
+  display: flex;
+
+  height: 70px;
+
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 20px;
+
+  border-bottom: 1px solid #dfe8e3;
+}
+
+.app-sidebar__logo {
+  display: grid;
+
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  place-items: center;
+
+  border-radius: 10px;
+
+  background: #43b98b;
+  color: #06291e;
+
+  box-shadow: none;
+}
+
+/* Hide old logo text/symbol if present */
+
+.app-sidebar__logo span {
+  display: block;
+}
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.brand {
+  display: flex;
+
+  align-items: center;
+  gap: 10px;
+
+  color: #083b2d;
+
+  text-decoration: none;
+}
+
+.brand-mark {
+  position: relative;
+
+  display: grid;
+
+  width: 34px;
+  height: 34px;
+
+  place-items: center;
+
+  flex: 0 0 34px;
+
+  border-radius: 10px;
+
+  background: #43b98b;
+
+  color: #06291e;
+
+  box-shadow: none;
+
+  overflow: hidden;
+}
+
+.brand-mark span {
+  position: absolute;
+
+  display: block;
+
+  width: 14px;
+  height: 3px;
+
+  border-radius: 20px;
+
+  background: #06291e;
+
+  transform: rotate(-30deg);
+}
+
+.brand-mark span:nth-child(1) {
+  transform: translate(-4px, -5px) rotate(-30deg);
+}
+
+.brand-mark span:nth-child(2) {
+  transform: translate(4px, 0) rotate(-30deg);
+}
+
+.brand-mark span:nth-child(3) {
+  transform: translate(-1px, 5px) rotate(-30deg);
+}
+
+.brand-copy {
+  display: flex;
+
+  min-width: 0;
+
+  flex-direction: column;
+}
+
+.brand-copy strong {
+  color: #083b2d;
+
+  font-size: 13px;
+  font-weight: 850;
+
+  line-height: 1.1;
+
+  letter-spacing: -.02em;
+}
+
+.brand-copy small {
+  margin-top: 3px;
+
+  color: #94a29b;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: .1em;
+
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+.app-sidebar__nav {
+  display: flex;
+
+  flex: 1;
+
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 18px 14px;
+
+  overflow-y: auto;
+}
+
+.nav-section {
+  margin: 12px 10px 7px;
+
+  color: #94a29b;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: .12em;
+
+  text-transform: uppercase;
+}
+
+.nav-item {
+  display: flex;
+
+  min-height: 44px;
+
+  align-items: center;
+  gap: 11px;
+
+  padding: 0 12px;
+
+  border: 1px solid transparent;
+  border-radius: 11px;
+
+  background: transparent;
+
+  color: #596760;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.nav-item:hover {
+  background: #f5f8f6;
+  color: #15211d;
+}
+
+.nav-item.active {
+  background: #eaf8f2;
+
+  border-color: #c9f0df;
+
+  color: #0b503d;
+}
+
+.nav-item__icon {
+  display: grid;
+
+  width: 20px;
+  height: 20px;
+
+  flex: 0 0 20px;
+
+  place-items: center;
+
+  color: currentColor;
+}
+
+.nav-item__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-item__label {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   USER
+   ========================================================= */
+
+.app-sidebar__footer {
+  padding: 14px;
+
+  border-top: 1px solid #dfe8e3;
+}
+
+.nav-user {
+  display: flex;
+
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px;
+
+  border-radius: 11px;
+
+  background: #f5f8f6;
+}
+
+.nav-user__info {
+  min-width: 0;
+  flex: 1;
+}
+
+.nav-user__name {
+  overflow: hidden;
+
+  color: #15211d;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.nav-user__role {
+  margin-top: 2px;
+
+  color: #94a29b;
+
+  font-size: 10px;
+
+  text-transform: capitalize;
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.app-main {
+  min-height: 100vh;
+
+  margin-left: 240px;
+
+  background: #f3f7f5;
+}
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.app-topbar {
+  position: sticky;
+
+  z-index: 90;
+
+  top: 0;
+
+  display: flex;
+
+  min-height: 70px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 0 28px;
+
+  background: #06291e;
+
+  border: 0;
+
+  color: white;
+
+  box-shadow: none;
+
+  backdrop-filter: none;
+}
+
+.app-topbar__left,
+.app-topbar__right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.app-topbar__title {
+  color: white;
+
+  font-size: 14px;
+  font-weight: 850;
+
+  letter-spacing: -.015em;
+}
+
+.app-topbar__subtitle {
+  margin-top: 2px;
+
+  color: #9fc7b7;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   TOPBAR CONTROLS
+   ========================================================= */
+
+.app-topbar button {
+  border-radius: 10px;
+}
+
+.app-topbar__icon-button {
+  display: grid;
+
+  width: 36px;
+  height: 36px;
+
+  place-items: center;
+
+  border: 1px solid rgba(255,255,255,.1);
+
+  background: rgba(255,255,255,.06);
+
+  color: #d4e8df;
+}
+
+.app-topbar__icon-button:hover {
+  background: rgba(255,255,255,.11);
+
+  color: white;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+.mobile-nav-toggle {
+  display: none;
+
+  width: 38px;
+  height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+
+  background: rgba(255,255,255,.06);
+
+  color: white;
+}
+
+.mobile-nav-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+
+    transition: transform 220ms ease;
+  }
+
+  .app-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .app-main {
+    margin-left: 0;
+  }
+
+  .mobile-nav-toggle {
+    display: inline-flex;
+  }
+
+  .mobile-nav-backdrop {
+    position: fixed;
+
+    z-index: 95;
+
+    inset: 0;
+
+    display: block;
+
+    border: 0;
+
+    background: rgba(6,41,30,.35);
+  }
+
+  .app-topbar {
+    min-height: 65px;
+
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-topbar {
+    gap: 8px;
+  }
+
+  .app-topbar__subtitle {
+    display: none;
+  }
+}
