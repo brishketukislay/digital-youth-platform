@@ -1000,3 +1000,914 @@ select:focus-visible {
   padding: 0 9px;
 
   border-radius
+/* ============================================================
+   REWARD GAMES — PHASE 6
+   ============================================================ */
+
+.reward-games {
+  position: relative;
+  margin: 42px 0;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 32px;
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(124, 58, 237, 0.11),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 92% 100%,
+      rgba(37, 99, 235, 0.08),
+      transparent 30%
+    ),
+    #f8fafc;
+  box-shadow:
+    0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+.reward-games__heading {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.reward-games__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.reward-games__heading h2 {
+  margin: 8px 0 5px;
+  color: #0f172a;
+  font-size: clamp(26px, 4vw, 36px);
+  line-height: 1.05;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+}
+
+.reward-games__heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.reward-games__spark {
+  display: grid;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border: 1px solid rgba(124, 58, 237, 0.16);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f5f3ff
+    );
+  color: #7c3aed;
+  font-size: 28px;
+  box-shadow:
+    0 12px 28px rgba(124, 58, 237, 0.12);
+}
+
+.reward-games__available {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(min(100%, 460px), 1fr)
+    );
+  gap: 24px;
+}
+
+.reward-wheel-card,
+.reward-scratch-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow:
+    0 16px 42px rgba(15, 23, 42, 0.09);
+}
+
+.reward-wheel-card::before,
+.reward-scratch-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  content: "";
+}
+
+.reward-wheel-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #7c3aed,
+      #2563eb,
+      #06b6d4
+    );
+}
+
+.reward-scratch-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      #f59e0b,
+      #ec4899,
+      #7c3aed
+    );
+}
+
+.reward-game-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 26px 26px 18px;
+}
+
+.reward-game-heading {
+  min-width: 0;
+}
+
+.reward-game-kicker {
+  display: inline-block;
+  color: #7c3aed;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.2em;
+}
+
+.reward-game-title {
+  margin: 5px 0 0;
+  color: #0f172a;
+  font-size: clamp(22px, 4vw, 29px);
+  line-height: 1.08;
+  font-weight: 950;
+  letter-spacing: -0.025em;
+}
+
+.reward-game-description {
+  max-width: 520px;
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.reward-game-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border-radius: 16px;
+  font-size: 24px;
+}
+
+.reward-game-icon--wheel {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.reward-game-icon--scratch {
+  background: #fff1f2;
+  color: #db2777;
+}
+
+.reward-wheel-panel {
+  position: relative;
+  margin: 0 18px;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 50% 38%,
+      #ffffff 0,
+      #f8fafc 45%,
+      #eef2ff 100%
+    );
+}
+
+.reward-wheel-wrap {
+  position: relative;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 30px 18px 52px;
+  aspect-ratio: 1 / 1.06;
+  display: grid;
+  place-items: center;
+}
+
+.reward-wheel-glow {
+  position: absolute;
+  width: 64%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.14);
+  filter: blur(28px);
+}
+
+.reward-wheel {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 480px);
+  aspect-ratio: 1;
+  will-change: transform;
+}
+
+.reward-wheel__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.reward-wheel-pointer {
+  position: absolute;
+  z-index: 5;
+  top: 11px;
+  left: 50%;
+  width: 56px;
+  height: 70px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.reward-wheel-pointer__shadow {
+  position: absolute;
+  top: 8px;
+  left: 7px;
+  width: 42px;
+  height: 49px;
+  clip-path: polygon(
+    50% 100%,
+    0 0,
+    100% 0
+  );
+  background: rgba(15, 23, 42, 0.22);
+  filter: blur(4px);
+}
+
+.reward-wheel-pointer__tip {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  width: 46px;
+  height: 57px;
+  clip-path: polygon(
+    50% 100%,
+    0 0,
+    100% 0
+  );
+  background:
+    linear-gradient(
+      145deg,
+      #f8fafc 0%,
+      #e2e8f0 48%,
+      #94a3b8 100%
+    );
+  border: 2px solid #334155;
+}
+
+.reward-wheel-base {
+  position: absolute;
+  z-index: 1;
+  bottom: 18px;
+  left: 50%;
+  display: flex;
+  gap: 7px;
+  transform: translateX(-50%);
+}
+
+.reward-wheel-base span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.reward-wheel-empty {
+  display: grid;
+  min-height: 420px;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  color: #64748b;
+  text-align: center;
+}
+
+.reward-wheel-empty__icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  margin-bottom: 5px;
+  place-items: center;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #7c3aed;
+  font-size: 28px;
+}
+
+.reward-wheel-empty strong {
+  color: #334155;
+  font-size: 15px;
+}
+
+.reward-wheel-empty span {
+  font-size: 13px;
+}
+
+.reward-action-area {
+  padding: 8px 26px 26px;
+}
+
+.reward-primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #5b21b6
+    );
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: 0.025em;
+  box-shadow:
+    0 12px 24px rgba(109, 40, 217, 0.24);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.reward-primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow:
+    0 16px 30px rgba(109, 40, 217, 0.3);
+}
+
+.reward-primary-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.reward-primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.reward-primary-button__icon {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 17px;
+}
+
+.reward-action-hint {
+  margin: 9px 0 0;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.reward-celebration {
+  position: relative;
+  min-height: 300px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 34px 24px;
+  text-align: center;
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(16, 185, 129, 0.13),
+      transparent 45%
+    ),
+    #f8fafc;
+}
+
+.reward-celebration__confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.reward-celebration__confetti span {
+  position: absolute;
+  top: -14px;
+  width: 8px;
+  height: 16px;
+  border-radius: 3px;
+  opacity: 0.8;
+  animation:
+    rewardConfettiFall
+    2.5s
+    ease-out
+    forwards;
+}
+
+@keyframes rewardConfettiFall {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(-20px)
+      rotate(0deg);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translateY(330px)
+      rotate(420deg);
+  }
+}
+
+.reward-celebration__badge {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 12px;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      145deg,
+      #34d399,
+      #059669
+    );
+  color: white;
+  font-size: 34px;
+  box-shadow:
+    0 14px 30px rgba(5, 150, 105, 0.28);
+  animation:
+    rewardBadgePop
+    520ms
+    cubic-bezier(0.2, 1.4, 0.4, 1)
+    both;
+}
+
+@keyframes rewardBadgePop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.reward-celebration__eyebrow {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #047857;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.reward-celebration__amount {
+  position: relative;
+  z-index: 1;
+  margin-top: 3px;
+  color: #064e3b;
+  font-size: clamp(44px, 9vw, 64px);
+  line-height: 0.95;
+  font-weight: 950;
+  letter-spacing: -0.055em;
+}
+
+.reward-celebration__unit {
+  position: relative;
+  z-index: 1;
+  margin-top: 3px;
+  color: #059669;
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+}
+
+.reward-celebration__message {
+  position: relative;
+  z-index: 1;
+  max-width: 330px;
+  margin: 14px auto 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.reward-game-error {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0 26px 24px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 13px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.reward-game-error strong {
+  font-size: 12px;
+}
+
+.reward-game-error span {
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------
+   SCRATCH CARD
+   ------------------------------------------------------------ */
+
+.scratch-card-stage {
+  position: relative;
+  width: calc(100% - 52px);
+  max-width: 620px;
+  margin: 3px auto 0;
+  overflow: hidden;
+  aspect-ratio: 1.75 / 1;
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      #ffffff,
+      #ecfdf5 70%,
+      #d1fae5
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(16, 185, 129, 0.08);
+  touch-action: none;
+  user-select: none;
+}
+
+.scratch-card-result {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.scratch-card-result__coin {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      145deg,
+      #fbbf24,
+      #d97706
+    );
+  color: white;
+  font-size: 22px;
+  box-shadow:
+    0 8px 20px rgba(217, 119, 6, 0.24);
+}
+
+.scratch-card-result span {
+  color: #047857;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.2em;
+}
+
+.scratch-card-result strong {
+  margin-top: 4px;
+  color: #064e3b;
+  font-size: clamp(48px, 10vw, 70px);
+  line-height: 0.95;
+  font-weight: 950;
+  letter-spacing: -0.055em;
+}
+
+.scratch-card-result small {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scratch-card-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.scratch-card-footer {
+  padding: 14px 26px 25px;
+  text-align: center;
+}
+
+.scratch-card-footer p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.scratch-card-progress {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.scratch-card-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #f59e0b,
+      #ec4899,
+      #7c3aed
+    );
+  transition: width 180ms ease;
+}
+
+/*
+ * Celebration inside a scratch card should not be as tall as
+ * the standalone celebration.
+ */
+.reward-scratch-card
+  .reward-celebration {
+  min-height: 100%;
+  width: 100%;
+  padding: 18px;
+  background: transparent;
+}
+
+.reward-scratch-card
+  .reward-celebration__badge {
+  width: 58px;
+  height: 58px;
+  font-size: 26px;
+}
+
+.reward-scratch-card
+  .reward-celebration__amount {
+  font-size: clamp(40px, 9vw, 58px);
+}
+
+/* ------------------------------------------------------------
+   UPCOMING REWARDS
+   ------------------------------------------------------------ */
+
+.reward-upcoming {
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.reward-upcoming__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reward-upcoming__lock {
+  display: grid;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 17px;
+}
+
+.reward-upcoming__heading strong {
+  display: block;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.reward-upcoming__heading span {
+  display: block;
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.reward-upcoming__grid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(220px, 1fr)
+    );
+  gap: 10px;
+}
+
+.reward-upcoming__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.reward-upcoming__card strong,
+.reward-upcoming__card span {
+  display: block;
+}
+
+.reward-upcoming__card strong {
+  color: #334155;
+  font-size: 13px;
+}
+
+.reward-upcoming__card span {
+  margin-top: 3px;
+  color: #8b5cf6;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.reward-upcoming__card small {
+  flex: 0 0 auto;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.reward-games__error {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 640px) {
+  .reward-games {
+    margin: 24px -4px;
+    padding: 20px 12px;
+    border-radius: 24px;
+  }
+
+  .reward-games__heading {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .reward-games__spark {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    font-size: 22px;
+  }
+
+  .reward-game-header {
+    padding: 22px 18px 14px;
+  }
+
+  .reward-game-icon {
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    font-size: 20px;
+  }
+
+  .reward-wheel-panel {
+    margin: 0 10px;
+    border-radius: 18px;
+  }
+
+  .reward-wheel-wrap {
+    padding: 23px 10px 45px;
+  }
+
+  .reward-wheel-pointer {
+    top: 5px;
+    transform:
+      translateX(-50%)
+      scale(0.82);
+    transform-origin: top center;
+  }
+
+  .reward-action-area {
+    padding:
+      7px
+      18px
+      20px;
+  }
+
+  .reward-scratch-card
+    .reward-game-header {
+    padding-bottom: 14px;
+  }
+
+  .scratch-card-stage {
+    width: calc(100% - 36px);
+    border-radius: 17px;
+  }
+
+  .scratch-card-footer {
+    padding:
+      11px
+      18px
+      20px;
+  }
+
+  .reward-upcoming {
+    padding: 15px;
+    border-radius: 17px;
+  }
+
+  .reward-upcoming__card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reward-upcoming__card small {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reward-wheel {
+    transition: none !important;
+  }
+
+  .reward-celebration__confetti {
+    display: none;
+  }
+
+  .reward-celebration__badge {
+    animation: none;
+  }
+}
+
