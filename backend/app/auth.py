@@ -4,6 +4,7 @@ from passlib.hash import argon2
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from .core.config import settings
 from .db.database import get_db
 from .db.models import User
 
@@ -27,7 +28,7 @@ def get_current_user(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    token = request.cookies.get("session")
+    token = request.cookies.get(settings.session_cookie_name)
 
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")

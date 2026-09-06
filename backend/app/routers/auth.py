@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..db.database import get_db
 from ..db.models import User
 from ..auth import verify_password, create_session, get_current_user
+from ..core.config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -31,7 +32,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
     token = create_session(user.id)
 
     response.set_cookie(
-        "session",
+        settings.session_cookie_name,
         token,
         httponly=True,
         samesite="lax",
@@ -48,7 +49,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("session")
+    response.delete_cookie(settings.session_cookie_name)
     return {"success": True}
 
 
