@@ -25,7 +25,6 @@ if DATABASE_URL.startswith("sqlite"):
     connect_args = {
         "check_same_thread": False,
         "timeout": 30,
-        "isolation_level": None,
     }
 
 
@@ -65,16 +64,6 @@ if DATABASE_URL.startswith("sqlite"):
         cursor.execute("PRAGMA synchronous = NORMAL")
 
         cursor.close()
-
-
-    @event.listens_for(engine, "begin")
-    def _sqlite_explicit_begin(connection) -> None:
-        """
-        pysqlite implicit transaction handling is disabled with
-        isolation_level=None, so SQLAlchemy explicitly starts transactions.
-        """
-
-        connection.exec_driver_sql("BEGIN")
 
 
 SessionLocal = sessionmaker(
