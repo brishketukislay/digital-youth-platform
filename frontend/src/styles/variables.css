@@ -1,27 +1,5 @@
 :root {
-  /* =========================================================
-     DIGITAL YOUTH PLATFORM
-     DESIGN SYSTEM — PHASE 5
-     Based on sample2.html visual language
-     ========================================================= */
-
-  /* Backgrounds */
-  --bg: #f3f7f5;
-  --bg-deep: #edf3f0;
-
-  /* Surfaces */
-  --surface: #ffffff;
-  --surface-2: #f5f8f6;
-  --surface-3: #eef5f1;
-  --surface-hover: #f1f7f4;
-
-  /* Brand */
-  --primary: #12634c;
-  --primary-bright: #43b98b;
-  --primary-dark: #083b2d;
-  --primary-glow: rgba(67, 185, 139, 0.12);
-
-  /* Green scale */
+  /* Reference palette */
   --green-950: #06291e;
   --green-900: #083b2d;
   --green-800: #0b503d;
@@ -33,83 +11,65 @@
   --green-200: #c9f0df;
   --green-100: #eaf8f2;
 
-  /* Text */
+  --ink: #15211d;
+  --muted: #68766f;
+  --line: #dfe8e3;
+
+  --surface: #ffffff;
+  --surface-2: #f5f8f6;
+
+  --warning: #d18b27;
+  --danger: #b84b4b;
+  --blue: #3f6f9f;
+
+  --background: #f3f7f5;
+
   --text: #15211d;
   --text-primary: #15211d;
   --text-secondary: #68766f;
   --text-muted: #94a29b;
-  --text-inverse: #ffffff;
+  --text-dim: #94a29b;
+  --text-dark: #15211d;
 
-  /* Borders */
+  --primary: #12634c;
+  --primary-hover: #0b503d;
+
   --border: #dfe8e3;
-  --border-strong: #cbd9d2;
-  --line: #dfe8e3;
 
-  /* Status */
-  --success: #22966e;
-  --success-bg: #eaf8f2;
-
-  --warning: #d18b27;
-  --warning-bg: #fff6e5;
-
-  --danger: #b84b4b;
-  --danger-bg: #fceeee;
-
-  --info: #3f6f9f;
-  --info-bg: #edf4fb;
-
-  /* Legacy aliases.
-     These prevent existing components from breaking while
-     we migrate them to the new visual system. */
-
-  --purple: #12634c;
-  --purple-bright: #22966e;
-
-  --blue: #3f6f9f;
-  --blue-bright: #5c8bb9;
-
-  --cyan: #22966e;
-  --cyan-bright: #43b98b;
-
-  --yellow: #d18b27;
-  --orange: #d18b27;
-
-  --pink: #b84b4b;
-  --red: #b84b4b;
-
-  /* Radius */
   --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius: 18px;
 
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(9, 55, 39, 0.04);
-  --shadow-sm: 0 4px 12px rgba(9, 55, 39, 0.06);
-  --shadow-md: 0 8px 24px rgba(9, 55, 39, 0.07);
-  --shadow-lg: 0 12px 35px rgba(9, 55, 39, 0.08);
-  --shadow: 0 12px 35px rgba(9, 55, 39, 0.08);
+  --shadow:
+    0 12px 35px rgba(9, 55, 39, .08);
 
-  /* Spacing */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 28px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
+  --shadow-sm:
+    0 4px 12px rgba(9, 55, 39, .06);
 
-  /* Layout */
+  --shadow-md:
+    0 8px 24px rgba(9, 55, 39, .07);
+
+  --shadow-lg:
+    0 20px 50px rgba(9, 55, 39, .12);
+
+  --shadow-primary: none;
+
+  --gradient-primary: none;
+  --gradient-purple: none;
+  --gradient-blue: none;
+  --gradient-gold: none;
+  --gradient-danger: none;
+  --gradient-surface: none;
+
+  --transition: 160ms ease;
+
   --sidebar-width: 240px;
   --topbar-height: 70px;
   --content-max-width: 1600px;
 
-  /* Typography */
   --font-sans:
     Inter,
     ui-sans-serif,
