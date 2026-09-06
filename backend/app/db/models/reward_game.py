@@ -191,11 +191,4 @@ class PlayerRewardGame(Base):
         "Player",
     )
 
-    __table_args__ = (
-        UniqueConstraint(
-            "game_id",
-            "player_id",
-            "status",
-            name="uq_reward_game_player_status",
-        ),
-    )
+    __table_args__ = ()

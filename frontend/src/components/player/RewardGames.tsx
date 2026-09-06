@@ -10,6 +10,7 @@ import {
   playRewardGame,
   type PlayerRewardGame,
 } from "../../api/client";
+import RewardWheel from "../RewardWheel";
 
 type RewardGamesProps = {
   onXpAwarded?: () => void;
@@ -165,96 +166,29 @@ function SpinWheel({
   game: PlayerRewardGame;
   onComplete: () => void;
 }) {
-  const [spinning, setSpinning] =
-    useState(false);
-
-  const [rotation, setRotation] =
-    useState(0);
-
-  const [result, setResult] =
-    useState<number | null>(null);
-
-  const [error, setError] =
-    useState("");
+  const [spinning, setSpinning] = useState(false);
+  const [winningPrize, setWinningPrize] = useState<number | null>(null);
+  const [result, setResult] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const [finished, setFinished] = useState(false);
 
   async function spin() {
-    if (spinning || result !== null) {
+    if (spinning || finished) {
       return;
     }
 
     try {
       setSpinning(true);
+      setWinningPrize(null);
+      setResult(null);
       setError("");
 
-      /*
-       * The server chooses the prize.
-       *
-       * We deliberately wait for the server response before calculating
-       * the final wheel position. This means the animation always lands
-       * on the reward that was actually granted.
-       */
-      const response =
-        await playRewardGame(game.play_id);
+      const response = await playRewardGame(game.play_id);
+      const awardedXp = response.data.awarded_xp;
 
-      const winningXp =
-        response.data.awarded_xp;
-
-      const index =
-        game.prize_values.indexOf(
-          winningXp,
-        );
-
-      const winningIndex =
-        index >= 0 ? index : 0;
-
-      const segmentAngle =
-        360 / game.prize_values.length;
-
-      /*
-       * The pointer is at the top (0 degrees).
-       * Aim the centre of the winning segment at the pointer.
-       */
-      const target =
-        360 -
-        (
-          winningIndex *
-            segmentAngle +
-          segmentAngle / 2
-        );
-
-      const current =
-        rotation % 360;
-
-      const normalisedTarget =
-        ((target % 360) + 360) % 360;
-
-      let delta =
-        normalisedTarget -
-        ((current % 360) + 360) % 360;
-
-      if (delta < 0) {
-        delta += 360;
-      }
-
-      const finalRotation =
-        rotation +
-        360 * 7 +
-        delta;
-
-      setRotation(finalRotation);
-
-      /*
-       * Give the CSS animation enough time to finish before revealing
-       * the result.
-       */
-      window.setTimeout(() => {
-        setResult(winningXp);
-        setSpinning(false);
-        onComplete();
-      }, 4800);
+      setWinningPrize(awardedXp);
     } catch (err) {
       setSpinning(false);
-
       setError(
         getApiErrorMessage(
           err,
@@ -264,103 +198,77 @@ function SpinWheel({
     }
   }
 
-  return (
-    <article className="reward-game-card reward-game-card--wheel">
-      <div className="reward-game-card__shine" />
+  function handleWheelFinished() {
+    if (winningPrize === null) {
+      return;
+    }
 
-      <div className="reward-game-header">
+    setResult(winningPrize);
+    setSpinning(false);
+    setFinished(true);
+    onComplete();
+  }
+
+  return (
+    <article className="overflow-hidden rounded-3xl border border-violet-300/20 bg-gradient-to-br from-violet-950 via-slate-950 to-slate-900 p-5 shadow-2xl">
+      <div className="mb-5 flex items-center justify-between">
         <div>
-          <div className="reward-game-kicker">
-            SPECIAL DROP
+          <div className="text-xs font-bold uppercase tracking-[0.25em] text-violet-300">
+            Loot wheel
           </div>
 
-          <h3 className="reward-game-title">
+          <h3 className="mt-1 text-2xl font-black text-white">
             {game.name}
           </h3>
-
-          {game.description && (
-            <p className="reward-game-description">
-              {game.description}
-            </p>
-          )}
         </div>
 
-        <div className="reward-game-badge">
-          <span>★</span>
-          WHEEL
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-400/10 text-2xl">
+          🎡
         </div>
       </div>
 
-      <div className="reward-game-divider" />
+      {game.description && (
+        <p className="mb-5 text-sm text-slate-300">
+          {game.description}
+        </p>
+      )}
 
-      {result === null ? (
-        <>
-          <div className="reward-wheel-copy">
-            <strong>
-              Spin for XP
-            </strong>
+      <div className="rounded-3xl bg-white p-4 shadow-2xl">
+        <RewardWheel
+          prizes={game.prize_values}
+          winningPrize={winningPrize}
+          spinning={spinning}
+          onFinished={handleWheelFinished}
+        />
+      </div>
 
-            <span>
-              One spin. One reward.
-            </span>
-          </div>
-
-          <Wheel
-            prizes={game.prize_values}
-            rotation={rotation}
-            spinning={spinning}
-          />
-
-          <div className="reward-prize-preview">
-            {game.prize_values.map(
-              (value, index) => (
-                <span
-                  key={`${value}-${index}`}
-                  style={{
-                    "--prize-colour":
-                      WHEEL_COLOURS[
-                        index %
-                          WHEEL_COLOURS.length
-                      ],
-                  } as React.CSSProperties}
-                >
-                  +{value.toLocaleString()}
-                </span>
-              ),
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="reward-spin-button"
-            disabled={spinning}
-            onClick={spin}
-          >
-            <span className="reward-spin-button__icon">
-              {spinning ? "↻" : "▶"}
-            </span>
-
-            <span>
-              {spinning
-                ? "THE WHEEL IS SPINNING..."
-                : "SPIN THE WHEEL"}
-            </span>
-          </button>
-
-          <p className="reward-game-footnote">
-            Your reward is selected securely when
-            you spin.
-          </p>
-        </>
+      {!finished ? (
+        <button
+          type="button"
+          disabled={spinning}
+          onClick={spin}
+          className="mt-5 w-full rounded-xl bg-violet-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:bg-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {spinning ? "THE WHEEL IS SPINNING..." : "SPIN THE WHEEL"}
+        </button>
       ) : (
-        <Celebration amount={result} />
+        <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-5 text-center">
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+            Award granted
+          </div>
+
+          <div className="mt-1 text-4xl font-black text-white">
+            +{result?.toLocaleString()} XP
+          </div>
+
+          <p className="mt-2 text-sm text-emerald-200/80">
+            Your reward has been added to your account.
+          </p>
+        </div>
       )}
 
       {error && (
-        <div
-          className="reward-game-error"
-          role="alert"
-        >
+        <div className="mt-3 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-300">
           {error}
         </div>
       )}
