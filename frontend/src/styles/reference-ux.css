@@ -1,0 +1,651 @@
+/* ============================================================
+   CUMBERNAULD DIGITAL YOUTH PLATFORM
+   Reference UI system based on sample2.html
+   ============================================================ */
+
+:root {
+  --ref-green-950: #06291e;
+  --ref-green-900: #083b2d;
+  --ref-green-800: #0b503d;
+  --ref-green-700: #12634c;
+  --ref-green-600: #18775b;
+  --ref-green-500: #22966e;
+  --ref-green-400: #43b98b;
+  --ref-green-300: #83d8b5;
+  --ref-green-200: #c9f0df;
+  --ref-green-100: #eaf8f2;
+
+  --ref-ink: #15211d;
+  --ref-muted: #68766f;
+  --ref-line: #dfe8e3;
+  --ref-surface: #ffffff;
+  --ref-surface-2: #f5f8f6;
+  --ref-background: #f3f7f5;
+
+  --ref-warning: #d18b27;
+  --ref-danger: #b84b4b;
+  --ref-blue: #3f6f9f;
+
+  --ref-radius: 18px;
+  --ref-shadow: 0 12px 35px rgba(9, 55, 39, 0.08);
+}
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+body {
+  background: var(--ref-background);
+  color: var(--ref-ink);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--ref-background);
+}
+
+.app-content {
+  background: var(--ref-background);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+
+.sidebar {
+  width: 240px;
+  padding: 22px 14px;
+  background: #ffffff;
+  border-right: 1px solid var(--ref-line);
+  box-shadow: none;
+}
+
+.sidebar__top {
+  padding: 0 8px 22px;
+}
+
+.sidebar__profile {
+  margin: 0 2px 20px;
+  padding: 13px;
+  background: var(--ref-surface-2);
+  border: 1px solid var(--ref-line);
+  border-radius: 13px;
+}
+
+.side-nav {
+  gap: 4px;
+}
+
+.side-nav__label {
+  padding: 0 12px 9px;
+  color: #94a29b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.side-nav__link {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 11px;
+  color: #596760;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.side-nav__link:hover {
+  color: var(--ref-green-800);
+  background: var(--ref-surface-2);
+}
+
+.side-nav__link.is-active {
+  color: var(--ref-green-800);
+  background: var(--ref-green-100);
+}
+
+.side-nav__arrow {
+  color: var(--ref-green-600);
+}
+
+.sidebar-status {
+  border-top: 1px solid var(--ref-line);
+}
+
+.sidebar-status__dot {
+  background: #37ad7b;
+  box-shadow: 0 0 0 4px var(--ref-green-100);
+}
+
+/* ============================================================
+   BRAND
+   ============================================================ */
+
+.brand {
+  color: var(--ref-green-900);
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--ref-green-700);
+}
+
+.brand-copy strong {
+  color: var(--ref-green-900);
+}
+
+.brand-copy small {
+  color: var(--ref-muted);
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+
+.topbar {
+  min-height: 70px;
+  padding: 0 28px;
+  background: var(--ref-green-950);
+  border-bottom: 0;
+  color: white;
+  box-shadow: none;
+}
+
+.topbar-heading h1 {
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.topbar-heading > span {
+  color: #acd0c1;
+}
+
+.topbar-icon-button {
+  color: #d4e8df;
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .06);
+}
+
+.topbar-icon-button:hover {
+  color: white;
+  background: rgba(255, 255, 255, .12);
+}
+
+.topbar-user {
+  color: white;
+}
+
+.topbar-user:hover {
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .08);
+}
+
+.topbar-user__avatar {
+  color: var(--ref-green-900);
+  background: var(--ref-green-200);
+}
+
+.topbar-user__copy strong {
+  color: white;
+}
+
+.topbar-user__copy span {
+  color: #acd0c1;
+}
+
+.connection-indicator {
+  color: #c5ded3;
+  background: rgba(255, 255, 255, .08);
+}
+
+.connection-indicator > span:first-child {
+  background: #43c18c;
+}
+
+.topbar-user-dropdown {
+  color: var(--ref-ink);
+  background: white;
+  border-color: var(--ref-line);
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+
+.app-main {
+  padding: 28px;
+  background: var(--ref-background);
+}
+
+.app-container {
+  max-width: 1600px;
+}
+
+/* ============================================================
+   GENERIC CARDS
+   ============================================================ */
+
+.card {
+  padding: 20px;
+  border: 1px solid var(--ref-line);
+  border-radius: var(--ref-radius);
+  background: white;
+  box-shadow: var(--ref-shadow);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+
+.card-header h2,
+.card-header h3 {
+  margin: 0;
+  color: var(--ref-ink);
+  font-size: 15px;
+  letter-spacing: -.02em;
+}
+
+.card-header p {
+  margin: 4px 0 0;
+  color: var(--ref-muted);
+  font-size: 12px;
+}
+
+.muted {
+  color: var(--ref-muted);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.button,
+.btn {
+  border: 1px solid var(--ref-line);
+  border-radius: 10px;
+  background: white;
+  color: var(--ref-green-900);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.button--primary,
+.btn.primary {
+  border-color: var(--ref-green-700);
+  background: var(--ref-green-700);
+  color: white;
+}
+
+.button--primary:hover,
+.btn.primary:hover {
+  background: var(--ref-green-800);
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+.badge {
+  background: var(--ref-green-100);
+  color: var(--ref-green-800);
+  border-radius: 100px;
+  box-shadow: none;
+}
+
+.badge.warning {
+  background: #fff4df;
+  color: #94611a;
+}
+
+.badge.blue {
+  background: #edf3fa;
+  color: #426887;
+}
+
+.badge.danger {
+  background: #faeeee;
+  color: #9c4141;
+}
+
+/* ============================================================
+   PLAYER DASHBOARD
+   ============================================================ */
+
+.player-dashboard {
+  gap: 20px;
+}
+
+.dashboard-intro {
+  margin-bottom: 0;
+}
+
+.dashboard-kicker {
+  color: var(--ref-green-700);
+}
+
+.dashboard-intro h2 {
+  color: var(--ref-green-950);
+}
+
+.dashboard-intro p:last-child {
+  color: var(--ref-muted);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.player-dashboard .hero,
+.player-dashboard .player-hero,
+.player-dashboard [class*="hero"] {
+  color: white;
+}
+
+/*
+ * Reference hero:
+ * deep green with subtle green light,
+ * NOT neon and NOT glassmorphism.
+ */
+
+.player-dashboard .hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(67, 185, 139, .23),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      var(--ref-green-950),
+      var(--ref-green-800)
+    );
+  color: white;
+  box-shadow: none;
+}
+
+.player-dashboard .hero h1 {
+  max-width: 650px;
+  margin: 0;
+  color: white;
+  font-size: 38px;
+  line-height: 1.02;
+  letter-spacing: -.055em;
+}
+
+.player-dashboard .hero p {
+  max-width: 610px;
+  color: #c2ded2;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+
+.player-dashboard .progress {
+  height: 15px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, .13);
+  box-shadow: none;
+}
+
+.player-dashboard .progress > div {
+  height: 100%;
+  border-radius: 30px;
+  background: linear-gradient(
+    90deg,
+    var(--ref-green-300),
+    #ffffff
+  );
+  box-shadow: none;
+}
+
+/* ============================================================
+   STAT CARDS
+   ============================================================ */
+
+.stat {
+  padding: 19px;
+}
+
+.stat-label {
+  color: var(--ref-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.stat-value {
+  margin-top: 7px;
+  color: var(--ref-green-900);
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -.05em;
+}
+
+.stat-foot {
+  margin-top: 6px;
+  color: var(--ref-green-700);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   PLAYER HEAD / AVATAR
+   ============================================================ */
+
+.large-avatar {
+  border: 4px solid var(--ref-green-200);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #d8fff0 0 8%,
+      transparent 9%
+    ),
+    linear-gradient(
+      145deg,
+      #287c65,
+      #092e24
+    );
+  color: white;
+}
+
+/* ============================================================
+   SKILL TREE
+   ============================================================ */
+
+.skill-node {
+  background: #eef4f1;
+  border-color: #dce7e1;
+  color: #84948d;
+}
+
+.skill-node.done {
+  background: var(--ref-green-700);
+  border-color: var(--ref-green-300);
+  color: white;
+}
+
+.skill-node.current {
+  background: white;
+  border-color: var(--ref-green-500);
+  color: var(--ref-green-700);
+  box-shadow: 0 0 0 7px var(--ref-green-100);
+}
+
+.skill-line {
+  background: #dce7e1;
+}
+
+.skill-line.done {
+  background: var(--ref-green-500);
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+.badge-trophy {
+  background: var(--ref-surface-2);
+  border-color: var(--ref-line);
+  color: var(--ref-green-800);
+}
+
+/* ============================================================
+   CHALLENGES
+   ============================================================ */
+
+.challenge-card {
+  border-color: var(--ref-line);
+  border-radius: 15px;
+  background: white;
+}
+
+.challenge-card.live {
+  border-color: #b9dfcf;
+}
+
+.challenge-card.upcoming {
+  background: #fafcfb;
+}
+
+.challenge-icon {
+  background: var(--ref-green-100);
+  color: var(--ref-green-800);
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+
+.map {
+  background: #dcebe4;
+  border-radius: 16px;
+}
+
+.map-zone {
+  background: rgba(255, 255, 255, .93);
+  border-color: #c9ddd4;
+  color: var(--ref-green-900);
+  box-shadow: 0 8px 20px rgba(22, 72, 55, .09);
+}
+
+.map-star {
+  background: var(--ref-green-600);
+  box-shadow: 0 0 0 5px rgba(24, 119, 91, .15);
+}
+
+/* ============================================================
+   GAME AREAS
+   ============================================================ */
+
+.game-shell {
+  background: var(--ref-green-950);
+  border-radius: 20px;
+}
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+
+input,
+select,
+textarea {
+  border-color: var(--ref-line);
+  background: white;
+  color: var(--ref-ink);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ref-green-400);
+  box-shadow: 0 0 0 3px var(--ref-green-100);
+}
+
+/* ============================================================
+   NOTICES
+   ============================================================ */
+
+.notice--error,
+.layout-notice--error {
+  color: var(--ref-danger);
+  border-color: #edd0d0;
+  background: #faeeee;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 240px;
+  }
+
+  .topbar {
+    padding: 10px 14px;
+  }
+
+  .app-main {
+    padding: 16px 14px 80px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    display: none;
+  }
+
+  .app-main {
+    padding: 16px 14px 80px;
+  }
+
+  .player-dashboard .hero {
+    padding: 22px;
+    border-radius: 20px;
+  }
+
+  .player-dashboard .hero h1 {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    padding: 14px 12px 60px;
+  }
+
+  .player-dashboard .hero {
+    padding: 20px;
+  }
+
+  .player-dashboard .hero h1 {
+    font-size: 27px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+}
