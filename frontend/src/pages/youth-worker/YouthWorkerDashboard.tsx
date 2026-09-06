@@ -157,18 +157,7 @@ export default function YouthWorkerDashboard() {
 
   const [reviewingAwardId, setReviewingAwardId] =
     useState<number | null>(null);
-
-  const [approvalAwardId, setApprovalAwardId] =
-    useState<number | null>(null);
-
-  const [approvalXp, setApprovalXp] =
-    useState("");
-
-  const [approvalError, setApprovalError] =
-    useState("");
-
-
-  const [awardModal, setAwardModal] = useState<{
+const [awardModal, setAwardModal] = useState<{
     id: number;
     category: string;
     description: string;
@@ -328,7 +317,7 @@ export default function YouthWorkerDashboard() {
     setActionError(null);
 
     try {
-      await awardXP(
+      await awardPlayerXP(
         playerId,
         amount,
         reason,
@@ -410,7 +399,6 @@ export default function YouthWorkerDashboard() {
 
   function openAwardApproval(award: CommunityAward) {
     setActionError(null);
-
     setAwardXPInput("");
 
     setAwardModal({
@@ -421,32 +409,25 @@ export default function YouthWorkerDashboard() {
     });
   }
 
-  function openAwardApproval(id: number) {
-    setApprovalAwardId(id);
-    setApprovalXp("");
-    setApprovalError("");
-    setActionError(null);
-  }
-
   function closeAwardApproval() {
     if (reviewingAwardId !== null) {
       return;
     }
 
-    setApprovalAwardId(null);
-    setApprovalXp("");
-    setApprovalError("");
+    setAwardModal(null);
+    setAwardXPInput("");
+    setActionError(null);
   }
 
   async function confirmAwardApproval() {
-    if (approvalAwardId === null) {
+    if (!awardModal) {
       return;
     }
 
-    const value = approvalXp.trim();
+    const value = awardXPInput.trim();
 
     if (!/^\\d+$/.test(value)) {
-      setApprovalError(
+      setActionError(
         "Enter a whole number of XP points.",
       );
       return;
@@ -455,36 +436,35 @@ export default function YouthWorkerDashboard() {
     const xp = Number(value);
 
     if (!Number.isSafeInteger(xp) || xp < 1) {
-      setApprovalError(
+      setActionError(
         "XP points must be greater than zero.",
       );
       return;
     }
 
     if (xp > 10000) {
-      setApprovalError(
+      setActionError(
         "XP points cannot exceed 10,000.",
       );
       return;
     }
 
-    setReviewingAwardId(approvalAwardId);
-    setApprovalError("");
+    setReviewingAwardId(awardModal.id);
     setActionError(null);
 
     try {
       await reviewCommunityAward(
-        approvalAwardId,
+        awardModal.id,
         "approved",
         xp,
       );
 
-      setApprovalAwardId(null);
-      setApprovalXp("");
+      setAwardModal(null);
+      setAwardXPInput("");
 
       await load();
     } catch (err) {
-      setApprovalError(
+      setActionError(
         getApiErrorMessage(
           err,
           "Unable to approve community award.",
@@ -1200,7 +1180,7 @@ export default function YouthWorkerDashboard() {
                 <input
                   type="number"
                   step="1"
-                  value={xpAmount}
+                  value={awardXPInput}
                   onChange={(event) =>
                     setXpAmount(
                       event.target.value,
@@ -1649,9 +1629,9 @@ export default function YouthWorkerDashboard() {
                 step="1"
                 inputMode="numeric"
                 autoFocus
-                value={xpAmount}
+                value={awardXPInput}
                 onChange={(event) => {
-                  setXpAmount(event.target.value);
+                  setAwardXPInput(event.target.value);
                   setActionError(null);
                 }}
                 onKeyDown={(event) => {
@@ -1699,7 +1679,7 @@ export default function YouthWorkerDashboard() {
                 type="button"
                 disabled={
                   reviewingAwardId !== null ||
-                  !xpAmount.trim()
+                  !awardXPInput.trim()
                 }
                 onClick={() => {
                   void confirmAwardApproval();
