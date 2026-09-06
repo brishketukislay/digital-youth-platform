@@ -2697,3 +2697,143 @@ def list_community_awards(
         }
         for award in awards
     ]
+
+
+# ============================================================
+# COMMUNITY AWARDS
+# ============================================================
+
+class CommunityAwardReviewRequest(BaseModel):
+    status: str = Field(
+        ...,
+        pattern="^(approved|rejected)$",
+    )
+
+
+@router.post("/community-awards/{award_id}/review")
+def review_community_award(
+    award_id: int,
+    data: CommunityAwardReviewRequest,
+    user=Depends(
+        require_roles(
+            "admin",
+            "youth_worker",
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    award = (
+        db.query(CommunityAward)
+        .filter(
+            CommunityAward.id == award_id,
+        )
+        .first()
+    )
+
+    if award is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Community award not found.",
+        )
+
+    if award.status != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This community award has already been reviewed."
+            ),
+        )
+
+    programme = (
+        db.query(Programme)
+        .filter(
+            Programme.id == award.programme_id,
+        )
+        .first()
+    )
+
+    if programme is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Programme not found.",
+        )
+
+    if data.status == "approved":
+        if award.player_id is None:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Group community awards cannot yet be "
+                    "converted into player XP transactions."
+                ),
+            )
+
+        player = (
+            db.query(Player)
+            .filter(
+                Player.id == award.player_id,
+                Player.active == True,
+            )
+            .first()
+        )
+
+        if player is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Awarded player is no longer active.",
+            )
+
+        transaction = award_xp(
+            db,
+            programme_id=award.programme_id,
+            player_id=award.player_id,
+            amount=award.xp,
+            group_amount=award.xp,
+            transaction_type="community_award",
+            reason=(
+                f"Community award: {award.category}"
+            ),
+            reference_type="community_award",
+            reference_id=award.id,
+            created_by=user.id,
+        )
+
+        award.status = "approved"
+        award.reviewed_by = user.id
+        award.reviewed_at = __import__(
+            "datetime"
+        ).datetime.utcnow()
+
+        audit(
+            db,
+            user.id,
+            "community_award.approved",
+            (
+                f"award_id={award.id};"
+                f"player_id={award.player_id};"
+                f"xp={award.xp};"
+                f"transaction_id={transaction.id}"
+            ),
+        )
+
+    else:
+        award.status = "rejected"
+        award.reviewed_by = user.id
+        award.reviewed_at = __import__(
+            "datetime"
+        ).datetime.utcnow()
+
+        audit(
+            db,
+            user.id,
+            "community_award.rejected",
+            f"award_id={award.id}",
+        )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "id": award.id,
+        "status": award.status,
+    }
