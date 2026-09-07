@@ -8135,3 +8135,544 @@ select:focus-visible {
     font-size: 13px;
   }
 }
+
+/* ============================================================
+   PLAYER DASHBOARD — FINAL LAYOUT FIX
+   ============================================================ */
+
+.player-dashboard {
+  --pd-bg: #07101d;
+  --pd-surface: #0d1726;
+  --pd-surface-2: #111d2d;
+  --pd-border: rgba(255,255,255,.09);
+
+  --pd-purple: #7257ff;
+  --pd-mint: #51e6a4;
+  --pd-blue: #7db5ff;
+  --pd-orange: #ffbd69;
+
+  --pd-white: #f7f9ff;
+  --pd-text: rgba(255,255,255,.70);
+  --pd-muted: rgba(255,255,255,.43);
+
+  width: min(1180px, calc(100% - 40px)) !important;
+  max-width: 1180px !important;
+  margin: 0 auto !important;
+  padding: 20px 0 60px !important;
+
+  color: var(--pd-white);
+
+  position: relative;
+}
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+.player-dashboard::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      700px 500px at 90% 0%,
+      rgba(114,87,255,.14),
+      transparent 70%
+    ),
+    radial-gradient(
+      600px 500px at 0% 45%,
+      rgba(81,230,164,.055),
+      transparent 70%
+    ),
+    #07101d;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.player-dashboard > .hero,
+.player-dashboard > .player-hero {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 0 0 14px !important;
+  padding: 30px !important;
+
+  min-height: 220px !important;
+
+  border-radius: 22px !important;
+  border: 1px solid var(--pd-border) !important;
+
+  background:
+    radial-gradient(
+      420px 280px at 90% -20%,
+      rgba(114,87,255,.25),
+      transparent 70%
+    ),
+    linear-gradient(
+      145deg,
+      #101b2d,
+      #091321
+    ) !important;
+
+  box-shadow:
+    0 20px 55px rgba(0,0,0,.20) !important;
+}
+
+/* ============================================================
+   SYNC
+   ============================================================ */
+
+.player-dashboard > .dashboard-sync {
+  width: fit-content !important;
+  max-width: 100% !important;
+
+  margin: 0 0 14px !important;
+}
+
+/* ============================================================
+   GROUP PROGRESS
+   ============================================================ */
+
+.player-dashboard > .featured-progress {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 0 0 14px !important;
+  padding: 20px !important;
+
+  border-radius: 18px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(114,87,255,.11),
+      rgba(255,255,255,.035)
+    ) !important;
+
+  border: 1px solid rgba(114,87,255,.20) !important;
+}
+
+/* ============================================================
+   CRITICAL GRID FIX
+   ============================================================ */
+
+/*
+   The page already has:
+
+     <div className="grid player-core-grid">
+       <CurrentPhase />
+       <MysteryProgress />
+     </div>
+
+   and:
+
+     <div className="grid player-progression-grid">
+       <SkillTree />
+       <BadgeCabinet />
+     </div>
+
+   So we explicitly override the generic `.grid` class here.
+*/
+
+.player-dashboard > .grid.player-core-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(260px, .65fr) !important;
+
+  grid-auto-flow: row !important;
+
+  gap: 14px !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 14px 0 0 !important;
+
+  align-items: stretch !important;
+}
+
+.player-dashboard > .grid.player-progression-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1.15fr)
+    minmax(260px, .85fr) !important;
+
+  grid-auto-flow: row !important;
+
+  gap: 14px !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 14px 0 0 !important;
+
+  align-items: stretch !important;
+}
+
+/*
+   DO NOT allow the generic `.grid > *` rules to force
+   full-width behaviour.
+*/
+
+.player-dashboard > .grid.player-core-grid > *,
+.player-dashboard > .grid.player-progression-grid > * {
+  grid-column: auto !important;
+  grid-row: auto !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+
+.player-dashboard .card,
+.player-dashboard .player-card,
+.player-dashboard .featured-progress,
+.player-dashboard .skill-tree-card,
+.player-dashboard .challenge-card {
+  box-sizing: border-box !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.065),
+      rgba(255,255,255,.025)
+    ) !important;
+
+  border: 1px solid var(--pd-border) !important;
+
+  color: var(--pd-white);
+
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.12) !important;
+}
+
+.player-dashboard .card {
+  padding: 20px !important;
+}
+
+/* ============================================================
+   CORE CARD HEIGHT
+   ============================================================ */
+
+.player-dashboard .player-core-grid > .card {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+.player-dashboard h1,
+.player-dashboard h2,
+.player-dashboard h3,
+.player-dashboard h4 {
+  color: #fff;
+}
+
+.player-dashboard .muted {
+  color: var(--pd-muted) !important;
+}
+
+.player-dashboard .eyebrow,
+.player-dashboard .dashboard-card__eyebrow {
+  color: var(--pd-mint) !important;
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+
+.player-dashboard .large-progress {
+  height: 9px !important;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: rgba(255,255,255,.08) !important;
+}
+
+.player-dashboard .large-progress .progress__fill {
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--pd-purple),
+      var(--pd-mint)
+    ) !important;
+}
+
+/* ============================================================
+   SKILL TREE
+   ============================================================ */
+
+.player-dashboard .skill-tree-card {
+  height: 100%;
+
+  overflow: hidden;
+
+  border-radius: 18px !important;
+}
+
+.player-dashboard .skill-tree-card .progress {
+  height: 8px !important;
+
+  background: rgba(255,255,255,.08) !important;
+}
+
+.player-dashboard .skill-tree-card .progress__fill {
+  background:
+    linear-gradient(
+      90deg,
+      var(--pd-purple),
+      var(--pd-mint)
+    ) !important;
+}
+
+.player-dashboard .skill-node {
+  background: rgba(255,255,255,.04) !important;
+
+  border-color: rgba(255,255,255,.09) !important;
+
+  color: rgba(255,255,255,.32) !important;
+}
+
+.player-dashboard .skill-node.done {
+  background: rgba(81,230,164,.13) !important;
+
+  border-color: rgba(81,230,164,.30) !important;
+
+  color: var(--pd-mint) !important;
+}
+
+.player-dashboard .skill-node.current {
+  background: rgba(114,87,255,.12) !important;
+
+  border-color: rgba(114,87,255,.55) !important;
+
+  color: #b8aeff !important;
+
+  box-shadow:
+    0 0 0 5px rgba(114,87,255,.08) !important;
+}
+
+.player-dashboard .skill-line {
+  background: rgba(255,255,255,.08) !important;
+}
+
+.player-dashboard .skill-line.done {
+  background: var(--pd-mint) !important;
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+.player-dashboard .badge-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(76px, 1fr)) !important;
+
+  gap: 9px !important;
+}
+
+.player-dashboard .badge {
+  min-height: 76px !important;
+
+  background: rgba(255,255,255,.035) !important;
+
+  border-color: var(--pd-border) !important;
+
+  color: #fff !important;
+}
+
+.player-dashboard .badge__icon {
+  background: rgba(114,87,255,.13) !important;
+
+  color: #a99bff !important;
+}
+
+/* ============================================================
+   CHALLENGES
+   ============================================================ */
+
+.player-dashboard > .challenge-grid,
+.player-dashboard .challenge-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+
+  gap: 12px !important;
+
+  width: 100% !important;
+
+  margin-top: 14px !important;
+}
+
+.player-dashboard .challenge-card {
+  min-width: 0 !important;
+
+  padding: 16px !important;
+
+  border-radius: 15px !important;
+
+  box-shadow: none !important;
+}
+
+.player-dashboard .challenge-icon {
+  width: 38px !important;
+  height: 38px !important;
+
+  margin-bottom: 11px;
+
+  border-radius: 10px !important;
+
+  background: rgba(114,87,255,.12) !important;
+
+  color: #a99bff !important;
+}
+
+.player-dashboard .challenge-card h3 {
+  color: #fff !important;
+}
+
+.player-dashboard .challenge-card p {
+  color: var(--pd-muted) !important;
+}
+
+.player-dashboard .challenge-rewards strong {
+  color: var(--pd-mint) !important;
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+
+.player-dashboard .game-map,
+.player-dashboard .map {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin-top: 14px !important;
+
+  border-radius: 17px !important;
+
+  border: 1px solid var(--pd-border) !important;
+
+  background: rgba(255,255,255,.025) !important;
+
+  overflow: hidden;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.player-dashboard .button--primary {
+  border: 1px solid var(--pd-purple) !important;
+
+  border-radius: 10px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7257ff,
+      #6148e8
+    ) !important;
+
+  color: #fff !important;
+
+  box-shadow:
+    0 8px 22px rgba(114,87,255,.18) !important;
+}
+
+/* ============================================================
+   PRIVACY
+   ============================================================ */
+
+.player-dashboard .privacy-notice {
+  width: 100% !important;
+
+  margin-top: 14px !important;
+
+  background: rgba(255,255,255,.025) !important;
+
+  border: 1px solid var(--pd-border) !important;
+
+  border-radius: 13px !important;
+
+  color: var(--pd-muted) !important;
+}
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+  .player-dashboard {
+    width: calc(100% - 28px) !important;
+  }
+
+  .player-dashboard > .grid.player-core-grid,
+  .player-dashboard > .grid.player-progression-grid {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr) !important;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns:
+      repeat(2, minmax(0,1fr)) !important;
+  }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 680px) {
+
+  .player-dashboard {
+    width: calc(100% - 20px) !important;
+
+    padding-top: 14px !important;
+  }
+
+  .player-dashboard > .grid.player-core-grid,
+  .player-dashboard > .grid.player-progression-grid {
+    grid-template-columns: 1fr !important;
+
+    gap: 12px !important;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .player-dashboard .hero,
+  .player-dashboard .player-hero {
+    padding: 22px !important;
+
+    border-radius: 18px !important;
+  }
+}
+

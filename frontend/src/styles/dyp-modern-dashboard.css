@@ -685,3 +685,956 @@
     font-size: 34px;
   }
 }
+
+/* ============================================================
+   FINAL PLAYER DASHBOARD OVERRIDE
+   This MUST remain at the end of this file.
+
+   The stylesheet previously contained duplicate player
+   dashboard selectors later in the file which overrode the
+   intended dark/compact dashboard layout.
+   ============================================================ */
+
+.player-dashboard {
+  --pd-bg: #07111f;
+  --pd-panel: #0d1929;
+  --pd-panel-2: #101f32;
+  --pd-border: rgba(255, 255, 255, 0.085);
+  --pd-border-strong: rgba(255, 255, 255, 0.13);
+
+  --pd-purple: #765cff;
+  --pd-purple-soft: rgba(118, 92, 255, 0.14);
+  --pd-mint: #55e6a6;
+  --pd-mint-soft: rgba(85, 230, 166, 0.10);
+  --pd-blue: #78b5ff;
+  --pd-orange: #ffbd69;
+
+  --pd-text: #f5f7fb;
+  --pd-muted: rgba(245, 247, 251, 0.56);
+  --pd-subtle: rgba(245, 247, 251, 0.36);
+
+  width: min(1220px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 28px 0 72px;
+
+  color: var(--pd-text);
+
+  box-sizing: border-box;
+}
+
+.player-dashboard,
+.player-dashboard *,
+.player-dashboard *::before,
+.player-dashboard *::after {
+  box-sizing: border-box;
+}
+
+.player-dashboard > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------
+   PAGE BACKGROUND
+   ------------------------------------------------------------ */
+
+.player-dashboard::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      800px 520px at 92% -8%,
+      rgba(118, 92, 255, 0.16),
+      transparent 68%
+    ),
+    radial-gradient(
+      700px 520px at -5% 42%,
+      rgba(85, 230, 166, 0.055),
+      transparent 70%
+    ),
+    #07111f;
+}
+
+/* ------------------------------------------------------------
+   HERO
+   ------------------------------------------------------------ */
+
+.player-dashboard .hero,
+.player-dashboard .player-hero {
+  width: 100%;
+  min-height: 210px;
+
+  margin: 0 0 18px;
+  padding: 30px 32px;
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+
+  border: 1px solid var(--pd-border);
+  border-radius: 24px;
+
+  background:
+    radial-gradient(
+      500px 300px at 94% -30%,
+      rgba(118, 92, 255, 0.27),
+      transparent 72%
+    ),
+    radial-gradient(
+      360px 240px at 0% 100%,
+      rgba(85, 230, 166, 0.065),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      #101c2e 0%,
+      #0b1625 55%,
+      #091321 100%
+    );
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.25);
+}
+
+.player-dashboard .player-hero__main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.player-dashboard .player-hero__avatar {
+  flex: 0 0 auto;
+
+  width: 64px;
+  height: 64px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(118, 92, 255, 0.35);
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(118, 92, 255, 0.28),
+      rgba(118, 92, 255, 0.08)
+    );
+
+  color: #bcb0ff;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 12px 30px rgba(0,0,0,.16);
+}
+
+.player-dashboard .player-hero__identity {
+  min-width: 0;
+}
+
+.player-dashboard .hero-eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--pd-mint);
+
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.player-dashboard .hero h1,
+.player-dashboard .player-hero h1 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(34px, 4vw, 50px);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.player-dashboard .hero p,
+.player-dashboard .player-hero p {
+  max-width: 590px;
+
+  margin: 12px 0 0;
+
+  color: var(--pd-muted);
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.player-dashboard .player-hero__stats {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: stretch;
+
+  min-height: 72px;
+
+  padding: 0;
+
+  border: 1px solid var(--pd-border);
+  border-radius: 16px;
+
+  background: rgba(255,255,255,.035);
+
+  overflow: hidden;
+}
+
+.player-dashboard .player-hero__stat {
+  min-width: 130px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 13px 18px;
+}
+
+.player-dashboard .player-hero__stat span {
+  color: var(--pd-subtle);
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.player-dashboard .player-hero__stat strong {
+  margin-top: 6px;
+
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.player-dashboard .player-hero__divider {
+  width: 1px;
+  background: var(--pd-border);
+}
+
+/* ------------------------------------------------------------
+   SYNC
+   ------------------------------------------------------------ */
+
+.player-dashboard .dashboard-sync {
+  width: fit-content;
+  max-width: 100%;
+
+  margin: -3px 0 14px;
+  padding: 7px 11px;
+
+  border: 1px solid rgba(85,230,166,.16);
+  border-radius: 999px;
+
+  background: rgba(85,230,166,.065);
+
+  color: rgba(255,255,255,.58);
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------
+   ALL DASHBOARD CARDS
+   ------------------------------------------------------------ */
+
+.player-dashboard .card,
+.player-dashboard .player-card,
+.player-dashboard .dashboard-card,
+.player-dashboard .featured-progress,
+.player-dashboard .skill-tree-card {
+  min-width: 0;
+
+  border: 1px solid var(--pd-border) !important;
+  border-radius: 18px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.065),
+      rgba(255,255,255,.025)
+    ) !important;
+
+  color: var(--pd-text) !important;
+
+  box-shadow:
+    0 14px 38px rgba(0,0,0,.14) !important;
+}
+
+.player-dashboard .card {
+  padding: 21px;
+}
+
+.player-dashboard .dashboard-card {
+  overflow: hidden;
+}
+
+.player-dashboard .dashboard-card__body {
+  min-width: 0;
+}
+
+.player-dashboard .card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+  margin-bottom: 15px;
+}
+
+.player-dashboard .card-title-row h2,
+.player-dashboard .dashboard-card__title {
+  margin: 0;
+
+  color: #ffffff !important;
+
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -.03em;
+}
+
+.player-dashboard .eyebrow,
+.player-dashboard .dashboard-card__eyebrow {
+  margin-bottom: 7px;
+
+  color: var(--pd-mint) !important;
+
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .15em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.player-dashboard .muted {
+  color: var(--pd-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   GROUP PROGRESS — FULL WIDTH FEATURE
+   ------------------------------------------------------------ */
+
+.player-dashboard .featured-progress {
+  width: 100% !important;
+  margin-top: 0;
+
+  padding: 24px !important;
+
+  background:
+    radial-gradient(
+      500px 180px at 100% 0%,
+      rgba(85,230,166,.055),
+      transparent 70%
+    ),
+    linear-gradient(
+      145deg,
+      #101d2e,
+      #0c1726
+    ) !important;
+}
+
+.player-dashboard .featured-progress .progress-number {
+  color: var(--pd-mint) !important;
+
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+
+.player-dashboard .featured-progress .progress-description {
+  max-width: 700px;
+
+  margin: 9px 0 20px;
+
+  color: var(--pd-muted) !important;
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.player-dashboard .large-progress {
+  height: 12px !important;
+
+  background: rgba(255,255,255,.085) !important;
+  border-radius: 99px !important;
+
+  overflow: hidden;
+}
+
+.player-dashboard .large-progress .progress__fill {
+  min-width: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #3bd48e,
+      #67edb3
+    ) !important;
+
+  border-radius: 99px !important;
+
+  box-shadow:
+    0 0 18px rgba(85,230,166,.18);
+}
+
+.player-dashboard .progress-footer {
+  color: var(--pd-subtle) !important;
+}
+
+.player-dashboard .progress-footer strong {
+  color: #ffffff !important;
+}
+
+/* ------------------------------------------------------------
+   CORE GRID
+   Current phase = dominant
+   Mystery = smaller side panel
+   ------------------------------------------------------------ */
+
+.player-dashboard .player-core-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(280px, .75fr) !important;
+
+  gap: 14px !important;
+
+  width: 100% !important;
+
+  margin-top: 14px !important;
+}
+
+.player-dashboard .player-core-grid > * {
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+.player-dashboard .player-core-grid > .card {
+  min-height: 190px !important;
+}
+
+.player-dashboard .player-core-grid > .card h2 {
+  color: #ffffff !important;
+}
+
+.player-dashboard .player-core-grid > .card .muted {
+  color: var(--pd-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   PHASE
+   ------------------------------------------------------------ */
+
+.player-dashboard .phase-display {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 15px;
+
+  border: 1px solid rgba(118,92,255,.22) !important;
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(118,92,255,.105),
+      rgba(255,255,255,.025)
+    ) !important;
+}
+
+.player-dashboard .phase-display h3 {
+  margin: 0;
+
+  color: #ffffff !important;
+
+  font-size: 15px;
+}
+
+.player-dashboard .phase-display p {
+  margin: 5px 0 0;
+
+  color: var(--pd-muted) !important;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.player-dashboard .phase-icon {
+  flex: 0 0 auto;
+
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 13px;
+
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+}
+
+.player-dashboard .phase-pill {
+  flex: 0 0 auto;
+
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  color: #ffffff !important;
+
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+/* ------------------------------------------------------------
+   MYSTERY PROGRESS
+   ------------------------------------------------------------ */
+
+.player-dashboard .player-core-grid .card {
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------
+   PROGRESSION GRID
+   ------------------------------------------------------------ */
+
+.player-dashboard .player-progression-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr) !important;
+
+  gap: 14px !important;
+
+  width: 100% !important;
+
+  margin-top: 14px !important;
+}
+
+.player-dashboard .player-progression-grid > * {
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* ------------------------------------------------------------
+   SKILL TREE
+   ------------------------------------------------------------ */
+
+.player-dashboard .skill-tree-card {
+  overflow: hidden !important;
+}
+
+.player-dashboard .skill-tree-card .skill-tree-heading h3,
+.player-dashboard .skill-tree-card h3 {
+  color: #ffffff !important;
+}
+
+.player-dashboard .skill-tree-card p {
+  color: var(--pd-muted);
+}
+
+.player-dashboard .skill-tree-card .progress {
+  height: 9px !important;
+
+  background: rgba(255,255,255,.085) !important;
+  border-radius: 99px !important;
+}
+
+.player-dashboard .skill-tree-card .progress__fill {
+  background: var(--pd-mint) !important;
+  border-radius: 99px !important;
+}
+
+.player-dashboard .skill-node {
+  border-color: rgba(255,255,255,.10) !important;
+  background: rgba(255,255,255,.045) !important;
+  color: var(--pd-subtle) !important;
+}
+
+.player-dashboard .skill-node.done {
+  background: rgba(85,230,166,.20) !important;
+  border-color: rgba(85,230,166,.42) !important;
+  color: var(--pd-mint) !important;
+}
+
+.player-dashboard .skill-node.current {
+  background: rgba(118,92,255,.14) !important;
+  border-color: var(--pd-purple) !important;
+  color: #c6bdff !important;
+
+  box-shadow:
+    0 0 0 6px rgba(118,92,255,.09) !important;
+}
+
+.player-dashboard .skill-line {
+  background: rgba(255,255,255,.10) !important;
+}
+
+.player-dashboard .skill-line.done {
+  background: var(--pd-mint) !important;
+}
+
+/* ------------------------------------------------------------
+   BADGES
+   ------------------------------------------------------------ */
+
+.player-dashboard .badge-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(82px, 1fr)) !important;
+
+  gap: 10px !important;
+}
+
+.player-dashboard .badge {
+  min-height: 82px !important;
+
+  background: rgba(255,255,255,.035) !important;
+  border: 1px solid var(--pd-border) !important;
+  border-radius: 14px !important;
+
+  color: #ffffff !important;
+}
+
+.player-dashboard .badge__icon {
+  background: rgba(118,92,255,.12) !important;
+  color: #bcb0ff !important;
+}
+
+/* ------------------------------------------------------------
+   CHALLENGES
+   ------------------------------------------------------------ */
+
+.player-dashboard .challenge-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+
+  gap: 14px !important;
+
+  width: 100%;
+}
+
+.player-dashboard .challenge-card {
+  min-width: 0 !important;
+
+  padding: 18px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.06),
+      rgba(255,255,255,.025)
+    ) !important;
+
+  border: 1px solid var(--pd-border) !important;
+  border-radius: 16px !important;
+
+  box-shadow: none !important;
+
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background .16s ease !important;
+}
+
+.player-dashboard .challenge-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(118,92,255,.32) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(118,92,255,.08),
+      rgba(255,255,255,.03)
+    ) !important;
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.15) !important;
+}
+
+.player-dashboard .challenge-icon {
+  display: grid !important;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 14px;
+
+  border-radius: 12px;
+
+  background: rgba(118,92,255,.12) !important;
+  color: #bcb0ff !important;
+}
+
+.player-dashboard .challenge-card h3 {
+  margin: 0;
+
+  color: #ffffff !important;
+
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.player-dashboard .challenge-card__content p {
+  margin: 7px 0 0;
+
+  color: var(--pd-muted) !important;
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.player-dashboard .challenge-rewards > div {
+  background: rgba(255,255,255,.045) !important;
+}
+
+.player-dashboard .challenge-rewards small {
+  color: var(--pd-subtle) !important;
+}
+
+.player-dashboard .challenge-rewards strong {
+  color: var(--pd-mint) !important;
+}
+
+.player-dashboard .challenge-card__footer {
+  border-top-color: var(--pd-border) !important;
+  color: var(--pd-subtle) !important;
+}
+
+/* ------------------------------------------------------------
+   MAP
+   ------------------------------------------------------------ */
+
+.player-dashboard .game-map,
+.player-dashboard .map {
+  border: 1px solid var(--pd-border) !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+}
+
+.player-dashboard .map-status {
+  color: var(--pd-mint) !important;
+}
+
+/* ------------------------------------------------------------
+   PRIVACY
+   ------------------------------------------------------------ */
+
+.player-dashboard .privacy-notice {
+  margin-top: 14px !important;
+
+  background: rgba(255,255,255,.025) !important;
+  border: 1px solid var(--pd-border) !important;
+  border-radius: 14px !important;
+
+  color: var(--pd-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   BUTTONS
+   ------------------------------------------------------------ */
+
+.player-dashboard .button,
+.player-dashboard button {
+  font-family: inherit;
+}
+
+.player-dashboard .button--primary {
+  border-color: #5a45d8 !important;
+  background: linear-gradient(135deg, #765cff, #6048e7) !important;
+  color: #ffffff !important;
+
+  border-radius: 10px !important;
+}
+
+.player-dashboard .button--primary:hover {
+  background: linear-gradient(135deg, #856eff, #6b52ef) !important;
+}
+
+/* ------------------------------------------------------------
+   LOADING / ERROR
+   ------------------------------------------------------------ */
+
+.player-dashboard .dashboard-loading,
+.player-dashboard .dashboard-error {
+  min-height: 300px;
+
+  display: grid;
+  place-items: center;
+
+  text-align: center;
+
+  padding: 40px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.06),
+      rgba(255,255,255,.025)
+    ) !important;
+}
+
+.player-dashboard .dashboard-loading h2,
+.player-dashboard .dashboard-error h2 {
+  color: #ffffff !important;
+}
+
+.player-dashboard .loading-orb {
+  width: 54px;
+  height: 54px;
+
+  display: grid;
+  place-items: center;
+
+  margin: 0 auto 15px;
+
+  border-radius: 16px;
+
+  background: rgba(118,92,255,.13) !important;
+  color: #bcb0ff !important;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+/*
+   Keep the asymmetric desktop layout until the viewport is
+   genuinely tablet-sized. The previous 1050px breakpoint was
+   causing laptop-sized screens to collapse into a stack.
+*/
+
+@media (max-width: 900px) {
+  .player-dashboard {
+    width: min(100% - 32px, 720px);
+  }
+
+  .player-dashboard .player-hero,
+  .player-dashboard .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .player-dashboard .player-hero__stats {
+    width: 100%;
+  }
+
+  .player-dashboard .player-hero__stat {
+    flex: 1 1 0;
+  }
+
+  .player-dashboard .player-core-grid,
+  .player-dashboard .player-progression-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .player-dashboard {
+    width: calc(100% - 24px);
+    padding: 16px 0 40px;
+  }
+
+  .player-dashboard .hero,
+  .player-dashboard .player-hero {
+    min-height: 0;
+
+    padding: 22px 19px;
+
+    border-radius: 18px;
+  }
+
+  .player-dashboard .player-hero__main {
+    align-items: flex-start;
+  }
+
+  .player-dashboard .player-hero__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+  }
+
+  .player-dashboard .hero h1,
+  .player-dashboard .player-hero h1 {
+    font-size: 30px;
+  }
+
+  .player-dashboard .player-hero__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .player-dashboard .player-hero__stat {
+    min-width: 0;
+    padding: 12px 14px;
+  }
+
+  .player-dashboard .player-hero__stat strong {
+    font-size: 14px;
+  }
+
+  .player-dashboard .card {
+    padding: 17px !important;
+  }
+
+  .player-dashboard .featured-progress {
+    padding: 19px !important;
+  }
+
+  .player-dashboard .challenge-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .player-dashboard .card-title-row {
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-dashboard *,
+  .player-dashboard *::before,
+  .player-dashboard *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
