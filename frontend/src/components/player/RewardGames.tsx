@@ -167,8 +167,10 @@ function SpinWheel({
   onComplete: () => void;
 }) {
   const [spinning, setSpinning] = useState(false);
-  const [winningPrize, setWinningPrize] = useState<number | null>(null);
-  const [result, setResult] = useState<number | null>(null);
+  const [winningPrize, setWinningPrize] =
+    useState<number | null>(null);
+  const [result, setResult] =
+    useState<number | null>(null);
   const [error, setError] = useState("");
   const [finished, setFinished] = useState(false);
 
@@ -178,17 +180,21 @@ function SpinWheel({
     }
 
     try {
-      setSpinning(true);
-      setWinningPrize(null);
-      setResult(null);
       setError("");
+      setResult(null);
+      setWinningPrize(null);
+      setSpinning(true);
 
-      const response = await playRewardGame(game.play_id);
-      const awardedXp = response.data.awarded_xp;
+      const response =
+        await playRewardGame(game.play_id);
+
+      const awardedXp =
+        response.data.awarded_xp;
 
       setWinningPrize(awardedXp);
     } catch (err) {
       setSpinning(false);
+
       setError(
         getApiErrorMessage(
           err,
@@ -203,14 +209,15 @@ function SpinWheel({
       return;
     }
 
-    setResult(winningPrize);
     setSpinning(false);
+    setResult(winningPrize);
     setFinished(true);
+
     onComplete();
   }
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-violet-300/20 bg-gradient-to-br from-violet-950 via-slate-950 to-slate-900 p-5 shadow-2xl">
+    <article className="reward-game-card reward-game-card--wheel overflow-hidden rounded-3xl border border-violet-300/20 bg-gradient-to-br from-violet-950 via-slate-950 to-slate-900 p-5 shadow-2xl">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <div className="text-xs font-bold uppercase tracking-[0.25em] text-violet-300">
@@ -220,6 +227,12 @@ function SpinWheel({
           <h3 className="mt-1 text-2xl font-black text-white">
             {game.name}
           </h3>
+
+          {game.description && (
+            <p className="mt-2 text-sm text-slate-300">
+              {game.description}
+            </p>
+          )}
         </div>
 
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-400/10 text-2xl">
@@ -227,50 +240,69 @@ function SpinWheel({
         </div>
       </div>
 
-      {game.description && (
-        <p className="mb-5 text-sm text-slate-300">
-          {game.description}
-        </p>
-      )}
-
       <div className="rounded-3xl bg-white p-4 shadow-2xl">
         <RewardWheel
           prizes={game.prize_values}
           winningPrize={winningPrize}
           spinning={spinning}
+          onSpinRequest={spin}
           onFinished={handleWheelFinished}
         />
       </div>
 
-      {!finished ? (
-        <button
-          type="button"
-          disabled={spinning}
-          onClick={spin}
-          className="mt-5 w-full rounded-xl bg-violet-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:bg-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {spinning ? "THE WHEEL IS SPINNING..." : "SPIN THE WHEEL"}
-        </button>
-      ) : (
-        <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-5 text-center">
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
-            Award granted
-          </div>
-
-          <div className="mt-1 text-4xl font-black text-white">
-            +{result?.toLocaleString()} XP
-          </div>
-
-          <p className="mt-2 text-sm text-emerald-200/80">
-            Your reward has been added to your account.
-          </p>
+      {error && (
+        <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+          {error}
         </div>
       )}
 
-      {error && (
-        <div className="mt-3 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-300">
-          {error}
+      {finished && result !== null && (
+        <div
+          className="reward-xp-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="XP reward"
+        >
+          <div className="reward-xp-modal__backdrop" />
+
+          <div className="reward-xp-modal__content">
+            <div className="reward-xp-modal__spark">
+              ★
+            </div>
+
+            <div className="reward-xp-modal__eyebrow">
+              REWARD UNLOCKED
+            </div>
+
+            <div className="reward-xp-modal__amount">
+              +{result.toLocaleString()}
+            </div>
+
+            <div className="reward-xp-modal__xp">
+              XP
+            </div>
+
+            <p>
+              Nice one! Your reward has been
+              added to your XP total.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResult(null);
+              }}
+            >
+              AWESOME!
+            </button>
+          </div>
         </div>
+      )}
+
+      {!finished && !error && (
+        <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.15em] text-violet-300/70">
+          One spin available
+        </p>
       )}
     </article>
   );

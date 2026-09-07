@@ -336,21 +336,14 @@ def play_reward_game(
             detail="This reward game is not currently available.",
         )
 
-    from ..db.models import YouthGroup
+    # Reward games are programme-level rewards.
+    # A player does not need to be assigned to an active youth group.
+    # The player's programme is sufficient for awarding the XP.
 
-    group = (
-        db.query(YouthGroup)
-        .filter(
-            YouthGroup.id == player.group_id,
-            YouthGroup.active.is_(True),
-        )
-        .first()
-    )
-
-    if not group:
+    if player.programme_id is None:
         raise HTTPException(
             status_code=400,
-            detail="Player is not assigned to an active group.",
+            detail="Player is not assigned to a programme.",
         )
 
     prizes = validate_prizes(game.prize_values)
@@ -375,12 +368,11 @@ def play_reward_game(
     try:
         transaction = award_xp(
             db,
-            programme_id=group.programme_id,
+            programme_id=player.programme_id,
             player_id=player.id,
             amount=awarded_xp,
-            # Reward-game XP is positive player progress and therefore
-            # contributes the same amount to the shared squad goal.
-            group_amount=awarded_xp,
+            # No group is required for reward-game XP.
+            group_amount=0,
             transaction_type=(
                 "reward_game_scratch"
                 if game.game_type == RewardGameType.SCRATCH

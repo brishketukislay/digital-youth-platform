@@ -1,10 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { Wheel } from "react-custom-roulette";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import WheelComponent from "react-wheel-of-prizes";
 
 type RewardWheelProps = {
   prizes: number[];
   winningPrize: number | null;
   spinning: boolean;
+  onSpinRequest?: () => void | Promise<void>;
   onFinished?: () => void;
 };
 
@@ -23,93 +29,182 @@ export default function RewardWheel({
   prizes,
   winningPrize,
   spinning,
+  onSpinRequest,
   onFinished,
 }: RewardWheelProps) {
-  const [mustSpin, setMustSpin] = useState(false);
+  const [wheelKey, setWheelKey] = useState(0);
+  const wheelContainerRef = useRef<HTMLDivElement>(null);
+  const hasStartedRef = useRef(false);
 
-  const data = useMemo(
+  const segments = useMemo(
     () =>
-      prizes.map((value, index) => ({
-        option: `${value.toLocaleString()} XP`,
-        style: {
-          backgroundColor: COLORS[index % COLORS.length],
-          textColor: "#FFFFFF",
-        },
-      })),
+      prizes.map(
+        (value) => `${value.toLocaleString()} XP`,
+      ),
     [prizes],
   );
 
-  const prizeNumber = useMemo(() => {
+  const winningSegment = useMemo(() => {
     if (winningPrize === null) {
-      return 0;
+      return segments[0] ?? "";
     }
 
-    const index = prizes.findIndex((value) => value === winningPrize);
+    const index = prizes.findIndex(
+      (value) => value === winningPrize,
+    );
 
-    return index >= 0 ? index : 0;
-  }, [prizes, winningPrize]);
+    return (
+      segments[index >= 0 ? index : 0] ??
+      segments[0] ??
+      ""
+    );
+  }, [prizes, segments, winningPrize]);
 
+  /*
+   * Reset the auto-start guard whenever a new spin begins.
+   */
   useEffect(() => {
-    if (spinning && winningPrize !== null) {
-      setMustSpin(true);
+    if (!spinning) {
+      hasStartedRef.current = false;
     }
-  }, [spinning, winningPrize]);
+  }, [spinning]);
+
+  /*
+   * Once the backend has returned the winning XP, create a fresh
+   * wheel and then click its canvas programmatically.
+   *
+   * react-wheel-of-prizes starts its animation from a canvas click.
+   */
+  useEffect(() => {
+    if (
+      !spinning ||
+      winningPrize === null ||
+      !winningSegment ||
+      hasStartedRef.current
+    ) {
+      return;
+    }
+
+    hasStartedRef.current = true;
+    setWheelKey((value) => value + 1);
+  }, [spinning, winningPrize, winningSegment]);
+
+  /*
+   * The new WheelComponent needs to mount before its canvas can
+   * receive the synthetic click.
+   */
+  useEffect(() => {
+    if (
+      !spinning ||
+      winningPrize === null ||
+      !hasStartedRef.current
+    ) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      const canvas =
+        wheelContainerRef.current?.querySelector(
+          "canvas",
+        ) as HTMLCanvasElement | null;
+
+      if (canvas) {
+        canvas.click();
+      }
+    }, 80);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [wheelKey, spinning, winningPrize]);
 
   if (!prizes.length) {
     return (
-      <div className="flex min-h-[360px] items-center justify-center">
-        <p className="text-slate-500">No prizes configured.</p>
+      <div className="reward-wheel-container reward-wheel-container--empty">
+        <p>No prizes configured.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-6">
-      <div className="relative flex items-center justify-center">
-        <Wheel
-          mustStartSpinning={mustSpin}
-          prizeNumber={prizeNumber}
-          data={data}
-          backgroundColors={COLORS}
-          textColors={["#FFFFFF"]}
-          outerBorderColor="#111827"
-          outerBorderWidth={8}
-          innerBorderColor="#FFFFFF"
-          innerBorderWidth={4}
-          radiusLineColor="#FFFFFF"
-          radiusLineWidth={2}
-          fontFamily="Inter, system-ui, sans-serif"
-          fontSize={18}
-          fontWeight="700"
-          spinDuration={1.4}
-          perpendicularText={false}
-          textDistance={58}
-          onStopSpinning={() => {
-            setMustSpin(false);
+    <div className="reward-wheel-container">
+      <div className="reward-wheel-container__pointer">
+        <span>▼</span>
+      </div>
+
+      <div
+        ref={wheelContainerRef}
+        className="reward-wheel-container__wheel"
+        onClick={() => {
+          if (
+            !spinning &&
+            winningPrize === null
+          ) {
+            void onSpinRequest?.();
+          }
+        }}
+        onKeyDown={(event) => {
+          if (
+            (event.key === "Enter" ||
+              event.key === " ") &&
+            !spinning &&
+            winningPrize === null
+          ) {
+            event.preventDefault();
+            void onSpinRequest?.();
+          }
+        }}
+        role="button"
+        tabIndex={
+          spinning || winningPrize !== null
+            ? -1
+            : 0
+        }
+        aria-label="Spin the reward wheel"
+      >
+        <WheelComponent
+          key={wheelKey}
+          segments={segments}
+          segColors={COLORS}
+          winningSegment={winningSegment}
+          onFinished={() => {
             onFinished?.();
           }}
+          primaryColor="#111827"
+          contrastColor="#FFFFFF"
+          buttonText="SPIN"
+          isOnlyOnce={true}
+          upDuration={150}
+          downDuration={4000}
+          fontFamily="Inter, system-ui, sans-serif"
+          fontSize="18px"
+          size={300}
+          outlineWidth={10}
         />
       </div>
 
-      <div className="text-center">
-        {mustSpin ? (
-          <p className="text-lg font-semibold text-slate-700">
-            Spinning...
-          </p>
+      <div className="reward-wheel-container__hint">
+        {spinning ? (
+          <>
+            <span className="reward-wheel-container__hint-icon">
+              ✦
+            </span>
+            The wheel is spinning...
+          </>
         ) : winningPrize !== null ? (
-          <div className="rounded-2xl bg-emerald-50 px-8 py-5 ring-1 ring-emerald-200">
-            <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
-              Award granted
-            </p>
-
-            <p className="mt-1 text-4xl font-black text-emerald-900">
-              +{winningPrize.toLocaleString()} XP
-            </p>
-          </div>
+          <>
+            <span className="reward-wheel-container__hint-icon">
+              🎉
+            </span>
+            You won XP!
+          </>
         ) : (
-          <p className="text-slate-500">
-            Spin to win an award
-          </p>
+          <>
+            <span className="reward-wheel-container__hint-icon">
+              ✨
+            </span>
+            Click the wheel to spin!
+          </>
         )}
       </div>
     </div>
