@@ -4,6 +4,8 @@ import {
   useState,
 } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import YouthWorkerGroups from "../../components/youth-worker/YouthWorkerGroups";
 import YouthWorkerSkillPlans from "../../components/youth-worker/YouthWorkerSkillPlans";
 
@@ -18,6 +20,7 @@ import {
   removePlayerFromStaffGroup,
   awardXP as awardPlayerXP,
   getApiErrorMessage,
+  logout,
   getStaffChallenges,
 getStaffChallengeAttempts,
 verifyChallengeAttempt,
@@ -84,6 +87,18 @@ type Modal =
   | null;
 
 export default function YouthWorkerDashboard() {
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    try {
+      await logout();
+    } catch {
+      // Still leave the dashboard if the server logout request fails.
+    } finally {
+      navigate("/login", { replace: true });
+    }
+  }
+
   const [overview, setOverview] =
     useState<AdminOverview | null>(null);
 
@@ -581,17 +596,29 @@ const [awardModal, setAwardModal] = useState<{
           </p>
         </div>
 
-        <button
-          className="button button--secondary"
-          type="button"
-          disabled={loading}
-          onClick={() => {
-            setLoading(true);
-            void load();
-          }}
-        >
-          ↻ Refresh
-        </button>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            className="button button--secondary"
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setLoading(true);
+              void load();
+            }}
+          >
+            ↻ Refresh
+          </button>
+
+          <button
+            className="button button--secondary"
+            type="button"
+            onClick={() => {
+              void handleSignOut();
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       </header>
 
       {error && (

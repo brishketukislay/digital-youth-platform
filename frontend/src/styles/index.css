@@ -14,3 +14,125 @@
 @import "./animations.css";
 @import "./responsive.css";
 @import "./dyp-modern-dashboard.css";
+
+/* =========================================================
+   YOUTH WORKER — SIGN OUT
+   ========================================================= */
+
+.yw-signout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 40px;
+  padding: 9px 14px;
+
+  border: 1px solid #d9e3de;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #33443e;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.yw-signout-button:hover {
+  background: #fff5f5;
+  border-color: #e5baba;
+  color: #b43f3f;
+}
+
+.yw-signout-button:active {
+  transform: translateY(1px);
+}
+
+.yw-signout-button:focus-visible {
+  outline: 2px solid #43b98b;
+  outline-offset: 2px;
+}
+
+.yw-signout-button svg {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   YOUTH WORKER — VISIBLE SIGN OUT
+   ========================================================= */
+
+.yw-signout-button {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 9999;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 42px;
+  padding: 10px 16px;
+
+  border: 1px solid #d8e1dd;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #263832;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 14px rgba(21, 33, 29, 0.12);
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.yw-signout-button:hover {
+  background: #fff5f5;
+  border-color: #e2b5b5;
+  color: #b33f3f;
+  box-shadow:
+    0 6px 18px rgba(179, 63, 63, 0.14);
+}
+
+.yw-signout-button:active {
+  transform: translateY(1px);
+}
+
+.yw-signout-button:focus-visible {
+  outline: 2px solid #43b98b;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .yw-signout-button {
+    top: 12px;
+    right: 12px;
+    min-height: 38px;
+    padding: 8px 11px;
+  }
+
+  .yw-signout-button span {
+    display: none;
+  }
+}
