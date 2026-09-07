@@ -64,19 +64,19 @@ export function JackpotTracker({
   );
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-slate-900">
-      <div className="border-b border-white/10 px-5 py-5 sm:px-6">
+    <section className="admin-jackpot-card admin-jackpot-tracker">
+      <div className="admin-jackpot-tracker__header">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.18em] text-amber-400">
+            <div className="admin-jackpot-hero__eyebrow">
               Collective jackpot
             </div>
 
-            <h2 className="mt-1 text-xl font-black">
+            <h2 className="admin-jackpot-hero__title">
               Programme reward progression
             </h2>
 
-            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+            <p className="admin-jackpot-hero__description">
               The group XP pool progresses through shared
               milestones. Individual XP and the collective
               jackpot remain separate concepts.
@@ -84,30 +84,30 @@ export function JackpotTracker({
           </div>
 
           <div className="md:text-right">
-            <div className="text-2xl font-black">
+            <div className="admin-jackpot-current-xp">
               {formatXp(currentXp)}
-              <span className="ml-2 text-sm font-medium text-slate-500">
+              <span className="admin-jackpot-current-xp__unit">
                 XP
               </span>
             </div>
 
-            <div className="mt-1 text-xs text-slate-500">
+            <div className="admin-jackpot-current-xp__remaining">
               {formatXp(remaining)} XP remaining
             </div>
           </div>
         </div>
 
-        <div className="mt-6">
-          <div className="h-4 overflow-hidden rounded-full bg-black/30 p-1">
+        <div className="admin-jackpot-progress-wrap">
+          <div className="admin-jackpot-progress">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 transition-all duration-700"
+              className="admin-jackpot-progress__fill"
               style={{
                 width: `${progress}%`,
               }}
             />
           </div>
 
-          <div className="mt-2 flex justify-between text-xs text-slate-500">
+          <div className="admin-jackpot-progress__labels">
             <span>0 XP</span>
 
             <span>
@@ -121,7 +121,7 @@ export function JackpotTracker({
         </div>
       </div>
 
-      <div className="grid gap-3 p-5 sm:p-6 lg:grid-cols-3">
+      <div className="admin-jackpot-milestones">
         {milestones.map((milestone) => (
           <MilestoneCard
             key={milestone.id}
@@ -132,19 +132,19 @@ export function JackpotTracker({
       </div>
 
       {nextMilestone && (
-        <div className="border-t border-white/10 bg-white/[0.02] px-5 py-4 sm:px-6">
+        <div className="admin-jackpot-next">
           <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
             <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <div className="admin-jackpot-next__label">
                 Next milestone
               </div>
 
-              <div className="mt-1 font-bold text-white">
+              <div className="admin-jackpot-next__title">
                 {nextMilestone.label}
               </div>
             </div>
 
-            <div className="text-sm font-semibold text-amber-300">
+            <div className="admin-jackpot-next__value">
               {formatXp(
                 Math.max(
                   0,
@@ -182,21 +182,21 @@ function MilestoneCard({
   return (
     <div
       className={[
-        "relative overflow-hidden rounded-xl border p-4 transition",
+        "admin-jackpot-tier",
         reached
-          ? "border-emerald-400/20 bg-emerald-400/5"
-          : "border-white/10 bg-black/10",
+          ? "admin-jackpot-tier--reached"
+          : "",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="admin-jackpot-next__label">
             {milestone.label}
           </div>
 
-          <div className="mt-2 text-xl font-black">
+          <div className="admin-jackpot-tier__target">
             {formatXp(milestone.xp)}
-            <span className="ml-1 text-xs font-medium text-slate-500">
+            <span className="admin-jackpot-tier__unit">
               XP
             </span>
           </div>
@@ -206,21 +206,21 @@ function MilestoneCard({
           className={[
             "flex h-8 w-8 items-center justify-center rounded-full text-sm",
             reached
-              ? "bg-emerald-400/10 text-emerald-300"
-              : "bg-white/5 text-slate-500",
+              ? "admin-jackpot__milestone-mark--active"
+              : "",
           ].join(" ")}
         >
           {reached ? "✓" : "○"}
         </div>
       </div>
 
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/5">
+      <div className="admin-jackpot-tier__progress">
         <div
           className={[
-            "h-full rounded-full transition-all duration-500",
+            "admin-jackpot-tier__progress-fill",
             reached
-              ? "bg-emerald-400"
-              : "bg-amber-400",
+              ? "admin-jackpot-tier__progress-fill--reached"
+              : "",
           ].join(" ")}
           style={{
             width: `${progress}%`,
@@ -228,13 +228,13 @@ function MilestoneCard({
         />
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="admin-jackpot-tier__footer">
         <div>
-          <div className="text-xs text-slate-500">
+          <div className="admin-jackpot-tier__reward-label">
             Reward
           </div>
 
-          <div className="mt-0.5 text-sm font-bold text-white">
+          <div className="admin-jackpot-tier__reward">
             {milestone.rewardLabel ??
               formatCurrency(
                 milestone.rewardAmount,
@@ -242,13 +242,13 @@ function MilestoneCard({
           </div>
         </div>
 
-        <div className="text-xs font-semibold">
+        <div className="admin-jackpot-tier__status">
           {reached ? (
-            <span className="text-emerald-300">
+            <span className="">
               Achieved
             </span>
           ) : (
-            <span className="text-slate-500">
+            <span className="">
               {progress.toFixed(0)}%
             </span>
           )}

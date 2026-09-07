@@ -5,7 +5,6 @@ import {
   useState,
 } from "react";
 
-import Layout from "../../components/Layout";
 
 import {
   GameMap,
@@ -1046,7 +1045,7 @@ export default function AdminProgramme() {
 
   if (loading) {
     return (
-      <Layout title="Programme Configuration">
+      <div className="admin-programme-page">
         <section className="hero">
           <div className="eyebrow hero-eyebrow">
             PROGRAMME
@@ -1071,13 +1070,13 @@ export default function AdminProgramme() {
             </span>
           </div>
         </section>
-      </Layout>
+      </div>
     );
   }
 
   if (!programme) {
     return (
-      <Layout title="Programme Configuration">
+      <div className="admin-programme-page">
         <section className="hero">
           <div className="eyebrow hero-eyebrow">
             PROGRAMME
@@ -1099,7 +1098,7 @@ export default function AdminProgramme() {
             {error}
           </div>
         )}
-      </Layout>
+      </div>
     );
   }
 
@@ -1108,7 +1107,7 @@ export default function AdminProgramme() {
   ========================================================== */
 
   return (
-    <Layout title="Programme Configuration">
+    <div className="admin-programme-page">
       <section className="hero">
         <div className="eyebrow hero-eyebrow">
           PROGRAMME CONTROL
@@ -2775,7 +2774,7 @@ export default function AdminProgramme() {
           />
         </div>
       </section>
-    </Layout>
+    </div>
   );
 }
 

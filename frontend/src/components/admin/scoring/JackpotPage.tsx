@@ -40,17 +40,7 @@ export function JackpotPage() {
   const targetXp = 1_500_000;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">
-          Jackpot
-        </h2>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Monitor collective progression and programme
-          reward milestones.
-        </p>
-      </div>
+    <div className="admin-jackpot-page">
 
       <JackpotTracker
         currentXp={currentXp}
@@ -65,36 +55,36 @@ export function JackpotPage() {
 
 function ExceptionalGroupLoss() {
   return (
-    <section className="rounded-2xl border border-red-400/20 bg-red-400/5 p-5 sm:p-6">
+    <section className="admin-jackpot-warning">
       <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-400/10 text-red-300">
+        <div className="admin-jackpot-warning__icon">
           !
         </div>
 
         <div>
-          <h3 className="font-bold text-red-200">
+          <h3 className="admin-jackpot-warning__title">
             Exceptional group point loss
           </h3>
 
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-red-200/60">
+          <p className="admin-jackpot-warning__text">
             Group XP should only be reduced where the
             programme's exceptional group-loss protocol has
             been satisfied. Isolated individual behaviour
             must never reduce the collective jackpot.
           </p>
 
-          <div className="mt-4 grid gap-2 text-xs text-red-200/60 sm:grid-cols-3">
+          <div className="admin-jackpot-warning__requirements">
             <Requirement text="Collective complicity" />
             <Requirement text="Severe shared impact" />
             <Requirement text="Passive group endorsement" />
           </div>
 
-          <div className="mt-5 rounded-xl border border-red-400/10 bg-black/10 p-4">
-            <div className="text-xs font-bold uppercase tracking-wider text-red-300/70">
+          <div className="admin-jackpot-warning__guardrail">
+            <div className="admin-jackpot-warning__guardrail-label">
               Administrative guardrail
             </div>
 
-            <div className="mt-2 text-sm text-red-200/70">
+            <div className="admin-jackpot-warning__guardrail-text">
               Maximum single deduction: 10% of the current
               programme target.
             </div>
@@ -111,7 +101,7 @@ function Requirement({
   text: string;
 }) {
   return (
-    <div className="rounded-lg border border-red-400/10 bg-black/10 px-3 py-2">
+    <div className="admin-jackpot-warning__requirement">
       {text}
     </div>
   );

@@ -322,24 +322,24 @@ export function PointEconomy() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 text-sm text-slate-400">
+      <div className="admin-point-economy__state">
         Loading point economy…
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="admin-point-economy">
       {error && (
         <div
           role="alert"
-          className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300"
+          className="admin-point-economy__alert"
         >
           {error}
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="admin-point-economy__summary">
         <Metric
           label="Group weekly yield"
           value={`${projection.groupWeeklyYield.toLocaleString(
@@ -373,26 +373,26 @@ export function PointEconomy() {
         />
       </div>
 
-      <section className="rounded-2xl border border-white/10 bg-slate-900 p-5 sm:p-6">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      <section className="admin-point-economy__card">
+        <div className="admin-point-economy__card-header">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-400">
+            <div className="admin-eyebrow">
               Projection
             </div>
 
-            <h2 className="mt-1 text-lg font-bold">
+            <h2 className="admin-point-economy__title">
               Programme economy
             </h2>
 
-            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+            <p className="admin-point-economy__description">
               The projection uses configured point rules and the
               authoritative current collective XP. It does not award XP.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          <div className="admin-point-economy__controls">
+            <label className="admin-point-economy__control">
+              <span className="admin-point-economy__label">
                 Programme weeks
               </span>
 
@@ -413,16 +413,16 @@ export function PointEconomy() {
                     ),
                   )
                 }
-                className="w-32 rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400/50"
+                className="admin-point-economy__input"
               />
             </label>
 
             <div>
-              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <span className="admin-point-economy__label">
                 Weekly target
               </span>
 
-              <div className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-300">
+              <div className="admin-point-economy__readonly">
                 {weeklyTargetXp === null
                   ? "Not set"
                   : `${weeklyTargetXp.toLocaleString(
@@ -433,7 +433,7 @@ export function PointEconomy() {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="admin-point-economy__projection">
           <EconomyHealth
             projection={
               projection
@@ -441,7 +441,7 @@ export function PointEconomy() {
           />
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="admin-point-economy__projection-stats">
           <EconomyMetric
             label="Projected group XP"
             value={`${projection.projectedGroupXp.toLocaleString(
@@ -471,12 +471,12 @@ export function PointEconomy() {
       </section>
 
       <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-bold">
+        <div className="admin-point-economy__section-header">
+          <h2 className="admin-point-economy__section-title">
             Point rules
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="admin-point-economy__section-description">
             Individual XP drives personal progression. Group XP drives the
             collective jackpot. Changing a rule affects future awards and
             does not rewrite historical XP.
@@ -485,7 +485,7 @@ export function PointEconomy() {
 
         {calculations.length ===
         0 ? (
-          <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 text-sm text-slate-400">
+          <div className="admin-point-economy__state">
             No point rules have been configured yet.
           </div>
         ) : (
@@ -527,16 +527,16 @@ function Metric({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900 p-5">
-      <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+    <div className="admin-point-economy__metric">
+      <div className="admin-point-economy__metric-label">
         {label}
       </div>
 
-      <div className="mt-3 text-2xl font-black">
+      <div className="admin-point-economy__metric-value">
         {value}
       </div>
 
-      <div className="mt-2 text-xs text-slate-500">
+      <div className="admin-point-economy__metric-note">
         {description}
       </div>
     </div>
@@ -551,12 +551,12 @@ function EconomyMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+    <div className="admin-point-economy__projection-card">
+      <div className="admin-point-economy__projection-label">
         {label}
       </div>
 
-      <div className="mt-2 text-lg font-bold text-white">
+      <div className="admin-point-economy__projection-value">
         {value}
       </div>
     </div>
