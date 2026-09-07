@@ -45,7 +45,9 @@ function Wheel({
 
   const background = useMemo(() => {
     const stops = prizes.map((_, index) => {
-      const colour = WHEEL_COLOURS[index % WHEEL_COLOURS.length];
+      const colour =
+        WHEEL_COLOURS[index % WHEEL_COLOURS.length];
+
       const start = index * segmentAngle;
       const end = (index + 1) * segmentAngle;
 
@@ -109,52 +111,6 @@ function Wheel({
   );
 }
 
-function Celebration({
-  amount,
-}: {
-  amount: number;
-}) {
-  return (
-    <div className="reward-celebration">
-      {Array.from({ length: 18 }).map((_, index) => (
-        <span
-          key={index}
-          className="reward-confetti"
-          style={{
-            left: `${8 + ((index * 17) % 84)}%`,
-            animationDelay: `${(index % 6) * 70}ms`,
-            background:
-              WHEEL_COLOURS[
-                index % WHEEL_COLOURS.length
-              ],
-          }}
-        />
-      ))}
-
-      <div className="reward-celebration__icon">
-        ★
-      </div>
-
-      <div className="reward-celebration__eyebrow">
-        REWARD UNLOCKED
-      </div>
-
-      <div className="reward-celebration__amount">
-        +{amount.toLocaleString()}
-      </div>
-
-      <div className="reward-celebration__xp">
-        XP
-      </div>
-
-      <div className="reward-celebration__message">
-        Nice one! Your reward has been added to
-        your XP total.
-      </div>
-    </div>
-  );
-}
-
 function SpinWheel({
   game,
   onComplete,
@@ -181,13 +137,13 @@ function SpinWheel({
       setWinningPrize(null);
       setSpinning(true);
 
-      const response =
-        await playRewardGame(game.play_id);
+      const response = await playRewardGame(
+        game.play_id,
+      );
 
-      const awardedXp =
-        response.data.awarded_xp;
-
-      setWinningPrize(awardedXp);
+      setWinningPrize(
+        response.data.awarded_xp,
+      );
     } catch (err) {
       setSpinning(false);
 
@@ -279,8 +235,8 @@ function SpinWheel({
             </div>
 
             <p>
-              Nice one! Your reward has been
-              added to your XP total.
+              Nice one! Your reward has been added to
+              your XP total.
             </p>
 
             <button
@@ -311,116 +267,93 @@ function ScratchCard({
   game: PlayerRewardGame;
   onComplete: () => void;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasRef =
+    useRef<HTMLCanvasElement | null>(null);
 
-  const [started, setStarted] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const cardRef =
+    useRef<HTMLDivElement | null>(null);
+
   const [winningPrize, setWinningPrize] =
     useState<number | null>(null);
+
+  const [started, setStarted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [error, setError] = useState("");
+  const [isScratching, setIsScratching] =
+    useState(false);
 
   const drawingRef = useRef(false);
-  const lastPointRef = useRef<{
-    x: number;
-    y: number;
-  } | null>(null);
+  const apiRequestRef = useRef(false);
+  const rewardReceivedRef = useRef(false);
+  const revealTriggeredRef = useRef(false);
 
-  const scratchedRef = useRef(0);
-  const revealedRef = useRef(false);
+  const lastPointRef =
+    useRef<{ x: number; y: number } | null>(null);
 
-  console.log(
-    "[ScratchCard] rendering",
-    game.name,
-    game.game_type,
-    game.play_id,
-  );
+  const scratchCountRef = useRef(0);
 
-  async function startScratch() {
-    if (loading || started || finished) {
-      return;
-    }
-
-    try {
-      console.log(
-        "[ScratchCard] starting play",
-        game.play_id,
-      );
-
-      setLoading(true);
-      setError("");
-
-      const response =
-        await playRewardGame(game.play_id);
-
-      console.log(
-        "[ScratchCard] play response",
-        response.data,
-      );
-
-      setWinningPrize(
-        response.data.awarded_xp,
-      );
-
-      setStarted(true);
-    } catch (err) {
-      console.error(
-        "[ScratchCard] play failed",
-        err,
-      );
-
-      setError(
-        getApiErrorMessage(
-          err,
-          "The scratch card could not be started.",
-        ),
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!started || winningPrize === null) {
-      return;
-    }
-
+  /*
+   * Draw the silver scratch layer.
+   *
+   * The canvas is deliberately painted BEFORE the reward
+   * request completes. This means the user can interact
+   * immediately and the component behaves like a real
+   * scratch card.
+   */
+  function drawScratchSurface() {
     const canvas = canvasRef.current;
+    const card = cardRef.current;
 
-    if (!canvas) {
-      console.error(
-        "[ScratchCard] canvas not found",
-      );
+    if (!canvas || !card) {
       return;
     }
 
-    const rect =
-      canvas.getBoundingClientRect();
+    const rect = card.getBoundingClientRect();
 
-    const width = rect.width;
-    const height = rect.height;
+    if (
+      rect.width <= 0 ||
+      rect.height <= 0
+    ) {
+      return;
+    }
 
-    const dpr =
+    const dpr = Math.min(
       Math.max(
-        1,
         window.devicePixelRatio || 1,
-      );
+        1,
+      ),
+      2,
+    );
 
-    canvas.width =
-      Math.round(width * dpr);
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
 
-    canvas.height =
-      Math.round(height * dpr);
+    canvas.width = Math.round(
+      width * dpr,
+    );
 
-    const ctx =
-      canvas.getContext("2d");
+    canvas.height = Math.round(
+      height * dpr,
+    );
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      console.error(
-        "[ScratchCard] canvas context unavailable",
-      );
       return;
     }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
 
     ctx.setTransform(
       dpr,
@@ -432,7 +365,7 @@ function ScratchCard({
     );
 
     /*
-     * Silver scratch surface.
+     * Main silver metallic gradient.
      */
     const gradient =
       ctx.createLinearGradient(
@@ -448,13 +381,33 @@ function ScratchCard({
     );
 
     gradient.addColorStop(
-      0.5,
+      0.18,
+      "#cbd5e1",
+    );
+
+    gradient.addColorStop(
+      0.38,
+      "#94a3b8",
+    );
+
+    gradient.addColorStop(
+      0.52,
+      "#f8fafc",
+    );
+
+    gradient.addColorStop(
+      0.68,
+      "#94a3b8",
+    );
+
+    gradient.addColorStop(
+      0.86,
       "#cbd5e1",
     );
 
     gradient.addColorStop(
       1,
-      "#64748b",
+      "#475569",
     );
 
     ctx.globalCompositeOperation =
@@ -470,63 +423,174 @@ function ScratchCard({
     );
 
     /*
-     * Scratch card border.
+     * Metallic diagonal texture.
      */
-    ctx.strokeStyle =
-      "rgba(255,255,255,0.35)";
+    ctx.save();
 
-    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 5;
 
-    ctx.strokeRect(
-      2,
-      2,
-      width - 4,
-      height - 4,
+    for (
+      let x = -height;
+      x < width + height;
+      x += 24
+    ) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(
+        x + height,
+        height,
+      );
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    /*
+     * Dark edge shading.
+     */
+    const shade =
+      ctx.createLinearGradient(
+        0,
+        0,
+        0,
+        height,
+      );
+
+    shade.addColorStop(
+      0,
+      "rgba(15, 23, 42, 0.18)",
+    );
+
+    shade.addColorStop(
+      0.5,
+      "rgba(15, 23, 42, 0)",
+    );
+
+    shade.addColorStop(
+      1,
+      "rgba(15, 23, 42, 0.2)",
+    );
+
+    ctx.fillStyle = shade;
+
+    ctx.fillRect(
+      0,
+      0,
+      width,
+      height,
     );
 
     /*
-     * Main instruction.
+     * Instruction text.
      */
-    ctx.fillStyle =
-      "rgba(255,255,255,0.95)";
-
-    ctx.font =
-      "900 23px system-ui";
-
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+
+    ctx.fillStyle =
+      "rgba(15, 23, 42, 0.72)";
+
+    ctx.font =
+      "900 21px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
 
     ctx.fillText(
       "SCRATCH TO REVEAL",
       width / 2,
-      height / 2 - 15,
+      height / 2 - 14,
     );
 
-    ctx.font =
-      "700 14px system-ui";
-
     ctx.fillStyle =
-      "rgba(255,255,255,0.75)";
+      "rgba(15, 23, 42, 0.48)";
+
+    ctx.font =
+      "700 12px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
 
     ctx.fillText(
       "Your XP reward is underneath",
       width / 2,
-      height / 2 + 20,
+      height / 2 + 18,
+    );
+  }
+
+  /*
+   * The scratch layer is painted once when the component
+   * appears.
+   */
+  useEffect(() => {
+    drawScratchSurface();
+  }, []);
+
+  /*
+   * Handle browser resizing without restoring the scratch
+   * surface after the user has started interacting.
+   */
+  useEffect(() => {
+    function handleResize() {
+      if (
+        drawingRef.current ||
+        scratchCountRef.current > 0
+      ) {
+        return;
+      }
+
+      drawScratchSurface();
+    }
+
+    window.addEventListener(
+      "resize",
+      handleResize,
     );
 
-    scratchedRef.current = 0;
-    revealedRef.current = false;
-    lastPointRef.current = null;
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleResize,
+      );
+    };
+  }, []);
 
-    console.log(
-      "[ScratchCard] canvas initialized",
-      {
-        width,
-        height,
-        dpr,
-      },
-    );
-  }, [started, winningPrize]);
+  /*
+   * Start the backend game exactly once.
+   */
+  async function startGame() {
+    if (
+      apiRequestRef.current ||
+      rewardReceivedRef.current ||
+      finished
+    ) {
+      return;
+    }
+
+    apiRequestRef.current = true;
+    setLoading(true);
+    setError("");
+
+    try {
+      const response =
+        await playRewardGame(
+          game.play_id,
+        );
+
+      setWinningPrize(
+        response.data.awarded_xp,
+      );
+
+      rewardReceivedRef.current = true;
+      setStarted(true);
+    } catch (err) {
+      apiRequestRef.current = false;
+
+      setError(
+        getApiErrorMessage(
+          err,
+          "The scratch card could not be started.",
+        ),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function getPoint(
     event: React.PointerEvent<HTMLCanvasElement>,
@@ -540,149 +604,162 @@ function ScratchCard({
     const rect =
       canvas.getBoundingClientRect();
 
+    if (
+      rect.width <= 0 ||
+      rect.height <= 0
+    ) {
+      return null;
+    }
+
     return {
       x:
         event.clientX -
         rect.left,
-
       y:
         event.clientY -
         rect.top,
     };
   }
 
-  function reveal() {
-    if (
-      revealedRef.current ||
-      winningPrize === null
-    ) {
-      return;
-    }
-
-    console.log(
-      "[ScratchCard] REVEAL",
-      winningPrize,
-    );
-
-    revealedRef.current = true;
-
-    setFinished(true);
-
-    /*
-     * Do NOT immediately reload the games here.
-     *
-     * The component needs to show the result first.
-     */
-  }
-
-  function checkScratchProgress() {
-    const canvas =
-      canvasRef.current;
+  /*
+   * Calculate how much of the silver surface has been
+   * removed.
+   *
+   * We sample every 8th pixel for performance.
+   */
+  function getScratchPercentage() {
+    const canvas = canvasRef.current;
 
     if (!canvas) {
-      return;
+      return 0;
     }
 
-    const ctx =
-      canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      return;
+      return 0;
     }
 
-    scratchedRef.current += 1;
-
-    /*
-     * Don't scan the whole canvas on every
-     * pointer event.
-     */
-    if (
-      scratchedRef.current % 15 !== 0
-    ) {
-      return;
-    }
+    const width = canvas.width;
+    const height = canvas.height;
 
     const image =
       ctx.getImageData(
         0,
         0,
-        canvas.width,
-        canvas.height,
+        width,
+        height,
       );
 
+    const step = 8;
+
+    let total = 0;
     let transparent = 0;
 
     for (
-      let i = 3;
-      i < image.data.length;
-      i += 4
+      let y = 0;
+      y < height;
+      y += step
     ) {
-      if (
-        image.data[i] < 80
+      for (
+        let x = 0;
+        x < width;
+        x += step
       ) {
-        transparent += 1;
+        const alpha =
+          image.data[
+            (y * width + x) * 4 + 3
+          ];
+
+        total += 1;
+
+        if (alpha < 100) {
+          transparent += 1;
+        }
       }
     }
 
-    const total =
-      image.data.length / 4;
-
-    const percentage =
-      transparent / total;
-
-    console.log(
-      "[ScratchCard] scratched",
-      Math.round(
-        percentage * 100,
-      ) + "%",
-    );
-
-    if (
-      percentage >= 0.35
-    ) {
-      reveal();
+    if (total === 0) {
+      return 0;
     }
+
+    return transparent / total;
   }
 
-  function scratch(
-    event: React.PointerEvent<HTMLCanvasElement>,
-  ) {
+  function reveal() {
     if (
-      !started ||
-      finished ||
-      winningPrize === null ||
-      revealedRef.current
+      revealTriggeredRef.current ||
+      winningPrize === null
     ) {
       return;
     }
 
-    const canvas =
-      canvasRef.current;
+    revealTriggeredRef.current = true;
+
+    drawingRef.current = false;
+
+    setIsScratching(false);
+    setFinished(true);
+  }
+
+  function performScratch(
+    event: React.PointerEvent<HTMLCanvasElement>,
+  ) {
+    if (
+      finished ||
+      !started ||
+      winningPrize === null ||
+      revealTriggeredRef.current
+    ) {
+      return;
+    }
+
+    const canvas = canvasRef.current;
 
     if (!canvas) {
       return;
     }
 
-    const ctx =
-      canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
     if (!ctx) {
       return;
     }
 
-    const point =
-      getPoint(event);
+    const point = getPoint(event);
 
     if (!point) {
       return;
     }
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const scaleX =
+      canvas.width / rect.width;
+
+    const scaleY =
+      canvas.height / rect.height;
+
+    const x = point.x * scaleX;
+    const y = point.y * scaleY;
 
     ctx.globalCompositeOperation =
       "destination-out";
 
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.lineWidth = 55;
+
+    /*
+     * Large brush makes the interaction feel good on both
+     * touch screens and mouse/trackpads.
+     */
+    ctx.lineWidth =
+      50 *
+      Math.min(
+        scaleX,
+        scaleY,
+      );
 
     const previous =
       lastPointRef.current;
@@ -695,38 +772,120 @@ function ScratchCard({
         previous.y,
       );
 
-      ctx.lineTo(
-        point.x,
-        point.y,
-      );
+      ctx.lineTo(x, y);
     } else {
-      ctx.moveTo(
-        point.x,
-        point.y,
-      );
+      ctx.moveTo(x, y);
 
       ctx.lineTo(
-        point.x + 1,
-        point.y + 1,
+        x + 0.01,
+        y + 0.01,
       );
     }
 
     ctx.stroke();
 
-    lastPointRef.current =
-      point;
+    lastPointRef.current = {
+      x,
+      y,
+    };
 
-    checkScratchProgress();
+    scratchCountRef.current += 1;
+
+    /*
+     * Don't scan the entire canvas for every pointer
+     * movement.
+     */
+    if (
+      scratchCountRef.current % 12 !== 0
+    ) {
+      return;
+    }
+
+    /*
+     * Only reveal once the backend has supplied the
+     * actual reward.
+     */
+    if (!rewardReceivedRef.current) {
+      return;
+    }
+
+    const percentage =
+      getScratchPercentage();
+
+    /*
+     * 42% gives a satisfying amount of scratching while
+     * avoiding the need to scrub the entire card.
+     */
+    if (percentage >= 0.42) {
+      reveal();
+    }
   }
 
-  function finishPointer(
-    event?: React.PointerEvent<HTMLCanvasElement>,
+  function handlePointerDown(
+    event: React.PointerEvent<HTMLCanvasElement>,
+  ) {
+    if (finished) {
+      return;
+    }
+
+    event.preventDefault();
+
+    drawingRef.current = true;
+    lastPointRef.current = null;
+
+    setIsScratching(true);
+
+    event.currentTarget.setPointerCapture(
+      event.pointerId,
+    );
+
+    /*
+     * The first scratch starts the backend request.
+     *
+     * If the reward is already available, the scratch is
+     * applied immediately.
+     */
+    if (!started) {
+      void startGame();
+      return;
+    }
+
+    performScratch(event);
+  }
+
+  function handlePointerMove(
+    event: React.PointerEvent<HTMLCanvasElement>,
+  ) {
+    if (
+      !drawingRef.current ||
+      finished
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    /*
+     * If the first API request is still running, we wait.
+     * The scratch surface remains visually intact until
+     * the reward is known.
+     */
+    if (!started) {
+      return;
+    }
+
+    performScratch(event);
+  }
+
+  function handlePointerUp(
+    event: React.PointerEvent<HTMLCanvasElement>,
   ) {
     drawingRef.current = false;
     lastPointRef.current = null;
 
+    setIsScratching(false);
+
     if (
-      event &&
       event.currentTarget.hasPointerCapture(
         event.pointerId,
       )
@@ -737,14 +896,35 @@ function ScratchCard({
     }
   }
 
+  function handlePointerCancel(
+    event: React.PointerEvent<HTMLCanvasElement>,
+  ) {
+    drawingRef.current = false;
+    lastPointRef.current = null;
+
+    setIsScratching(false);
+
+    if (
+      event.currentTarget.hasPointerCapture(
+        event.pointerId,
+      )
+    ) {
+      event.currentTarget.releasePointerCapture(
+        event.pointerId,
+      );
+    }
+  }
+
+  function closeCard() {
+    onComplete();
+  }
+
   return (
-    <article
-      className="reward-game-card reward-game-card--scratch overflow-hidden rounded-3xl border-2 border-amber-400/40 bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 p-5 shadow-2xl"
-    >
+    <article className="reward-game-card reward-game-card--scratch overflow-hidden rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 p-5 shadow-2xl">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <div className="text-xs font-bold uppercase tracking-[0.25em] text-amber-300">
-            Scratch & Win
+            Scratch &amp; Win
           </div>
 
           <h3 className="mt-1 text-2xl font-black text-white">
@@ -764,120 +944,127 @@ function ScratchCard({
       </div>
 
       <div className="rounded-3xl bg-white p-4 shadow-2xl">
-        {!started && !finished && (
-          <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-amber-400 p-8 text-center">
-            <div className="text-7xl">
-              🎟️
+        <div
+          ref={cardRef}
+          className={`relative mx-auto h-[330px] w-[320px] max-w-full overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-pink-500 ${
+            isScratching
+              ? "scale-[1.01]"
+              : "scale-100"
+          } transition-transform duration-150`}
+        >
+          {/* Reward underneath the silver layer */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
+            <div className="text-xs font-black uppercase tracking-[0.25em] text-white/70">
+              Your reward
             </div>
 
-            <h4 className="mt-5 text-3xl font-black text-white">
-              Friday Scratch
-            </h4>
-
-            <p className="mt-3 max-w-sm text-sm font-medium text-white/85">
-              You have a scratch-card reward waiting.
-            </p>
-
-            <div className="mt-4 rounded-full bg-black/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white">
-              Scratch & Win
+            <div className="mt-3 text-6xl font-black leading-none">
+              {winningPrize !== null
+                ? `+${winningPrize.toLocaleString()}`
+                : "+???"
+              }
             </div>
 
-            <button
-              type="button"
-              disabled={loading}
-              onClick={startScratch}
-              className="mt-7 rounded-xl bg-white px-8 py-4 text-sm font-black uppercase tracking-wide text-violet-700 shadow-xl transition hover:scale-105 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading
-                ? "STARTING..."
-                : "START SCRATCHING"}
-            </button>
+            <div className="mt-2 text-2xl font-black">
+              XP
+            </div>
+
+            <div className="mt-5 text-sm font-medium text-white/70">
+              {winningPrize !== null
+                ? "Keep scratching..."
+                : "Scratch to reveal"
+              }
+            </div>
           </div>
-        )}
 
-        {started &&
-          !finished &&
-          winningPrize !== null && (
-            <div className="relative mx-auto h-[360px] w-[340px] max-w-full overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-pink-500 shadow-inner">
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
-                <div className="text-xs font-black uppercase tracking-[0.3em] text-white/70">
-                  YOUR REWARD
+          {/* Actual scratch surface */}
+          {!finished && (
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 z-10 h-full w-full touch-none cursor-grab active:cursor-grabbing"
+              onPointerDown={
+                handlePointerDown
+              }
+              onPointerMove={
+                handlePointerMove
+              }
+              onPointerUp={
+                handlePointerUp
+              }
+              onPointerCancel={
+                handlePointerCancel
+              }
+            />
+          )}
+
+          {/* Backend loading indicator */}
+          {loading && (
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-slate-950/25 backdrop-blur-[1px]">
+              <div className="rounded-2xl bg-white px-5 py-4 text-center shadow-xl">
+                <div className="mx-auto h-6 w-6 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
+
+                <div className="mt-3 text-xs font-black uppercase tracking-wide text-violet-700">
+                  Preparing reward...
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Final reward presentation */}
+          {finished &&
+            winningPrize !== null && (
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gradient-to-br from-violet-600 via-fuchsia-500 to-pink-500 p-6 text-center text-white">
+                <div className="animate-bounce text-5xl">
+                  🎉
                 </div>
 
-                <div className="mt-3 text-7xl font-black">
+                <div className="mt-3 text-xs font-black uppercase tracking-[0.25em] text-white/70">
+                  Reward revealed
+                </div>
+
+                <div className="mt-3 text-7xl font-black leading-none">
                   +{winningPrize.toLocaleString()}
                 </div>
 
-                <div className="mt-1 text-2xl font-bold">
+                <div className="mt-2 text-2xl font-black">
                   XP
                 </div>
 
-                <div className="mt-6 text-sm font-bold text-white/70">
-                  Keep scratching...
-                </div>
+                <p className="mt-4 text-sm font-medium text-white/80">
+                  Your reward has been added to
+                  your account.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={closeCard}
+                  className="mt-6 rounded-xl bg-white px-7 py-3 text-sm font-black uppercase tracking-wide text-violet-700 shadow-lg transition hover:scale-105 hover:bg-slate-50"
+                >
+                  CLOSE
+                </button>
               </div>
+            )}
+        </div>
 
-              <canvas
-                ref={canvasRef}
-                className="absolute inset-0 h-full w-full touch-none cursor-crosshair"
-                onPointerDown={(event) => {
-                  drawingRef.current = true;
-                  lastPointRef.current = null;
+        {!loading && !finished && (
+          <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.15em] text-amber-300/70">
+            {isScratching
+              ? "Keep scratching..."
+              : "Touch and drag across the card to scratch"}
+          </p>
+        )}
 
-                  event.currentTarget.setPointerCapture(
-                    event.pointerId,
-                  );
+        {loading && !finished && (
+          <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.15em] text-amber-300/70">
+            Preparing your reward...
+          </p>
+        )}
 
-                  scratch(event);
-                }}
-                onPointerMove={(event) => {
-                  if (
-                    drawingRef.current
-                  ) {
-                    scratch(event);
-                  }
-                }}
-                onPointerUp={finishPointer}
-                onPointerCancel={() => {
-                  drawingRef.current = false;
-                  lastPointRef.current = null;
-                }}
-              />
-            </div>
-          )}
-
-        {finished &&
-          winningPrize !== null && (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-8 text-center text-white">
-              <div className="text-7xl">
-                🎉
-              </div>
-
-              <div className="mt-5 text-xs font-black uppercase tracking-[0.3em] text-white/70">
-                REWARD UNLOCKED
-              </div>
-
-              <div className="mt-3 text-7xl font-black">
-                +{winningPrize.toLocaleString()}
-              </div>
-
-              <div className="mt-1 text-2xl font-bold">
-                XP
-              </div>
-
-              <p className="mt-5 text-sm font-medium text-white/80">
-                Your reward has been added to your account.
-              </p>
-
-              <button
-                type="button"
-                onClick={onComplete}
-                className="mt-7 rounded-xl bg-white px-8 py-3 text-sm font-black uppercase tracking-wide text-emerald-700 shadow-xl hover:scale-105"
-              >
-                AWESOME!
-              </button>
-            </div>
-          )}
+        {finished && (
+          <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.15em] text-emerald-500">
+            Reward revealed — close when you're ready
+          </p>
+        )}
       </div>
 
       {error && (
@@ -910,7 +1097,12 @@ export default function RewardGames({
 
       const response =
         await getPlayerRewardGames();
-        console.log("Reward games response:", response.data);
+
+      console.log(
+        "Reward games response:",
+        response.data,
+      );
+
       setAvailable(
         response.data.available,
       );
@@ -939,13 +1131,18 @@ export default function RewardGames({
     onXpAwarded?.();
   }
 
+  /*
+   * Do not render anything while the initial request
+   * is loading.
+   */
+  if (loading) {
+    return null;
+  }
+
   if (
-    loading ||
-    (
-      available.length === 0 &&
-      upcoming.length === 0 &&
-      !error
-    )
+    available.length === 0 &&
+    upcoming.length === 0 &&
+    !error
   ) {
     return null;
   }
@@ -958,9 +1155,7 @@ export default function RewardGames({
             REWARDS
           </div>
 
-          <h2>
-            Your reward drops
-          </h2>
+          <h2>Your reward drops</h2>
 
           <p>
             You've earned a chance to unlock
@@ -1033,8 +1228,7 @@ export default function RewardGames({
                   </strong>
 
                   <span>
-                    {game.game_type ===
-                    "scratch"
+                    {game.game_type === "scratch"
                       ? "Scratch"
                       : "Wheel"}
                   </span>
