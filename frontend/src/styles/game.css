@@ -816,3 +816,141 @@
     transition: none;
   }
 }
+
+/* =========================================================
+   PLAYER REWARD WHEEL — FINAL COMPACT LAYOUT
+   Keep the wheel inside its card and prevent legacy wheel
+   styles from creating oversized vertical space.
+   ========================================================= */
+
+.reward-games {
+  width: 100%;
+  min-width: 0;
+}
+
+.reward-games__available {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.reward-game-card--wheel {
+  width: 100%;
+  min-width: 0;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.reward-game-card--wheel .reward-game-header {
+  padding: 18px 20px 12px;
+}
+
+.reward-game-card--wheel .reward-game-heading h3 {
+  font-size: 1.08rem;
+}
+
+.reward-game-card--wheel .reward-game-heading p {
+  max-width: 480px;
+  font-size: 0.78rem;
+}
+
+.reward-game-card--wheel .reward-wheel-panel {
+  width: calc(100% - 24px);
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 10px 10px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.reward-game-card--wheel .reward-wheel-panel__topline {
+  padding: 0 6px 6px;
+}
+
+.reward-game-card--wheel .reward-wheel {
+  width: min(100%, 360px);
+  max-width: 360px;
+  margin-inline: auto;
+}
+
+.reward-game-card--wheel .reward-wheel__svg {
+  inset: 1%;
+  width: 98%;
+  height: 98%;
+}
+
+.reward-game-card--wheel .reward-wheel__pointer {
+  top: 0;
+  width: 38px;
+  height: 47px;
+}
+
+.reward-game-card--wheel .reward-wheel__pointer::before {
+  inset: 0 3px 6px;
+}
+
+.reward-game-card--wheel .reward-wheel__pointer span {
+  width: 9px;
+  height: 9px;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+.reward-game-card--wheel .reward-wheel-empty {
+  min-height: 180px;
+}
+
+.reward-game-card--wheel .reward-primary-button {
+  width: calc(100% - 40px);
+  max-width: 620px;
+  min-height: 46px;
+  margin: 12px auto 18px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  font-size: 0.78rem;
+}
+
+/* Prevent the wheel from becoming enormous on wide screens. */
+@media (min-width: 901px) {
+  .reward-games__available {
+    grid-template-columns: minmax(0, 720px);
+    justify-content: start;
+  }
+}
+
+/* Smaller dashboard widths. */
+@media (max-width: 900px) {
+  .reward-game-card--wheel {
+    max-width: none;
+  }
+
+  .reward-game-card--wheel .reward-wheel {
+    width: min(100%, 330px);
+    max-width: 330px;
+  }
+}
+
+@media (max-width: 640px) {
+  .reward-game-card--wheel .reward-game-header {
+    padding: 15px 16px 10px;
+  }
+
+  .reward-game-card--wheel .reward-wheel-panel {
+    width: calc(100% - 16px);
+    padding: 8px 6px 10px;
+    border-radius: 18px;
+  }
+
+  .reward-game-card--wheel .reward-wheel {
+    width: min(100%, 290px);
+    max-width: 290px;
+  }
+
+  .reward-game-card--wheel .reward-primary-button {
+    width: calc(100% - 32px);
+    margin: 10px auto 14px;
+  }
+}
+

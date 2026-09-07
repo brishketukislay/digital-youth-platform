@@ -908,3 +908,459 @@
     display: none;
   }
 }
+
+/* =========================================================
+   PLAYER DASHBOARD — VISIBILITY / GREEN THEME FIX
+   Make all player content readable and consistently green.
+   ========================================================= */
+
+.player-dashboard {
+  color: #17352b;
+  background: #f4f8f6;
+}
+
+/* Main dashboard text */
+.player-dashboard h1,
+.player-dashboard h2,
+.player-dashboard h3,
+.player-dashboard h4,
+.player-dashboard strong,
+.player-dashboard b {
+  color: #17352b;
+}
+
+.player-dashboard p {
+  color: #5d7068;
+}
+
+/* Eyebrows / labels */
+.player-dashboard [class*="eyebrow"],
+.player-dashboard [class*="label"] {
+  color: #318565;
+}
+
+/* Cards */
+.player-dashboard .dashboard-card,
+.player-dashboard .dashboard-stat,
+.player-dashboard .dashboard-success,
+.player-dashboard .dashboard-accent {
+  color: #17352b;
+  background: #ffffff;
+  border-color: #d8e9e1;
+  box-shadow: 0 8px 24px rgba(20, 70, 52, 0.06);
+}
+
+/* Card headings */
+.player-dashboard .dashboard-card__title,
+.player-dashboard .dashboard-stat__value {
+  color: #17352b;
+}
+
+.player-dashboard .dashboard-card__eyebrow,
+.player-dashboard .dashboard-stat__label {
+  color: #43806b;
+}
+
+.player-dashboard .dashboard-stat__description {
+  color: #687a72;
+}
+
+/* Progress */
+.player-dashboard .dashboard-progress__track {
+  background: #dceae4;
+}
+
+.player-dashboard .dashboard-progress__fill {
+  background: linear-gradient(
+    90deg,
+    #2fa875,
+    #43b98b
+  );
+}
+
+/* Green accent elements */
+.player-dashboard .dashboard-accent {
+  background: #eef9f3;
+  border-color: #c8ead9;
+  color: #176044;
+}
+
+/* Explicitly neutralise old dark dashboard backgrounds */
+.player-dashboard .bg-slate-950,
+.player-dashboard .bg-slate-900,
+.player-dashboard .bg-black {
+  background: #ffffff !important;
+  color: #17352b !important;
+}
+
+.player-dashboard .bg-black\/10,
+.player-dashboard .bg-black\/20,
+.player-dashboard .bg-black\/30 {
+  background: #f3f8f5 !important;
+}
+
+/* Explicitly fix old white text */
+.player-dashboard .text-white {
+  color: #17352b !important;
+}
+
+.player-dashboard .text-slate-300,
+.player-dashboard .text-slate-400,
+.player-dashboard .text-slate-500,
+.player-dashboard .text-slate-600,
+.player-dashboard .text-slate-700 {
+  color: #5d7068 !important;
+}
+
+/* Borders */
+.player-dashboard .border-white\/5,
+.player-dashboard .border-white\/10 {
+  border-color: #d8e9e1 !important;
+}
+
+/* =========================================================
+   RECOGNITION
+   ========================================================= */
+
+.player-dashboard .recognition,
+.player-dashboard [class*="recognition"] {
+  color: #17352b;
+}
+
+.player-dashboard [class*="recognition"] strong,
+.player-dashboard [class*="recognition"] h2,
+.player-dashboard [class*="recognition"] h3 {
+  color: #17352b;
+}
+
+/* =========================================================
+   JOURNEY / PHASE / MYSTERY / GOAL
+   ========================================================= */
+
+.player-dashboard [class*="journey"],
+.player-dashboard [class*="phase"],
+.player-dashboard [class*="mystery"],
+.player-dashboard [class*="goal"],
+.player-dashboard [class*="milestone"] {
+  color: #17352b;
+}
+
+.player-dashboard [class*="journey"] p,
+.player-dashboard [class*="phase"] p,
+.player-dashboard [class*="mystery"] p,
+.player-dashboard [class*="goal"] p {
+  color: #5d7068;
+}
+
+/* =========================================================
+   LOCKED / NEXT MILESTONE STATES
+   ========================================================= */
+
+.player-dashboard [class*="locked"],
+.player-dashboard [class*="lock"] {
+  color: #71837b;
+}
+
+/* Don't let lock icons become invisible */
+.player-dashboard [class*="locked"] svg,
+.player-dashboard [class*="lock"] svg {
+  color: #71837b;
+}
+
+/* =========================================================
+   ACHIEVEMENTS
+   ========================================================= */
+
+.player-dashboard [class*="badge"],
+.player-dashboard [class*="achievement"] {
+  color: #17352b;
+}
+
+.player-dashboard [class*="badge"] p,
+.player-dashboard [class*="achievement"] p {
+  color: #667871;
+}
+
+/* =========================================================
+   CHALLENGES
+   ========================================================= */
+
+.player-dashboard [class*="challenge"] {
+  color: #17352b;
+}
+
+.player-dashboard [class*="challenge"] p {
+  color: #5d7068;
+}
+
+/* =========================================================
+   MAP / WORLD
+   ========================================================= */
+
+.player-dashboard [class*="map"] {
+  color: #17352b;
+}
+
+.player-dashboard [class*="map"] p,
+.player-dashboard [class*="map"] span {
+  color: #52675e;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.player-dashboard button {
+  color: #174c3a;
+}
+
+.player-dashboard button:not(:disabled):hover {
+  border-color: #43b98b;
+}
+
+.player-dashboard button:focus-visible {
+  outline: 2px solid #43b98b;
+  outline-offset: 2px;
+}
+
+/* Primary green actions */
+.player-dashboard .dashboard-primary,
+.player-dashboard [class*="primary-button"] {
+  background: linear-gradient(
+    135deg,
+    #238b63,
+    #43b98b
+  );
+  color: #ffffff !important;
+  border-color: transparent;
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.player-dashboard a {
+  color: #238b63;
+}
+
+.player-dashboard a:hover {
+  color: #176044;
+}
+
+/* =========================================================
+   PLAYER TOP AREA
+   ========================================================= */
+
+.player-dashboard header {
+  color: #17352b;
+}
+
+.player-dashboard header h1,
+.player-dashboard header h2,
+.player-dashboard header strong {
+  color: #17352b;
+}
+
+.player-dashboard header p,
+.player-dashboard header span {
+  color: #62756c;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .player-dashboard {
+    background: #f4f8f6;
+  }
+
+  .player-dashboard .dashboard-card {
+    box-shadow: 0 5px 18px rgba(20, 70, 52, 0.05);
+  }
+}
+
+
+/* =========================================================
+   PLAYER DASHBOARD — VISIBILITY / LIGHT THEME FIX
+   Restore readable contrast for dashboard content.
+   ========================================================= */
+
+.player-dashboard {
+  color: #15211d;
+  background: #f3f7f5;
+}
+
+/* Main dashboard text */
+.player-dashboard h1,
+.player-dashboard h2,
+.player-dashboard h3,
+.player-dashboard h4,
+.player-dashboard strong {
+  color: #15211d;
+}
+
+.player-dashboard p,
+.player-dashboard span,
+.player-dashboard small {
+  color: #596760;
+}
+
+/* Eyebrows / section labels */
+.player-dashboard .eyebrow,
+.player-dashboard .dashboard-eyebrow,
+.player-dashboard [class*="eyebrow"] {
+  color: #0f766e;
+}
+
+/* Cards */
+.player-dashboard .dashboard-card,
+.player-dashboard .dashboard-stat,
+.player-dashboard .dashboard-panel {
+  background: #ffffff;
+  color: #15211d;
+  border-color: #dfe8e3;
+}
+
+/* Card headings */
+.player-dashboard .dashboard-card h2,
+.player-dashboard .dashboard-card h3,
+.player-dashboard .dashboard-card strong {
+  color: #15211d;
+}
+
+/* Muted text */
+.player-dashboard .dashboard-card p,
+.player-dashboard .dashboard-card span,
+.player-dashboard .dashboard-card small {
+  color: #596760;
+}
+
+/* Numbers / XP values */
+.player-dashboard .dashboard-stat__value,
+.player-dashboard [class*="xp"] strong,
+.player-dashboard [class*="progress"] strong {
+  color: #083b2d;
+}
+
+/* Progress bars */
+.player-dashboard .dashboard-progress__track {
+  background: #dfe9e4;
+}
+
+.player-dashboard .dashboard-progress__fill {
+  background: linear-gradient(
+    90deg,
+    #0f766e,
+    #43b98b
+  );
+}
+
+/* Links / interactive text */
+.player-dashboard a {
+  color: #0f766e;
+}
+
+.player-dashboard a:hover {
+  color: #075e55;
+}
+
+/* Empty states */
+.player-dashboard [class*="empty"] {
+  color: #596760;
+}
+
+.player-dashboard [class*="empty"] strong {
+  color: #15211d;
+}
+
+/* Locked / secondary content */
+.player-dashboard [class*="locked"],
+.player-dashboard [class*="lock"] {
+  color: #596760;
+}
+
+/* Hero */
+.player-dashboard .player-hero,
+.player-dashboard [class*="hero"] {
+  color: #15211d;
+}
+
+.player-dashboard .player-hero h1,
+.player-dashboard [class*="hero"] h1,
+.player-dashboard [class*="hero"] h2 {
+  color: #083b2d;
+}
+
+/* Recognition / QR area */
+.player-dashboard [class*="recognition"] {
+  color: #15211d;
+}
+
+.player-dashboard [class*="recognition"] p,
+.player-dashboard [class*="recognition"] span {
+  color: #596760;
+}
+
+/* Squad / phase / mystery / achievement sections */
+.player-dashboard [class*="squad"],
+.player-dashboard [class*="phase"],
+.player-dashboard [class*="mystery"],
+.player-dashboard [class*="badge"],
+.player-dashboard [class*="achievement"],
+.player-dashboard [class*="goal"],
+.player-dashboard [class*="milestone"] {
+  color: #15211d;
+}
+
+.player-dashboard [class*="squad"] p,
+.player-dashboard [class*="phase"] p,
+.player-dashboard [class*="mystery"] p,
+.player-dashboard [class*="badge"] p,
+.player-dashboard [class*="achievement"] p,
+.player-dashboard [class*="goal"] p,
+.player-dashboard [class*="milestone"] p {
+  color: #596760;
+}
+
+/* Prevent inherited white text from old/dark dashboard styles */
+.player-dashboard .text-white {
+  color: #15211d !important;
+}
+
+.player-dashboard .text-slate-300,
+.player-dashboard .text-slate-400,
+.player-dashboard .text-slate-500,
+.player-dashboard .text-slate-600,
+.player-dashboard .text-slate-700 {
+  color: #596760 !important;
+}
+
+/* Keep important values dark */
+.player-dashboard .text-white.font-bold,
+.player-dashboard .text-white.font-semibold,
+.player-dashboard .text-white.font-extrabold,
+.player-dashboard .text-white.font-black {
+  color: #083b2d !important;
+}
+
+/* =========================================================
+   PLAYER DASHBOARD — REWARD / GAME SECTION
+   ========================================================= */
+
+.player-dashboard .reward-games {
+  color: #15211d;
+}
+
+.player-dashboard .reward-games h2,
+.player-dashboard .reward-games h3,
+.player-dashboard .reward-games strong {
+  color: #15211d;
+}
+
+.player-dashboard .reward-games p,
+.player-dashboard .reward-games span,
+.player-dashboard .reward-games small {
+  color: #596760;
+}
+

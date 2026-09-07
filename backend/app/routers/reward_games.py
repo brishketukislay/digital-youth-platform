@@ -205,18 +205,10 @@ def player_reward_games(
             detail="Player profile not found.",
         )
 
-    from ..db.models import YouthGroup
-
-    group = (
-        db.query(YouthGroup)
-        .filter(
-            YouthGroup.id == player.group_id,
-            YouthGroup.active.is_(True),
-        )
-        .first()
-    )
-
-    if not group:
+    # Reward games are programme-level entitlements.
+    # A player does NOT need to belong to a group to receive or see
+    # a reward game. Use the player's programme directly.
+    if player.programme_id is None:
         return {
             "available": [],
             "upcoming": [],
@@ -226,7 +218,7 @@ def player_reward_games(
         db.query(RewardGame)
         .filter(
             RewardGame.programme_id
-            == group.programme_id,
+            == player.programme_id,
             RewardGame.active.is_(True),
         )
         .order_by(
@@ -614,18 +606,7 @@ def grant_reward_game(
             detail="Player not found.",
         )
 
-    from ..db.models import YouthGroup
-
-    group = (
-        db.query(YouthGroup)
-        .filter(
-            YouthGroup.id == player.group_id,
-            YouthGroup.active.is_(True),
-        )
-        .first()
-    )
-
-    if not group or group.programme_id != game.programme_id:
+    if player.programme_id != game.programme_id:
         raise HTTPException(
             status_code=400,
             detail="Player does not belong to this programme.",

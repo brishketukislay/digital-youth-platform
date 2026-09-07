@@ -709,6 +709,12 @@ class Player(Base, TimestampMixin):
         index=True,
     )
 
+    programme_id: Mapped[int] = mapped_column(
+        ForeignKey("programmes.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
     group_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("groups.id"),
         nullable=True,
