@@ -33,7 +33,7 @@ function PhaseCard({
 }) {
   return (
     <div
-      className="public-phase"
+      className="dyp-dashboard public-phase"
       style={{
         "--phase-colour": phase.colour,
       } as React.CSSProperties}

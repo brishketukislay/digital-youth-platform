@@ -66,8 +66,8 @@ function MapPreview({
 
   if (!map) {
     return (
-      <section className="public-card public-map-card public-map-card--empty">
-        <div className="public-card-heading">
+      <section className="dyp-dashboard-shell public-card public-map-card public-map-card--empty">
+        <div className="dyp-dashboard public-card-heading">
           <div>
             <span className="public-eyebrow">
               <MapPin size={14} />

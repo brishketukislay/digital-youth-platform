@@ -235,7 +235,7 @@ function AdminOverviewHome({
 
   if (loading && !overview) {
     return (
-      <div className="admin-proto-page">
+      <div className="dyp-dashboard admin-proto-page">
         <section className="admin-proto-hero admin-proto-skeleton">
           <div />
           <div />

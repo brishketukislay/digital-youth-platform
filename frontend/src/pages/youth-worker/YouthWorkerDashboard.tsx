@@ -73,7 +73,7 @@ function ProgressBar({
     : 0;
 
   return (
-    <div className="staff-progress">
+    <div className="dyp-dashboard-shell dyp-dashboard staff-progress">
       <div style={{ width: `${value}%` }} />
     </div>
   );

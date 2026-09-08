@@ -1,11 +1,8 @@
-import "./styles/dyp-arcade-system.css";
-import "./styles/dashboard-system.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles/index.css";
-import "./styles/dyp-ui-system.css";
-
+import "./styles/dyp-arcade-system.css";
 ReactDOM.createRoot(
   document.getElementById("root")!,
 ).render(

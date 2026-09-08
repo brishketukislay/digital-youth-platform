@@ -39,7 +39,7 @@ export function DashboardCard({
         .join(" ")}
     >
       {(eyebrow || title || action) && (
-        <div className="dashboard-card__header">
+        <div className="dyp-dashboard dashboard-card__header">
           <div>
             {eyebrow && (
               <div className="dashboard-card__eyebrow">

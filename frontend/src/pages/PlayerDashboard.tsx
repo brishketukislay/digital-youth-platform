@@ -160,7 +160,7 @@ export default function PlayerDashboard() {
     return (
       <Layout>
         <div
-          className="card dashboard-loading"
+          className="dyp-dashboard card dashboard-loading"
           aria-live="polite"
         >
           <div
