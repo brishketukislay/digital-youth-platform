@@ -56,7 +56,7 @@ export function GroupProgress({
 }: Props) {
   if (!data.group) {
     return (
-      <section className="card featured-progress">
+      <section className="card featured-progress" data-dashboard-card="true">
         <div className="card-title-row">
           <div>
             <div className="eyebrow">

@@ -11,7 +11,7 @@ export function BadgeCabinet({
     data.badges ?? [];
 
   return (
-    <section className="card">
+    <section className="card" data-dashboard-card="true">
       <div className="card-title-row">
         <div>
           <div className="eyebrow">

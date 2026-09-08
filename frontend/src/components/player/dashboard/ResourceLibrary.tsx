@@ -744,7 +744,7 @@ export function ResourceLibrary({
                     )}
                 >
                   <div
-                    className="resource-card__visual"
+                    className="resource-card__visual" data-dashboard-card="true"
                     style={{
                       "--resource-colour":
                         config.colour,

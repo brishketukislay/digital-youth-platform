@@ -12,7 +12,7 @@ export function CurrentPhase({
 
   if (!phase) {
     return (
-      <section className="card">
+      <section className="card" data-dashboard-card="true">
         <div className="card-title-row">
           <div>
             <div className="eyebrow">

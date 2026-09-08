@@ -1,4 +1,3 @@
-import "./styles/dyp-arcade-system.css";
 import "./styles/dashboard-system.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
