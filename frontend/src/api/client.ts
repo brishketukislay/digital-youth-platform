@@ -1980,3 +1980,112 @@ export async function grantRewardGame(
     },
   );
 }
+
+export type DrawingXPBracket = {
+  min: number;
+  max: number;
+  xp: number;
+};
+
+export type DrawingGame = {
+  id: number;
+  name: string;
+  description?: string | null;
+  shape: "circle" | "square" | "triangle";
+  config: {
+    canvasWidth: number;
+    canvasHeight: number;
+    strokeWidth: number;
+  };
+  xp_brackets: DrawingXPBracket[];
+};
+
+export type DrawingAssignment = {
+  assignment_id: number;
+  game_id: number;
+  name: string;
+  description?: string | null;
+  shape: DrawingGame["shape"];
+  config: DrawingGame["config"];
+};
+
+const drawingGamesRequest = async (
+  path: string,
+  options: RequestInit = {},
+) => {
+  const response = await fetch(`/api/drawing-games${path}`, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    let message = "Request failed";
+
+    try {
+      const body = await response.json();
+      message =
+        typeof body.detail === "string"
+          ? body.detail
+          : message;
+    } catch {
+      // Ignore JSON parse errors.
+    }
+
+    throw new Error(message);
+  }
+
+  return response.json();
+};
+
+export const createDrawingGame = (
+  payload: {
+    name: string;
+    description?: string;
+    shape: DrawingGame["shape"];
+    xp_brackets: DrawingXPBracket[];
+  },
+) =>
+  drawingGamesRequest("/admin", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const getDrawingGames = () =>
+  drawingGamesRequest("/admin");
+
+export const assignDrawingGame = (
+  gameId: number,
+  payload:
+    | { group_id: number }
+    | { player_ids: number[] },
+) =>
+  drawingGamesRequest(
+    `/${gameId}/assign`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+
+export const getDrawingAssignments = () =>
+  drawingGamesRequest("/assignments");
+
+export const getPlayerDrawingGames =
+  (): Promise<DrawingAssignment[]> =>
+    drawingGamesRequest("/player");
+
+export const submitDrawingAttempt = (
+  assignmentId: number,
+  points: { x: number; y: number }[],
+) =>
+  drawingGamesRequest(
+    `/assignments/${assignmentId}/attempt`,
+    {
+      method: "POST",
+      body: JSON.stringify({ points }),
+    },
+  );

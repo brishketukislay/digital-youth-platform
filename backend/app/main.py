@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .database import Base, engine
 from .routers.xp_operations import router as xp_operations_router
+from .routers.drawing_games import router as drawing_games_router
 from .routers import (
     admin,
     attendance,
@@ -25,6 +26,7 @@ app = FastAPI(
 )
 
 app.include_router(xp_operations_router)
+app.include_router(drawing_games_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

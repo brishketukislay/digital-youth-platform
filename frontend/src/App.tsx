@@ -51,6 +51,20 @@ const YouthWorkerDashboard = lazy(
     ),
 );
 
+const DrawingGamesPage = lazy(
+  () =>
+    import(
+      "./pages/youth-worker/DrawingGamesPage"
+    ),
+);
+
+const PlayerDrawingGamePage = lazy(
+  () =>
+    import(
+      "./pages/player/DrawingGamePage"
+    ),
+);
+
 const AdminDashboard = lazy(
   () =>
     import(
@@ -564,6 +578,13 @@ function AppRoutes() {
               <PlayerChallengePage />
             }
           />
+
+          <Route
+            path="/player/drawing-games"
+            element={
+              <PlayerDrawingGamePage />
+            }
+          />
         </Route>
 
         {/* ====================================================
@@ -583,6 +604,13 @@ function AppRoutes() {
             path="/youth-worker"
             element={
               <YouthWorkerDashboard />
+            }
+          />
+
+          <Route
+            path="/youth-worker/games"
+            element={
+              <DrawingGamesPage />
             }
           />
         </Route>
